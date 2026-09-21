@@ -4,6 +4,8 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-21
+
 ### Changed
 
 - Added opt-in tenant Page trees, translation ownership, tenant-leading key and

@@ -4,6 +4,8 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-25
+
 ### Changed
 
 - Prepare `nvl/pages` for independent Composer and Git publication; require `nvl/core` for shared Support and Data services.

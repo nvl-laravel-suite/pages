@@ -2,6 +2,9 @@
 
 [← NVL Laravel Suite](https://github.com/nvl-laravel-suite)
 
+For support, [open an issue](https://github.com/nvl-laravel-suite/pages/issues). For vulnerabilities, use
+[private reporting](https://github.com/nvl-laravel-suite/pages/security/advisories/new). See [Contributing](CONTRIBUTING.md).
+
 ## Quick reference
 
 | Item | Value |
@@ -391,17 +394,14 @@ Content, SEO, and Metafields retain their own authorization and mutation contrac
 
 ## Verification and development
 
-From this monorepo:
+From a standalone checkout of the public Pages repository:
 
 ```bash
-vendor/bin/pest --test-directory=packages/nvl/pages/tests --configuration=packages/nvl/pages/phpunit.xml.dist --bootstrap=vendor/autoload.php --compact packages/nvl/pages/tests
-cd packages/nvl/pages && vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=3G
-vendor/bin/pint --format agent packages/nvl/pages
-php artisan nvl:data:types:check
-php tools/validate-package-family.php
+composer install
+composer quality
 ```
 
-The test suite boots Pages with only declared dependencies and covers clean migration, redacted static resolution, dynamic handler conditions, localized navigation, hierarchy limits, selective path rebuilding, site locks, lifecycle abilities, stale and duplicate mutations, site-scoped lists, preview, restoration, sitemap delegation, route defaults, and doctor output.
+Maintainer CI additionally checks the package family and generated types from the private source workbench. The test suite boots Pages with only declared dependencies and covers clean migration, redacted static resolution, dynamic handler conditions, localized navigation, hierarchy limits, selective path rebuilding, site locks, lifecycle abilities, stale and duplicate mutations, site-scoped lists, preview, restoration, sitemap delegation, route defaults, and doctor output.
 
 ## License
 

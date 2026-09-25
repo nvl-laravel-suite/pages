@@ -1,12 +1,12 @@
 # NVL Pages — API and usage
 
-[← NVL Laravel Suite](../../../README.md)
+[← NVL Laravel Suite](https://github.com/nvl-laravel-suite)
 
 ## Quick reference
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/laravel-suite:^2.0` |
+| Installed through | `composer require nvl/pages:^2.0` |
 | Module identifier | `nvl/pages` |
 | PHP namespace | `Nvl\Pages` |
 | Service provider | `Nvl\Pages\Providers\PagesServiceProvider` |
@@ -51,7 +51,7 @@ models are canonically checked again before projection.
 Install the package in a clean Laravel application:
 
 ```bash
-composer require nvl/laravel-suite:^2.0
+composer require nvl/pages:^2.0
 php artisan vendor:publish --tag=pages-config
 php artisan vendor:publish --tag=pages-skills
 php artisan migrate

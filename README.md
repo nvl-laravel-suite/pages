@@ -5,6 +5,8 @@
 For support, [open an issue](https://github.com/nvl-laravel-suite/pages/issues). For vulnerabilities, use
 [private reporting](https://github.com/nvl-laravel-suite/pages/security/advisories/new). See [Contributing](CONTRIBUTING.md).
 
+See the [installation and publishing guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/INSTALLATION.md) for Composer setup, configuration, migration ownership, and agent skills.
+
 ## Quick reference
 
 | Item | Value |
@@ -61,7 +63,7 @@ php artisan migrate
 php artisan nvl:pages:doctor --strict
 ```
 
-Laravel package discovery registers the provider. Composer installs Content, Data, Filterable, Metafields, SEO, and Translatable automatically. The default tables are `pages`, `pages_i18n`, and `page_tree_locks`; their names and the database connection are configurable.
+Laravel package discovery registers the provider. Composer installs the declared Content, Core (including Data), Filterable, Metafields, SEO, Tenancy, and Translatable dependencies automatically. The default tables are `pages`, `pages_i18n`, and `page_tree_locks`; their names and the database connection are configurable.
 
 Routes are disabled by default. Publishing migrations is optional because package migrations load automatically while `pages.migrations.enabled` is true.
 

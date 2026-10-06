@@ -1,0 +1,861 @@
+{
+    "schema_version": 1,
+    "package": "nvl/pages",
+    "psr4": {
+        "Nvl\\Pages\\": "src"
+    },
+    "symbols": {
+        "Nvl\\Pages\\Actions\\CheckPageKeyAvailabilityAction": {
+            "kind": "class",
+            "file": "src/Actions/CheckPageKeyAvailabilityAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\CreatePageAction": {
+            "kind": "class",
+            "file": "src/Actions/CreatePageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\DeletePageAction": {
+            "kind": "class",
+            "file": "src/Actions/DeletePageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\FindPageByKeyAction": {
+            "kind": "class",
+            "file": "src/Actions/FindPageByKeyAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\GetNavigationAction": {
+            "kind": "class",
+            "file": "src/Actions/GetNavigationAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\GetPageAction": {
+            "kind": "class",
+            "file": "src/Actions/GetPageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\GetPageEditorBootstrapAction": {
+            "kind": "class",
+            "file": "src/Actions/GetPageEditorBootstrapAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\GetPagePublicationProjectionAction": {
+            "kind": "class",
+            "file": "src/Actions/GetPagePublicationProjectionAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\ListPageEditorSummariesAction": {
+            "kind": "class",
+            "file": "src/Actions/ListPageEditorSummariesAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\ListPageOptionsAction": {
+            "kind": "class",
+            "file": "src/Actions/ListPageOptionsAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\ListPagesAction": {
+            "kind": "class",
+            "file": "src/Actions/ListPagesAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\ListPublicChildPagesAction": {
+            "kind": "class",
+            "file": "src/Actions/ListPublicChildPagesAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\MovePageAction": {
+            "kind": "class",
+            "file": "src/Actions/MovePageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\PreviewPageAction": {
+            "kind": "class",
+            "file": "src/Actions/PreviewPageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\ResolvePageAction": {
+            "kind": "class",
+            "file": "src/Actions/ResolvePageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\RestorePageAction": {
+            "kind": "class",
+            "file": "src/Actions/RestorePageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Actions\\UpdatePageAction": {
+            "kind": "class",
+            "file": "src/Actions/UpdatePageAction.php",
+            "methods": [
+                "__construct",
+                "execute"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\AbstractPageResourceHandler": {
+            "kind": "class",
+            "file": "src/Contracts/AbstractPageResourceHandler.php",
+            "methods": [
+                "fetch",
+                "rules",
+                "sitemapEntries"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\PageAuthorization": {
+            "kind": "interface",
+            "file": "src/Contracts/PageAuthorization.php",
+            "methods": [
+                "authorize"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\PageMetafields": {
+            "kind": "interface",
+            "file": "src/Contracts/PageMetafields.php",
+            "methods": [
+                "fields"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\PageRequestContextResolver": {
+            "kind": "interface",
+            "file": "src/Contracts/PageRequestContextResolver.php",
+            "methods": [
+                "resolve"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\PageResourceHandler": {
+            "kind": "interface",
+            "file": "src/Contracts/PageResourceHandler.php",
+            "methods": [
+                "alias",
+                "fetch",
+                "present",
+                "query",
+                "routePattern",
+                "rules",
+                "sitemapEntries"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\PageUrlGenerator": {
+            "kind": "interface",
+            "file": "src/Contracts/PageUrlGenerator.php",
+            "methods": [
+                "url"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Contracts\\TenantSafePageResourceHandler": {
+            "kind": "interface",
+            "file": "src/Contracts/TenantSafePageResourceHandler.php",
+            "methods": [
+                "alias",
+                "fetch",
+                "present",
+                "query",
+                "routePattern",
+                "rules",
+                "sitemapEntries",
+                "tenantResourceModel"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\Mutations\\CreatePageData": {
+            "kind": "class",
+            "file": "src/Data/Mutations/CreatePageData.php",
+            "methods": [
+                "__construct",
+                "rules",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "expiresAt",
+                "isNavigable",
+                "key",
+                "kind",
+                "parentId",
+                "position",
+                "publishedAt",
+                "resource",
+                "site",
+                "sitemapChangeFrequency",
+                "sitemapIncluded",
+                "sitemapPriority",
+                "slug",
+                "status",
+                "translations"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\Mutations\\DeletePageData": {
+            "kind": "class",
+            "file": "src/Data/Mutations/DeletePageData.php",
+            "methods": [
+                "__construct",
+                "rules",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "expectedRevision"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\Mutations\\MovePageData": {
+            "kind": "class",
+            "file": "src/Data/Mutations/MovePageData.php",
+            "methods": [
+                "__construct",
+                "rules",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "expectedRevision",
+                "parentId",
+                "position"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\Mutations\\RestorePageData": {
+            "kind": "class",
+            "file": "src/Data/Mutations/RestorePageData.php",
+            "methods": [
+                "__construct",
+                "rules",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "expectedRevision"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\Mutations\\UpdatePageData": {
+            "kind": "class",
+            "file": "src/Data/Mutations/UpdatePageData.php",
+            "methods": [
+                "__construct",
+                "rules",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "expectedRevision",
+                "expiresAt",
+                "isNavigable",
+                "kind",
+                "position",
+                "publishedAt",
+                "resource",
+                "sitemapChangeFrequency",
+                "sitemapIncluded",
+                "sitemapPriority",
+                "slug",
+                "status",
+                "translations"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\NavigationData": {
+            "kind": "class",
+            "file": "src/Data/NavigationData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "items",
+                "locale",
+                "site"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\NavigationItemData": {
+            "kind": "class",
+            "file": "src/Data/NavigationItemData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "children",
+                "id",
+                "key",
+                "label",
+                "path",
+                "url"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageActorData": {
+            "kind": "class",
+            "file": "src/Data/PageActorData.php",
+            "methods": [
+                "__construct",
+                "anonymous",
+                "contentActor",
+                "fromAuthenticatable",
+                "system"
+            ],
+            "properties": [
+                "id",
+                "system",
+                "type"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageAuthorizationContextData": {
+            "kind": "class",
+            "file": "src/Data/PageAuthorizationContextData.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "locale",
+                "parentId",
+                "path",
+                "resourceId",
+                "site"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageData": {
+            "kind": "class",
+            "file": "src/Data/PageData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "createdAt",
+                "expiresAt",
+                "id",
+                "isNavigable",
+                "key",
+                "kind",
+                "parentId",
+                "path",
+                "position",
+                "publishedAt",
+                "resource",
+                "revision",
+                "site",
+                "sitemapChangeFrequency",
+                "sitemapIncluded",
+                "sitemapPriority",
+                "slug",
+                "status",
+                "translations",
+                "updatedAt"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageEditorBootstrapData": {
+            "kind": "class",
+            "file": "src/Data/PageEditorBootstrapData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "content",
+                "maximumDepth",
+                "metafields",
+                "page",
+                "pageKinds",
+                "pageStatuses",
+                "resourceAliases",
+                "seo"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageEditorSummaryData": {
+            "kind": "class",
+            "file": "src/Data/PageEditorSummaryData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "label",
+                "page",
+                "placements",
+                "seo"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageKeyAvailabilityData": {
+            "kind": "class",
+            "file": "src/Data/PageKeyAvailabilityData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "available",
+                "conflictingPageId",
+                "key",
+                "site"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageMetafieldFieldData": {
+            "kind": "class",
+            "file": "src/Data/PageMetafieldFieldData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "defaultValue",
+                "definitionId",
+                "description",
+                "displayOrder",
+                "handle",
+                "hasStoredValue",
+                "hint",
+                "isRequired",
+                "isTranslatable",
+                "jsonPropertySchema",
+                "key",
+                "namespace",
+                "title",
+                "translations",
+                "type",
+                "usesDefaultValue",
+                "value"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageOptionData": {
+            "kind": "class",
+            "file": "src/Data/PageOptionData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "id",
+                "key",
+                "kind",
+                "label",
+                "path",
+                "revision",
+                "status"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageRequestContextData": {
+            "kind": "class",
+            "file": "src/Data/PageRequestContextData.php",
+            "methods": [
+                "__construct"
+            ],
+            "properties": [
+                "locale",
+                "site",
+                "tenantSite"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageResourceData": {
+            "kind": "class",
+            "file": "src/Data/PageResourceData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "id",
+                "payload",
+                "type"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PageResourceRequestData": {
+            "kind": "class",
+            "file": "src/Data/PageResourceRequestData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "locale",
+                "pageId",
+                "parameters",
+                "site"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PreviewPageData": {
+            "kind": "class",
+            "file": "src/Data/PreviewPageData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "content",
+                "page",
+                "resource",
+                "seo"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\PublicPageData": {
+            "kind": "class",
+            "file": "src/Data/PublicPageData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "id",
+                "key",
+                "kind",
+                "locale",
+                "navigationLabel",
+                "navigationLabelLocale",
+                "path",
+                "publishedAt",
+                "slug",
+                "summary",
+                "summaryLocale",
+                "title",
+                "titleLocale",
+                "url"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Data\\ResolvedPageData": {
+            "kind": "class",
+            "file": "src/Data/ResolvedPageData.php",
+            "methods": [
+                "__construct",
+                "scopedRules",
+                "toArray",
+                "toModel",
+                "toModelFiltered",
+                "toModelPatch",
+                "translatedAttributes",
+                "translatedMessages"
+            ],
+            "properties": [
+                "content",
+                "page",
+                "resource",
+                "seo"
+            ],
+            "constants": []
+        },
+        "Nvl\\Pages\\Enums\\PageAbility": {
+            "kind": "enum",
+            "file": "src/Enums/PageAbility.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Archive",
+                "Create",
+                "Delete",
+                "List",
+                "Move",
+                "Preview",
+                "Publish",
+                "Restore",
+                "Update",
+                "View",
+                "ViewNavigation"
+            ]
+        },
+        "Nvl\\Pages\\Enums\\PageKind": {
+            "kind": "enum",
+            "file": "src/Enums/PageKind.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Resource",
+                "Static"
+            ]
+        },
+        "Nvl\\Pages\\Enums\\PageStatus": {
+            "kind": "enum",
+            "file": "src/Enums/PageStatus.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Archived",
+                "Draft",
+                "Published",
+                "Scheduled"
+            ]
+        },
+        "Nvl\\Pages\\Enums\\PublicChildPageOrder": {
+            "kind": "enum",
+            "file": "src/Enums/PublicChildPageOrder.php",
+            "methods": [
+                "cases",
+                "from",
+                "tryFrom"
+            ],
+            "properties": [
+                "name",
+                "value"
+            ],
+            "constants": [
+                "Newest",
+                "Sibling"
+            ]
+        },
+        "Nvl\\Pages\\Models\\Page": {
+            "kind": "class",
+            "file": "src/Models/Page.php",
+            "methods": [
+                "getKey",
+                "getKeyName",
+                "getMorphClass",
+                "getRouteKey",
+                "getRouteKeyName",
+                "is",
+                "isNot",
+                "relationLoaded"
+            ],
+            "properties": [],
+            "constants": []
+        }
+    },
+    "models": {
+        "Nvl\\Pages\\Models\\Page": {
+            "read": [],
+            "identity_methods": [
+                "getKey",
+                "getKeyName",
+                "getMorphClass",
+                "getRouteKey",
+                "getRouteKeyName",
+                "is",
+                "isNot",
+                "relationLoaded"
+            ],
+            "capability_relations": []
+        }
+    },
+    "capability_relations": {},
+    "tables": {
+        "i18n": "nvl_pages_i18n",
+        "pages": "nvl_pages_pages",
+        "tree_locks": "nvl_pages_tree_locks"
+    }
+}

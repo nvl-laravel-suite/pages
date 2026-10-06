@@ -17,7 +17,7 @@ use Nvl\Pages\Enums\PublicChildPageOrder;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Translatable\Services\LocaleRegistry;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Lists one bounded level of publicly visible child Pages.
@@ -31,7 +31,7 @@ final readonly class ListPublicChildPagesAction
         private PageAuthorization $authorization,
         private PageUrlGenerator $urls,
         private PageIdentityGuard $identities,
-        private LocaleRegistry $locales,
+        private LocaleCatalog $locales,
     ) {}
 
     /**

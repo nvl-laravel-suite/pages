@@ -8,7 +8,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\Facades\DB;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Tenancy\Contracts\TenantContext;
+use Nvl\Support\Tenancy\Contracts\TenantContext;
 
 /**
  * Serializes every structural mutation for one site through a stable database row.
@@ -24,7 +24,7 @@ final readonly class PageTreeLock
     public function acquire(string $site): void
     {
         $connection = DB::connection(PagesConfiguration::connection());
-        $table = PagesConfiguration::table(PagesTables::TreeLocks, PagesTables::TreeLocks);
+        $table = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
 
         $identity = ['site' => $site];
         if ($this->configuration->get('tenancy.enabled') === true) {

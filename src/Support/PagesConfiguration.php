@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nvl\Pages\Support;
 
 use InvalidArgumentException;
+use Nvl\Pages\Definitions\Tables\PagesTables;
+use Nvl\Support\Config\PackageStorage;
 
 /**
  * Normalizes values crossing Laravel's untyped configuration boundary.
@@ -16,14 +18,7 @@ final class PagesConfiguration
      */
     public static function table(string $key, string $default): string
     {
-        $value = config("pages.tables.{$key}", $default);
-
-        if (! is_string($value)
-            || preg_match('/^[A-Za-z_][A-Za-z0-9_.]*$/D', $value) !== 1) {
-            throw new InvalidArgumentException("Pages table [{$key}] is invalid.");
-        }
-
-        return $value;
+        return PagesTables::get($key);
     }
 
     /**
@@ -31,9 +26,7 @@ final class PagesConfiguration
      */
     public static function connection(): ?string
     {
-        $value = config('pages.connection');
-
-        return is_string($value) && $value !== '' ? $value : null;
+        return PackageStorage::connection('pages');
     }
 
     /**

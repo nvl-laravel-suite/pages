@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Data;
 
-use Nvl\Tenancy\ValueObjects\TenantSiteContext;
+use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\Hidden;
 

@@ -14,7 +14,7 @@ use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Translatable\Services\LocaleRegistry;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Lists bounded localized Page options for management consumers.
@@ -27,7 +27,7 @@ final readonly class ListPageOptionsAction
     public function __construct(
         private PageAuthorization $authorization,
         private PageIdentityGuard $identities,
-        private LocaleRegistry $locales,
+        private LocaleCatalog $locales,
     ) {}
 
     /**

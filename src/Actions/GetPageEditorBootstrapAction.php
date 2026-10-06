@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Nvl\Pages\Actions;
 
 use Nvl\Content\Actions\GetOwnerContentEditorAction;
-use Nvl\Metafields\Actions\Metafields\ListAuthorizedOwnerMetafieldsAction;
 use Nvl\Pages\Contracts\PageAuthorization;
+use Nvl\Pages\Contracts\PageMetafields;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
 use Nvl\Pages\Data\PageData;
@@ -19,7 +19,7 @@ use Nvl\Pages\Services\PageIdentityGuard;
 use Nvl\Pages\Services\PageResourceRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Actions\GetOwnerSeoProfileAction;
-use Nvl\Translatable\Services\LocaleRegistry;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Composes one authorized Page editor from package-owned read boundaries.
@@ -35,10 +35,10 @@ final readonly class GetPageEditorBootstrapAction
     public function __construct(
         private PageAuthorization $authorization,
         private PageIdentityGuard $identities,
-        private LocaleRegistry $locales,
+        private LocaleCatalog $locales,
         private GetOwnerContentEditorAction $content,
         private GetOwnerSeoProfileAction $seo,
-        private ListAuthorizedOwnerMetafieldsAction $metafields,
+        private PageMetafields $metafields,
         private PageResourceRegistry $resources,
     ) {}
 
@@ -73,7 +73,7 @@ final readonly class GetPageEditorBootstrapAction
                 $actor->contentActor(),
             ),
             seo: $this->seo->execute($page, $page->site),
-            metafields: array_values($this->metafields->execute($page, $locale)->all()),
+            metafields: $this->metafields->fields($page, $locale),
             pageKinds: array_column(PageKind::cases(), 'value'),
             pageStatuses: array_column(PageStatus::cases(), 'value'),
             resourceAliases: $this->resources->aliases(),

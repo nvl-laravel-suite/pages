@@ -17,7 +17,7 @@ use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Actions\ListOwnerSeoProfilesAction;
-use Nvl\Translatable\Services\LocaleRegistry;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Lists bounded Page editor summaries with fixed-query Content and SEO reads.
@@ -33,7 +33,7 @@ final readonly class ListPageEditorSummariesAction
     public function __construct(
         private PageAuthorization $authorization,
         private PageIdentityGuard $identities,
-        private LocaleRegistry $locales,
+        private LocaleCatalog $locales,
         private ListOwnerContentPlacementSummariesAction $content,
         private ListOwnerSeoProfilesAction $seo,
     ) {}

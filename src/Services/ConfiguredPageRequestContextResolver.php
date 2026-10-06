@@ -10,9 +10,10 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageRequestContextResolver;
 use Nvl\Pages\Data\PageRequestContextData;
-use Nvl\Tenancy\ValueObjects\TenantSiteContext;
+use Nvl\Support\Contracts\LocaleCatalog;
+use Nvl\Support\Tenancy\Services\TenantSiteAttributes;
+use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 use Nvl\Translatable\Exceptions\InvalidLocaleException;
-use Nvl\Translatable\Services\LocaleRegistry;
 
 /**
  * Resolves one configured site and a validated supported content locale.
@@ -23,7 +24,7 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
      * Create the configured public request context resolver.
      */
     public function __construct(
-        private LocaleRegistry $locales,
+        private LocaleCatalog $locales,
         private Repository $configuration,
     ) {}
 
@@ -34,7 +35,7 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
     {
         $tenantSite = null;
         if ($this->configuration->get('tenancy.enabled') === true) {
-            $resolvedTenantSite = $request->attributes->get(TenantSiteContext::class);
+            $resolvedTenantSite = TenantSiteAttributes::read($request);
             if (! $resolvedTenantSite instanceof TenantSiteContext) {
                 throw new InvalidArgumentException('A verified public tenant site is required.');
             }

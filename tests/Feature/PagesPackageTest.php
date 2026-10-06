@@ -1755,13 +1755,20 @@ it('keeps Page sitemap profile projection localized scoped and bounded', functio
         ->and(app(SitemapGenerator::class)->generate('other'))->not->toContain('https://pages.test/first');
 });
 
-it('keeps sitemap ownership when the host registers a late Page morph alias', function (bool $createdBeforeMap): void {
+it('preserves established sitemap ownership and rejects conflicting host Page aliases', function (bool $createdBeforeMap): void {
     config()->set(['seo.site.base_url' => 'https://pages.test', 'seo.sitemap.cache_seconds' => 0]);
     $originalMap = Relation::morphMap();
 
     try {
         if (! $createdBeforeMap) {
             Relation::morphMap(['late-page' => Page::class]);
+            $page = createTestPage('pages.late-morph', 'late-morph');
+            expect(fn () => app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
+                'translations' => ['en' => ['path' => '/late-morph']],
+            ]), 'default'))
+                ->toThrow(InvalidArgumentException::class, 'conflicts with host morph alias [late-page]');
+
+            return;
         }
         $page = createTestPage('pages.late-morph', 'late-morph');
         app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
@@ -1789,7 +1796,7 @@ it('guards rollback when Laravel omits the migration event name', function (): v
         'pages.connection' => 'pages_rollback',
         'pages.tables.pages' => 'rollback_pages',
     ]);
-    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_create_pages_table.php';
+    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $migration->up();
     $now = now();
     $parentId = (string) Str::uuid();
@@ -1842,7 +1849,7 @@ it('preserves SQLite protection when host tables still reference Pages', functio
         'pages.tables.pages' => 'guarded_pages',
     ]);
     $schema = Schema::connection('pages_rollback_external');
-    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_create_pages_table.php';
+    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $migration->up();
     $pageId = (string) Str::uuid();
     $now = now();
@@ -1865,7 +1872,7 @@ it('preserves SQLite protection when host tables still reference Pages', functio
     $started = new MigrationStarted(
         $migration,
         'down',
-        '2026_07_28_100001_create_pages_table',
+        '2026_07_28_100001_nvl_pages_create_pages_table',
     );
     expect(fn () => Event::dispatch($started))->toThrow(LogicException::class)
         ->and(DB::connection('pages_rollback_external')->scalar('PRAGMA foreign_keys'))->toBe(1)
@@ -1890,7 +1897,7 @@ it('does not mutate Pages for an unrelated migration with the same conventional 
         'pages.connection' => 'pages_rollback_unrelated',
         'pages.tables.pages' => 'unrelated_guard_pages',
     ]);
-    $packageMigration = require __DIR__.'/../../database/migrations/2026_07_28_100001_create_pages_table.php';
+    $packageMigration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $packageMigration->up();
     $parentId = (string) Str::uuid();
     $childId = (string) Str::uuid();
@@ -1949,7 +1956,7 @@ it('guards Pages rollback on prefixed SQLite connections', function (): void {
         'pages.tables.pages' => 'prefixed_pages',
     ]);
     $schema = Schema::connection('pages_rollback_prefixed');
-    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_create_pages_table.php';
+    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $migration->up();
     $now = now();
     $parentId = (string) Str::uuid();
@@ -1985,7 +1992,7 @@ it('guards Pages rollback on prefixed SQLite connections', function (): void {
     $started = new MigrationStarted(
         $migration,
         'down',
-        '2026_07_28_100001_create_pages_table',
+        '2026_07_28_100001_nvl_pages_create_pages_table',
     );
 
     expect(fn () => Event::dispatch($started))->toThrow(LogicException::class)
@@ -2026,7 +2033,7 @@ it('guards prefixed Pages from case-insensitive unprefixed host references in th
     ]);
     $pagesSchema = Schema::connection('pages_rollback_mixed_prefix');
     $hostSchema = Schema::connection('pages_rollback_mixed_host');
-    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_create_pages_table.php';
+    $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $migration->up();
     $hostSchema->create('host_page_links', function (Blueprint $table): void {
         $table->id();
@@ -2036,7 +2043,7 @@ it('guards prefixed Pages from case-insensitive unprefixed host references in th
     $started = new MigrationStarted(
         $migration,
         'down',
-        '2026_07_28_100001_create_pages_table',
+        '2026_07_28_100001_nvl_pages_create_pages_table',
     );
 
     try {

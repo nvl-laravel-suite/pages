@@ -11,8 +11,9 @@ use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageResourceHandler;
 use Nvl\Pages\Contracts\TenantSafePageResourceHandler;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Tenancy\Services\TenantExtensionGuard;
-use Nvl\Tenancy\Services\TenantResourceRegistry;
+use Nvl\Support\OwnerRegistry;
+use Nvl\Support\Tenancy\Services\TenantExtensionGuard;
+use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 
 /**
  * Deterministic allowlist of dynamic page-resource handlers.
@@ -22,6 +23,9 @@ final class PageResourceRegistry
     /** @var array<string, class-string<PageResourceHandler<Model>>> */
     private array $handlers = [];
 
+    /** @var array<string, class-string<Model>> */
+    private array $ownerModels = [];
+
     /**
      * Create the resource registry with its handler container.
      */
@@ -30,12 +34,13 @@ final class PageResourceRegistry
         private readonly Repository $configuration,
         private readonly TenantResourceRegistry $tenantResources,
         private readonly TenantExtensionGuard $extensions,
+        private readonly OwnerRegistry $identities,
     ) {}
 
     /**
      * Register one stable resource alias and handler class.
      */
-    public function register(string $alias, string $handler): void
+    public function register(string $alias, string $handler, ?string $owner = null): void
     {
         if (preg_match('/^[a-z][a-z0-9_.-]{0,99}$/D', $alias) !== 1) {
             throw new InvalidArgumentException("Page resource alias [{$alias}] is invalid.");
@@ -53,6 +58,10 @@ final class PageResourceRegistry
         );
 
         $this->validate($this->make($handler), $alias);
+        if ($owner !== null) {
+            $this->ownerModels[$alias] = $this->identities->model($owner);
+        }
+
         $this->handlers[$alias] = $handler;
         ksort($this->handlers);
     }
@@ -86,6 +95,20 @@ final class PageResourceRegistry
     public function aliases(): array
     {
         return array_keys($this->handlers);
+    }
+
+    /** Assert that a handler query or result retains its declared shared owner identity. */
+    public function assertOwner(string $alias, Model $owner): void
+    {
+        if (! $this->has($alias)) {
+            throw new InvalidArgumentException("Page resource [{$alias}] is not registered.");
+        }
+
+        $expectedModel = $this->ownerModels[$alias] ?? null;
+
+        if ($expectedModel !== null && $owner::class !== $expectedModel) {
+            throw new InvalidArgumentException("Page resource [{$alias}] differs from its shared owner model.");
+        }
     }
 
     /**

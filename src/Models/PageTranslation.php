@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Concerns\GuardsTenantOwnership;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Config\PackageStorage;
 
 /**
  * Localized editorial copy for one page.
@@ -47,7 +48,7 @@ final class PageTranslation extends Model
      */
     public function getTable(): string
     {
-        return PagesConfiguration::table(PagesTables::I18n, PagesTables::I18n);
+        return PagesConfiguration::table(PagesTables::get(PagesTables::I18n), PagesTables::get(PagesTables::I18n));
     }
 
     /**
@@ -55,7 +56,7 @@ final class PageTranslation extends Model
      */
     public function getConnectionName(): ?string
     {
-        return PagesConfiguration::connection() ?? parent::getConnectionName();
+        return PackageStorage::connectionName($this->connection ?? PackageStorage::connection('pages') ?? parent::getConnectionName());
     }
 
     /**

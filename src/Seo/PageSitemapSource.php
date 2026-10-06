@@ -15,6 +15,7 @@ use Nvl\Seo\Data\SitemapEntry;
 use Nvl\Seo\Models\SeoProfile;
 use Nvl\Seo\Models\SeoProfileTranslation;
 use Nvl\Seo\Services\EloquentSeoSitemapSource;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Owns Page sitemap eligibility and composes SEO metadata or dynamic handler entries.
@@ -28,6 +29,7 @@ final readonly class PageSitemapSource implements TenantSafeSitemapSource
         private PageUrlGenerator $urls,
         private PageResourceRegistry $resources,
         private EloquentSeoSitemapSource $seo,
+        private LocaleCatalog $locales,
     ) {}
 
     /**
@@ -112,7 +114,7 @@ final readonly class PageSitemapSource implements TenantSafeSitemapSource
     private function staticEntries(Page $page): iterable
     {
         $localePrefix = (bool) config('pages.urls.locale_prefix', false);
-        $defaultLocale = config('pages.urls.default_locale', config('app.locale', 'en'));
+        $defaultLocale = config('pages.urls.default_locale') ?? $this->locales->default();
         $locales = $page->translations->pluck('locale')->all();
         $locales = array_values(array_filter($locales, 'is_string'));
 

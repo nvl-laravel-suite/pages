@@ -9,8 +9,9 @@ use Illuminate\Contracts\Config\Repository;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Models\Page;
-use Nvl\Tenancy\Exceptions\TenantBoundaryViolation;
-use Nvl\Tenancy\ValueObjects\TenantSiteContext;
+use Nvl\Support\Contracts\LocaleCatalog;
+use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
+use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 
 /**
  * Builds absolute URLs from a configured site base and optional locale prefix.
@@ -18,7 +19,7 @@ use Nvl\Tenancy\ValueObjects\TenantSiteContext;
 final class ConfiguredPageUrlGenerator implements PageUrlGenerator
 {
     /** Create the URL generator from request/job-scoped verified site identity. */
-    public function __construct(private Repository $configuration, private Container $container) {}
+    public function __construct(private Repository $configuration, private Container $container, private LocaleCatalog $locales) {}
 
     /**
      * Build one absolute configured page URL.
@@ -42,7 +43,7 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
         }
 
         $segments = [];
-        $defaultLocale = config('pages.urls.default_locale', config('app.locale', 'en'));
+        $defaultLocale = config('pages.urls.default_locale') ?? $this->locales->default();
 
         if ((bool) config('pages.urls.locale_prefix', false)
             && $locale !== null

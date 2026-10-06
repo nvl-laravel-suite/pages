@@ -10,8 +10,8 @@ use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Models\PageTranslation;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Tenancy\Contracts\TenantAdoptionAdapter;
-use Nvl\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Tenancy\Services\TenantAdoptionBoundary;
 use Nvl\Tenancy\ValueObjects\TenantAdoptionPlan;
 use Nvl\Tenancy\ValueObjects\TenantBackfillResult;
@@ -49,7 +49,7 @@ final readonly class PagesAdoptionAdapter implements TenantAdoptionAdapter
             }
         });
         if ($batch === []) {
-            $locks = PagesConfiguration::table(PagesTables::TreeLocks, PagesTables::TreeLocks);
+            $locks = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
             foreach ($connection->table((new Page)->getTable())
                 ->select(['tenant_id', 'site'])->whereNotNull('tenant_id')->distinct()->get() as $row) {
                 $connection->table($locks)->insertOrIgnore([
@@ -95,7 +95,7 @@ final readonly class PagesAdoptionAdapter implements TenantAdoptionAdapter
     public function activate(TenantAdoptionPlan $plan): void
     {
         $this->assertVerified($plan, 'Pages tenant ownership did not verify.');
-        $path = dirname(__DIR__, 2).'/database/tenancy/2026_09_16_170012_constrain_pages_ownership.php';
+        $path = dirname(__DIR__, 2).'/database/tenancy/2026_09_16_170012_nvl_pages_constrain_pages_ownership.php';
         $this->migrator->usingConnection($plan->connection, fn () => $this->migrator->run([$path], ['force' => true]));
         $this->assertVerified($plan, 'Pages tenant ownership failed after constraint activation.');
     }

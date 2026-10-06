@@ -27,7 +27,7 @@ use Nvl\Pages\Data\Queries\PagePreviewQueryData;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageFilterSchema;
 use Nvl\Pages\Support\PageActorFactory;
-use Nvl\Translatable\Services\LocaleRegistry;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Thin opt-in management endpoints over page Actions and DTOs.
@@ -189,7 +189,7 @@ final class PagesManagementController extends Controller
         string $path,
         PreviewPageAction $action,
         PageActorFactory $actors,
-        LocaleRegistry $locales,
+        LocaleCatalog $locales,
     ): JsonResponse {
         $data = PagePreviewQueryData::validateAndCreate($request->query());
         $locale = $locales->assertSupported($data->locale);

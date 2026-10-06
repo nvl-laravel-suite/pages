@@ -15,8 +15,8 @@ use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Tenancy\Services\TenantBoundary;
-use Nvl\Tenancy\Services\TenantResourceRegistry;
+use Nvl\Support\Tenancy\Contracts\TenantBoundary;
+use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -111,6 +111,7 @@ final readonly class PageMatcher
                 parameters: $parameters,
             );
             $handlerQuery = $handler->query($request);
+            $this->resources->assertOwner($page->resource, $handlerQuery->getModel());
             $tenantResource = null;
             if ($this->configuration->get('tenancy.enabled') === true) {
                 if (! $handler instanceof TenantSafePageResourceHandler
@@ -125,6 +126,8 @@ final readonly class PageMatcher
             if (! $resource instanceof Model) {
                 throw new NotFoundHttpException('The dynamic page resource was not found.');
             }
+            $this->resources->assertOwner($page->resource, $resource);
+
             if ($tenantResource !== null) {
                 $this->tenancy->assertRecord($resource, $tenantResource->key);
             }

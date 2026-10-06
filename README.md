@@ -63,7 +63,7 @@ php artisan migrate
 php artisan nvl:pages:doctor --strict
 ```
 
-Laravel package discovery registers the provider. Composer installs the declared Content, Core (including Data), Filterable, Metafields, SEO, Tenancy, and Translatable dependencies automatically. The default tables are `pages`, `pages_i18n`, and `page_tree_locks`; their names and the database connection are configurable.
+Laravel package discovery registers the provider. Composer installs the required Content, Core, Filterable, SEO, and Translatable packages and their dependencies automatically. Metafields and Tenancy are optional integrations. The default tables are `nvl_pages_pages`, `nvl_pages_i18n`, and `nvl_pages_tree_locks`; their names and the database connection are configurable.
 
 Routes are disabled by default. Publishing migrations is optional because package migrations load automatically while `pages.migrations.enabled` is true.
 
@@ -408,3 +408,49 @@ Maintainer CI additionally checks the package family and generated types from th
 ## License
 
 NVL Pages is open-sourced software licensed under the MIT license.
+
+## Shared owner identity
+
+Declare a model once in `config/nvl-core.php`:
+
+```php
+'owners' => ['article' => Article::class],
+```
+
+Enable this package capability separately in `config/pages.php`:
+
+```php
+'resources' => [
+    'articles.detail' => ['owner' => 'article', 'handler' => ArticlePageHandler::class],
+],
+```
+
+Keep the resource handler, route pattern, query visibility, and presentation behavior. Resource keys may differ from owner aliases; query and fetched models must match the declared owner. Core registration does not add the model to this package's allowlist.
+
+Existing package class/resolver/handler registrations remain accepted for one major cycle. Run `php artisan nvl:doctor --strict --format=json` to inspect compatibility diagnostics. See [UPGRADING.md](UPGRADING.md) before changing a persisted morph type.
+
+## Shared consumer diagnostics
+
+Run `php artisan nvl:doctor --strict --format=json` to combine the read-only checks from loaded NVL package providers. Errors fail the gate, and strict mode also fails warnings. This package's existing Doctor command remains available and uses the same package-owned inspection service.
+
+## Optional Metafields editor adapter
+
+Pages installs without `nvl/metafields`. `pages.integrations.metafields` accepts `null` (automatic activation from a loaded Metafields provider), `false` (disabled), or `true` (required). Explicitly requiring an unavailable adapter produces a configuration error. Core Doctor reports automatic inactivity as information.
+
+`GetPageEditorBootstrapAction` returns an empty `metafields` array while this adapter is inactive. Content and SEO remain required editor integrations. When Metafields is loaded, its own authorized read Action supplies fields through `Nvl\Pages\Contracts\PageMetafields`. Hosts can bind that contract before the package default.
+
+Editor fields use Pages-owned `PageMetafieldFieldData`; the serialized field shape is preserved without importing a foreign DTO. DTO discovery and generated TypeScript work when Metafields is absent.
+
+Existing `$page->metafields()` calls remain supported through a lazy relation resolver when the Metafields provider is loaded and the integration is active. The relation preserves the Page's registered morph identity. Page no longer composes `HasMetafields` directly. Calling the relation while the provider is absent or the integration is disabled raises a configuration error; the empty editor section does not imply an available relation. Use package Actions for authorized field reads and mutations.
+
+## Next major: isolated schema identities
+
+Use `pages.tables.<logical-key>` for every table and `pages.connection` for its database connection. Null connection inherits `nvl-core.connection`, then Laravel's default. Tables are resolved at runtime by the package table definition helper.
+
+| Logical key | New default | Previous name |
+| --- | --- | --- |
+| `pages` | `nvl_pages_pages` | `pages` |
+| `i18n` | `nvl_pages_i18n` | `pages_i18n` |
+| `tree_locks` | `nvl_pages_tree_locks` | `page_tree_locks` |
+
+Migration filenames contain `nvl_pages_`. Existing installations must complete the upgrade in `UPGRADING.md` before running new migrations. A pending creator rejects an existing target before any migration in the batch runs; legacy storage with old history needs an ownership decision.

@@ -57,6 +57,7 @@ return [
     ],
 
     'integrations' => [
+        'metafields' => null,
         'seo_owner_alias' => 'page',
         'metafield_owner_alias' => 'page',
         'metafield_sections' => ['general', 'navigation'],

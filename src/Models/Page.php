@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use LogicException;
 use Nvl\Content\Contracts\ContentOwner;
 use Nvl\Content\Traits\HasContent;
-use Nvl\Metafields\Traits\HasMetafields;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
@@ -24,6 +23,7 @@ use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Enums\SitemapChangeFrequency;
 use Nvl\Seo\Traits\HasSeo;
+use Nvl\Support\Config\PackageStorage;
 use Nvl\Translatable\Contracts\TranslatableModel;
 use Nvl\Translatable\Enums\TranslationMutationPolicy;
 use Nvl\Translatable\RelatedTranslationDefinition;
@@ -66,7 +66,6 @@ final class Page extends Model implements ContentOwner, TranslatableModel
 {
     use GuardsTenantOwnership;
     use HasContent;
-    use HasMetafields;
     use HasSeo;
     use HasUuids;
     use SoftDeletes;
@@ -114,7 +113,7 @@ final class Page extends Model implements ContentOwner, TranslatableModel
      */
     public function getTable(): string
     {
-        return PagesConfiguration::table(PagesTables::Pages, PagesTables::Pages);
+        return PagesConfiguration::table(PagesTables::get(PagesTables::Pages), PagesTables::get(PagesTables::Pages));
     }
 
     /**
@@ -122,7 +121,7 @@ final class Page extends Model implements ContentOwner, TranslatableModel
      */
     public function getConnectionName(): ?string
     {
-        return PagesConfiguration::connection() ?? parent::getConnectionName();
+        return PackageStorage::connectionName($this->connection ?? PackageStorage::connection('pages') ?? parent::getConnectionName());
     }
 
     protected function defineTranslations(): RelatedTranslationDefinition

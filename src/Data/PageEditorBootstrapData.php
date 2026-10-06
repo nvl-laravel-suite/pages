@@ -6,7 +6,6 @@ namespace Nvl\Pages\Data;
 
 use Nvl\Content\Data\ContentEditorData;
 use Nvl\Data\Traits\DataTransform;
-use Nvl\Metafields\Data\OwnerMetafieldField;
 use Nvl\Seo\Data\SeoProfileData;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
@@ -22,7 +21,7 @@ final class PageEditorBootstrapData extends Data
     use DataTransform;
 
     /**
-     * @param  list<OwnerMetafieldField>  $metafields
+     * @param  list<PageMetafieldFieldData>  $metafields
      * @param  list<string>  $pageKinds
      * @param  list<string>  $pageStatuses
      * @param  list<string>  $resourceAliases
@@ -31,7 +30,7 @@ final class PageEditorBootstrapData extends Data
         public readonly PageData $page,
         public readonly ContentEditorData $content,
         public readonly ?SeoProfileData $seo,
-        #[DataCollectionOf(OwnerMetafieldField::class)]
+        #[DataCollectionOf(PageMetafieldFieldData::class)]
         public readonly array $metafields,
         #[LiteralTypeScriptType('Array<string>')]
         public readonly array $pageKinds,

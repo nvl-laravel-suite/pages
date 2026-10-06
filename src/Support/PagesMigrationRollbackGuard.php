@@ -35,7 +35,7 @@ final class PagesMigrationRollbackGuard
         }
 
         $schema = $connection->getSchemaBuilder();
-        $table = PagesConfiguration::table('pages', PagesTables::Pages);
+        $table = PagesConfiguration::table('pages', PagesTables::get(PagesTables::Pages));
         $tablePrefix = $connection->getTablePrefix();
         $physicalTable = $this->physicalTable($table, $tablePrefix);
 
@@ -155,7 +155,7 @@ final class PagesMigrationRollbackGuard
 
         $migrationFile = (new ReflectionClass($event->migration))->getFileName();
         $releasedMigrationFile = dirname(__DIR__, 2)
-            .'/database/migrations/2026_07_28_100001_create_pages_table.php';
+            .'/database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
 
         if (! is_string($migrationFile)
             || ! is_file($migrationFile)

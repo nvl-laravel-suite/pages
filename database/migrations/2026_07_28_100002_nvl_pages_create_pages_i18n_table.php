@@ -6,9 +6,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Pages\Definitions\Tables\PagesTables;
+use Nvl\Support\Config\PackageStorage;
 
 return new class extends Migration
 {
+    /** Use the effective package connection for Laravel's migration transaction. */
+    public function getConnection(): ?string
+    {
+        return PackageStorage::connection('pages');
+    }
+
     /**
      * Create the related page translation table.
      */
@@ -16,10 +23,10 @@ return new class extends Migration
     {
         $connection = config('pages.connection');
         $schema = Schema::connection(is_string($connection) ? $connection : null);
-        $tableName = (string) config('pages.tables.pages_i18n', PagesTables::I18n);
+        $tableName = (string) config('pages.tables.pages_i18n', PagesTables::get(PagesTables::I18n));
 
         if ($schema->hasTable($tableName)) {
-            return;
+            throw new LogicException('Existing package table is not owned by this migration. Run nvl:doctor --strict and use nvl:schema:upgrade for a verified legacy installation.');
         }
 
         $schema->create($tableName, function (Blueprint $table): void {
@@ -35,7 +42,7 @@ return new class extends Migration
             $table->index(['locale', 'title'], 'pages_i18n_locale_title_index');
             $table->foreign('page_id')
                 ->references('id')
-                ->on((string) config('pages.tables.pages', PagesTables::Pages))
+                ->on((string) config('pages.tables.pages', PagesTables::get(PagesTables::Pages)))
                 ->cascadeOnDelete();
         });
     }
@@ -47,6 +54,6 @@ return new class extends Migration
     {
         $connection = config('pages.connection');
         Schema::connection(is_string($connection) ? $connection : null)
-            ->dropIfExists((string) config('pages.tables.pages_i18n', PagesTables::I18n));
+            ->dropIfExists((string) config('pages.tables.pages_i18n', PagesTables::get(PagesTables::I18n)));
     }
 };

@@ -80,3 +80,29 @@ Use `ResolvePageAction` for headless delivery. Its `ResolvedPageData` combines a
 - Preserve disabled compatibility and package independence; tenant support never creates an undeclared Auth or Suite dependency.
 - Use registered package-owned resources, adoption adapters, Actions, and lifecycle APIs. Never add a generic tenant delete-all path or raw cross-package cleanup.
 - Treat mapping/configuration hashes, interruption checkpoints, conservation evidence, worker context, tenant-leading queries, and standalone consumption as release contracts.
+
+## Shared owner identities
+
+- Declare canonical owner identity once in `nvl-core.owners`; reference its alias in `pages` capability configuration.
+- Keep the resource handler, route pattern, query visibility, and presentation behavior. Resource keys may differ from owner aliases; query and fetched models must match the declared owner.
+- Keep the package allowlist and authorization independent of Core registration. Never authorize a model merely because Core knows it.
+- Accept legacy class/resolver/handler inputs during the documented one-major compatibility cycle. Report deprecated host identity inputs through `nvl:doctor`; preserve established write-time morph types.
+- Before introducing an alias for historical FQCN-backed data, explicitly convert reviewed package-owned columns and reconcile affected host relations. Never silently rewrite host morph tables or enable `enforceMorphMap()` globally.
+
+## Shared consumer diagnostics
+
+Run `php artisan nvl:doctor --strict --format=json` to combine checks from loaded NVL providers. Retain the package Doctor command for its detailed report; both paths reuse the package-owned inspection service.
+
+## Optional Metafields editor adapter
+
+Pages installs without `nvl/metafields`. `pages.integrations.metafields` accepts `null` (automatic activation from a loaded Metafields provider), `false` (disabled), or `true` (required). Explicitly requiring an unavailable adapter produces a configuration error. Core Doctor reports automatic inactivity as information.
+
+`GetPageEditorBootstrapAction` returns an empty `metafields` array while this adapter is inactive. Content and SEO remain required editor integrations. When Metafields is loaded, its own authorized read Action supplies fields through `Nvl\Pages\Contracts\PageMetafields`. Hosts can bind that contract before the package default.
+
+Editor fields use Pages-owned `PageMetafieldFieldData`; the serialized field shape is preserved without importing a foreign DTO. DTO discovery and generated TypeScript work when Metafields is absent.
+
+Existing `$page->metafields()` calls remain supported through a lazy relation resolver when the Metafields provider is loaded and the integration is active. The relation preserves the Page's registered morph identity. Page no longer composes `HasMetafields` directly. Calling the relation while the provider is absent or the integration is disabled raises a configuration error; the empty editor section does not imply an available relation. Use package Actions for authorized field reads and mutations.
+
+### Brownfield storage identities
+
+Resolve all package tables through the table helper and canonical `pages.tables.*`, connections through `pages.connection` with Core/Laravel inheritance. Defaults use `nvl_pages_*`; migration filenames include that package slug. Never silently adopt a matching table or generic migration filename. Run shared `nvl:doctor --strict --format=json` and the explicit `nvl:schema:upgrade --package=pages --claim-legacy --dry-run --format=json` before upgrading owned legacy storage. Validate the complete plan and choose one migration owner. Preserve host records, constraint names and stored morph values. Deprecated config inputs last one major; canonical options take precedence.

@@ -17,7 +17,7 @@ use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
 use Nvl\Seo\Services\SeoMetadataResolver;
-use Nvl\Translatable\Services\LocaleRegistry;
+use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Composes one public static Page projection from its persisted identity.
@@ -31,7 +31,7 @@ final readonly class GetPagePublicationProjectionAction
         private PageAuthorization $authorization,
         private PageUrlGenerator $urls,
         private PageIdentityGuard $identities,
-        private LocaleRegistry $locales,
+        private LocaleCatalog $locales,
         private Content $content,
         private SeoMetadataResolver $seo,
     ) {}

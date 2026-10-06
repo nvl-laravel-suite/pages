@@ -6,9 +6,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Nvl\Pages\Definitions\Tables\PagesTables;
+use Nvl\Support\Config\PackageStorage;
 
 return new class extends Migration
 {
+    /** Use the effective package connection for Laravel's migration transaction. */
+    public function getConnection(): ?string
+    {
+        return PackageStorage::connection('pages');
+    }
+
     /**
      * Create the canonical structural pages table.
      */
@@ -16,10 +23,10 @@ return new class extends Migration
     {
         $connection = config('pages.connection');
         $schema = Schema::connection(is_string($connection) ? $connection : null);
-        $tableName = (string) config('pages.tables.pages', PagesTables::Pages);
+        $tableName = (string) config('pages.tables.pages', PagesTables::get(PagesTables::Pages));
 
         if ($schema->hasTable($tableName)) {
-            return;
+            throw new LogicException('Existing package table is not owned by this migration. Run nvl:doctor --strict and use nvl:schema:upgrade for a verified legacy installation.');
         }
 
         $schema->create($tableName, function (Blueprint $table) use ($tableName): void {
@@ -65,6 +72,6 @@ return new class extends Migration
     {
         $connection = config('pages.connection');
         Schema::connection(is_string($connection) ? $connection : null)
-            ->dropIfExists((string) config('pages.tables.pages', PagesTables::Pages));
+            ->dropIfExists((string) config('pages.tables.pages', PagesTables::get(PagesTables::Pages)));
     }
 };

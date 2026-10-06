@@ -140,8 +140,8 @@ function allowPageEditorPackageReads(): void
 function createPageTestContentBlock(string $key): ContentBlock
 {
     config()->set([
-        'content.locales.available' => ['en', 'bg'],
-        'content.locales.required_on_publish' => ['en'],
+        'nvl-content.locales.available' => ['en', 'bg'],
+        'nvl-content.locales.required_on_publish' => ['en'],
     ]);
     app(ContentDefinitionRegistry::class)->register(new ContentDefinitionSource(
         key: 'website.section',
@@ -199,7 +199,7 @@ it('installs standalone with disabled routes and healthy diagnostics', function 
 });
 
 it('rejects empty route middleware configuration', function (): void {
-    config()->set('pages.routes.management.middleware', []);
+    config()->set('nvl-pages.routes.management.middleware', []);
 
     expect(fn (): array => PagesRouteConfiguration::middleware('management'))
         ->toThrow(InvalidArgumentException::class);
@@ -316,7 +316,7 @@ it('serializes tree mutations and authorizes only real lifecycle transitions', f
         PageAbility::Create,
         PageAbility::Publish,
     ])->and(
-        DB::table((string) config('pages.tables.page_tree_locks'))
+        DB::table((string) config('nvl-pages.tables.page_tree_locks'))
             ->where('site', 'default')
             ->count(),
     )->toBe(1);
@@ -853,7 +853,7 @@ it('caps page options at the configured and absolute one-hundred entry limit', f
         $actor,
         limit: 1000,
     );
-    config()->set('pages.limits.maximum_page_options', 3);
+    config()->set('nvl-pages.limits.maximum_page_options', 3);
     $configured = app(ListPageOptionsAction::class)->execute(
         'default',
         'en',
@@ -1198,7 +1198,7 @@ it('fails the page editor bootstrap when any package authorization boundary deni
     ))->toThrow(AuthorizationException::class);
 
     app()->instance(PageAuthorization::class, new RecordingPageAuthorization);
-    config()->set('content.authorization.callback', static fn (): bool => false);
+    config()->set('nvl-content.authorization.callback', static fn (): bool => false);
 
     expect(fn () => app(GetPageEditorBootstrapAction::class)->execute(
         $page->id,
@@ -1206,7 +1206,7 @@ it('fails the page editor bootstrap when any package authorization boundary deni
         $actor,
     ))->toThrow(AuthorizationException::class);
 
-    config()->set('content.authorization.callback', static fn (): bool => true);
+    config()->set('nvl-content.authorization.callback', static fn (): bool => true);
     app()->instance(SeoAuthorization::class, new class implements SeoAuthorization
     {
         public function authorize(SeoAuthorizationContext $context): void
@@ -1306,7 +1306,7 @@ it('returns stable bounded page editor summaries with fixed query counts', funct
         }
 
         [$populated, $populatedQueries] = $measure();
-        config()->set('pages.limits.maximum_per_page', 250);
+        config()->set('nvl-pages.limits.maximum_per_page', 250);
         $capped = app(ListPageEditorSummariesAction::class)->execute(
             'default',
             'en',
@@ -1534,7 +1534,7 @@ it('keeps option and public-child queries constant and enforces child caps', fun
         new PageRequestContextData('default', 'en'),
         1000,
     );
-    config()->set('pages.limits.maximum_public_children', 4);
+    config()->set('nvl-pages.limits.maximum_public_children', 4);
     $configured = app(ListPublicChildPagesAction::class)->execute(
         $parent->id,
         new PageRequestContextData('default', 'en'),
@@ -1617,7 +1617,7 @@ it('resolves only resources admitted by the handler query', function (): void {
 });
 
 it('projects sitemap urls only from a matching SEO profile that has a route', function (): void {
-    config()->set('seo.site.base_url', 'https://pages.test');
+    config()->set('nvl-seo.site.base_url', 'https://pages.test');
     $static = createTestPage('pages.info', 'info');
     createTestPage(
         'pages.records-map',
@@ -1676,7 +1676,7 @@ it('projects sitemap urls only from a matching SEO profile that has a route', fu
 });
 
 it('applies Page eligibility to SEO backed sitemap entries', function (string $state): void {
-    config()->set(['seo.site.base_url' => 'https://pages.test', 'seo.sitemap.cache_seconds' => 0]);
+    config()->set(['nvl-seo.site.base_url' => 'https://pages.test', 'nvl-seo.sitemap.cache_seconds' => 0]);
     $page = createTestPage('pages.sitemap-eligibility', 'eligibility');
     app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
         'translations' => ['en' => ['path' => '/eligibility']],
@@ -1709,7 +1709,7 @@ it('applies Page eligibility to SEO backed sitemap entries', function (string $s
 })->with(['deleted', 'draft', 'archived', 'scheduled', 'future-published', 'expired', 'excluded']);
 
 it('honors explicit SEO exclusions instead of emitting Page fallback urls', function (array $policy): void {
-    config()->set(['seo.site.base_url' => 'https://pages.test', 'seo.sitemap.cache_seconds' => 0]);
+    config()->set(['nvl-seo.site.base_url' => 'https://pages.test', 'nvl-seo.sitemap.cache_seconds' => 0]);
     $page = createTestPage('pages.sitemap-excluded', 'excluded');
     app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
         ...$policy,
@@ -1723,7 +1723,7 @@ it('honors explicit SEO exclusions instead of emitting Page fallback urls', func
 ]);
 
 it('keeps Page sitemap profile projection localized scoped and bounded', function (): void {
-    config()->set(['seo.site.base_url' => 'https://pages.test', 'seo.sitemap.cache_seconds' => 0]);
+    config()->set(['nvl-seo.site.base_url' => 'https://pages.test', 'nvl-seo.sitemap.cache_seconds' => 0]);
     $first = createTestPage('pages.sitemap-first', 'first');
     app(SyncSeoProfileAction::class)->execute($first, SeoProfilePayload::from([
         'translations' => ['en' => ['path' => '/first'], 'bg' => ['path' => '/bg/first']],
@@ -1755,28 +1755,27 @@ it('keeps Page sitemap profile projection localized scoped and bounded', functio
         ->and(app(SitemapGenerator::class)->generate('other'))->not->toContain('https://pages.test/first');
 });
 
-it('preserves established sitemap ownership and rejects conflicting host Page aliases', function (bool $createdBeforeMap): void {
-    config()->set(['seo.site.base_url' => 'https://pages.test', 'seo.sitemap.cache_seconds' => 0]);
+it('preserves sitemap ownership across a host authored Page morph change', function (bool $createdBeforeMap): void {
+    config()->set(['nvl-seo.site.base_url' => 'https://pages.test', 'nvl-seo.sitemap.cache_seconds' => 0]);
     $originalMap = Relation::morphMap();
 
     try {
         if (! $createdBeforeMap) {
             Relation::morphMap(['late-page' => Page::class]);
-            $page = createTestPage('pages.late-morph', 'late-morph');
-            expect(fn () => app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
-                'translations' => ['en' => ['path' => '/late-morph']],
-            ]), 'default'))
-                ->toThrow(InvalidArgumentException::class, 'conflicts with host morph alias [late-page]');
-
-            return;
         }
         $page = createTestPage('pages.late-morph', 'late-morph');
-        app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
+        $profile = app(SyncSeoProfileAction::class)->execute($page, SeoProfilePayload::from([
             'translations' => ['en' => ['path' => '/late-morph']],
         ]), 'default');
+        $storedType = $profile->seoable_type;
+        expect($storedType)->toBe($page->getMorphClass())
+            ->and(app(SitemapGenerator::class)->generate('default'))->toContain('https://pages.test/late-morph');
+
         if ($createdBeforeMap) {
             Relation::morphMap(['late-page' => Page::class]);
         }
+        expect($page->getMorphClass())->toBe('late-page')
+            ->and($profile->refresh()->seoable_type)->toBe($storedType);
         app(DeletePageAction::class)->execute($page, new DeletePageData($page->revision), PageActorData::system());
 
         expect(app(SitemapGenerator::class)->generate('default'))->not->toContain('https://pages.test/late-morph');
@@ -1793,8 +1792,8 @@ it('guards rollback when Laravel omits the migration event name', function (): v
             'prefix' => '',
             'foreign_key_constraints' => true,
         ],
-        'pages.connection' => 'pages_rollback',
-        'pages.tables.pages' => 'rollback_pages',
+        'nvl-pages.connection' => 'pages_rollback',
+        'nvl-pages.tables.pages' => 'rollback_pages',
     ]);
     $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $migration->up();
@@ -1845,8 +1844,8 @@ it('preserves SQLite protection when host tables still reference Pages', functio
             'prefix' => '',
             'foreign_key_constraints' => true,
         ],
-        'pages.connection' => 'pages_rollback_external',
-        'pages.tables.pages' => 'guarded_pages',
+        'nvl-pages.connection' => 'pages_rollback_external',
+        'nvl-pages.tables.pages' => 'guarded_pages',
     ]);
     $schema = Schema::connection('pages_rollback_external');
     $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
@@ -1894,8 +1893,8 @@ it('does not mutate Pages for an unrelated migration with the same conventional 
             'prefix' => '',
             'foreign_key_constraints' => true,
         ],
-        'pages.connection' => 'pages_rollback_unrelated',
-        'pages.tables.pages' => 'unrelated_guard_pages',
+        'nvl-pages.connection' => 'pages_rollback_unrelated',
+        'nvl-pages.tables.pages' => 'unrelated_guard_pages',
     ]);
     $packageMigration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
     $packageMigration->up();
@@ -1952,8 +1951,8 @@ it('guards Pages rollback on prefixed SQLite connections', function (): void {
             'prefix' => 'pre_',
             'foreign_key_constraints' => true,
         ],
-        'pages.connection' => 'pages_rollback_prefixed',
-        'pages.tables.pages' => 'prefixed_pages',
+        'nvl-pages.connection' => 'pages_rollback_prefixed',
+        'nvl-pages.tables.pages' => 'prefixed_pages',
     ]);
     $schema = Schema::connection('pages_rollback_prefixed');
     $migration = require __DIR__.'/../../database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
@@ -2028,8 +2027,8 @@ it('guards prefixed Pages from case-insensitive unprefixed host references in th
             'prefix' => '',
             'foreign_key_constraints' => true,
         ],
-        'pages.connection' => 'pages_rollback_mixed_prefix',
-        'pages.tables.pages' => 'mixed_pages',
+        'nvl-pages.connection' => 'pages_rollback_mixed_prefix',
+        'nvl-pages.tables.pages' => 'mixed_pages',
     ]);
     $pagesSchema = Schema::connection('pages_rollback_mixed_prefix');
     $hostSchema = Schema::connection('pages_rollback_mixed_host');
@@ -2067,5 +2066,28 @@ it('guards prefixed Pages from case-insensitive unprefixed host references in th
         if (is_file($databasePath)) {
             unlink($databasePath);
         }
+    }
+});
+
+it('returns placement editor summaries under the host authored native Page identity', function (): void {
+    $originalMap = Relation::morphMap();
+    $hostMap = array_filter($originalMap, static fn (string $model): bool => $model !== Page::class);
+    Relation::morphMap(['host-page' => Page::class] + $hostMap, false);
+    try {
+        allowPageEditorPackageReads();
+        $actor = PageActorData::system();
+        $page = createTestPage('pages.host-mapped-summary', 'host-mapped-summary');
+        $block = createPageTestContentBlock('host-mapped-summary');
+        $placement = app(PlaceContentBlockAction::class)->execute(
+            $block, $page, Page::CONTENT_GROUP,
+            new PlaceContentBlockData(key: 'host-summary'), $actor->contentActor(),
+        );
+        $summaries = app(ListPageEditorSummariesAction::class)->execute('default', 'en', $actor);
+        expect($placement->owner_type)->toBe('host-page')
+            ->and($summaries->items()[0]->placements)->toHaveCount(1)
+            ->and($summaries->items()[0]->placements[0]->id)->toBe($placement->id)
+            ->and(Relation::morphMap())->toBe(['host-page' => Page::class] + $hostMap);
+    } finally {
+        Relation::morphMap($originalMap, false);
     }
 });

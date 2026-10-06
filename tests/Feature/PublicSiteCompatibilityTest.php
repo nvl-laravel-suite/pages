@@ -9,7 +9,7 @@ use Nvl\Support\Tenancy\ValueObjects\TenantId;
 use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 
 it('retains legacy verified Page sites while canonical presence wins conflicts', function (): void {
-    config()->set('tenancy.enabled', true);
+    config()->set('nvl-tenancy.enabled', true);
     $request = Request::create('https://legacy.pages.test');
     $legacy = new TenantSiteContext(new TenantId('10000000-0000-4000-8000-000000000001'), 'legacy', 'https://legacy.pages.test');
     $canonical = new TenantSiteContext($legacy->tenantId, 'canonical', 'https://canonical.pages.test');

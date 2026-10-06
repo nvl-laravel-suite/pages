@@ -38,8 +38,8 @@ it('keeps page handlers separate from their shared owner identities', function (
 
 it('shares one owner across page seo and metafield capabilities without widening their allowlists', function (): void {
     config()->set('nvl-core.owners', ['record' => TestPageResource::class]);
-    config()->set('seo.owners', ['records.seo' => 'record']);
-    config()->set('metafields.owners', ['record' => ['label' => 'Records', 'sections' => ['content']]]);
+    config()->set('nvl-seo.owners', ['records.seo' => 'record']);
+    config()->set('nvl-metafields.owners', ['record' => ['label' => 'Records', 'sections' => ['content']]]);
     $pages = app()->build(PageResourceRegistry::class);
     $pages->register('records.detail', TestPageResourceHandler::class, 'record');
 
@@ -63,6 +63,6 @@ it('preserves the optional page metafields relation and its registered morph ide
         ->and($field->metafieldable?->is($page))->toBeTrue()
         ->and($page->metafields()->sole()->is($field))->toBeTrue();
 
-    config()->set('pages.integrations.metafields', false);
+    config()->set('nvl-pages.integrations.metafields', false);
     expect(fn () => $page->metafields())->toThrow(InvalidArgumentException::class, 'disabled');
 });

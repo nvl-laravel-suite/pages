@@ -45,8 +45,8 @@ final class PagesDoctor
         $pages = PagesConfiguration::table(PagesTables::get(PagesTables::Pages), PagesTables::get(PagesTables::Pages));
         $i18n = PagesConfiguration::table(PagesTables::get(PagesTables::I18n), PagesTables::get(PagesTables::I18n));
         $treeLocks = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
-        $publicRoutesEnabled = (bool) config('pages.routes.public.enabled', false);
-        $managementRoutesEnabled = (bool) config('pages.routes.management.enabled', false);
+        $publicRoutesEnabled = (bool) config('nvl-pages.routes.public.enabled', false);
+        $managementRoutesEnabled = (bool) config('nvl-pages.routes.management.enabled', false);
         $checks = [
             'integrations.metafields' => $this->integrations->check('pages.integrations.metafields', MetafieldsServiceProvider::class),
             'table.pages' => $schema->hasTable($pages),
@@ -86,7 +86,7 @@ final class PagesDoctor
             foreach ($required as $column) {
                 $checks["column.pages.{$column}"] = $schema->hasColumn($pages, $column);
             }
-            if (config('tenancy.enabled') === true) {
+            if (config('nvl-tenancy.enabled') === true) {
                 $checks['column.pages.tenant_id'] = $schema->hasColumn($pages, 'tenant_id');
             }
 
@@ -167,7 +167,7 @@ final class PagesDoctor
             foreach (['id', 'page_id', 'locale', 'title'] as $column) {
                 $checks["column.pages_i18n.{$column}"] = $schema->hasColumn($i18n, $column);
             }
-            if (config('tenancy.enabled') === true) {
+            if (config('nvl-tenancy.enabled') === true) {
                 $checks['column.pages_i18n.tenant_id'] = $schema->hasColumn($i18n, 'tenant_id');
             }
         }
@@ -177,7 +177,7 @@ final class PagesDoctor
                 $treeLocks,
                 'site',
             );
-            if (config('tenancy.enabled') === true) {
+            if (config('nvl-tenancy.enabled') === true) {
                 $checks['column.page_tree_locks.tenant_id'] = $schema->hasColumn($treeLocks, 'tenant_id');
             }
         }

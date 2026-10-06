@@ -10,6 +10,7 @@ use Illuminate\Database\Events\MigrationStarted;
 use Illuminate\Database\Schema\Builder;
 use LogicException;
 use Nvl\Pages\Definitions\Tables\PagesTables;
+use Nvl\Support\Schema\SchemaMigrationPaths;
 use ReflectionClass;
 
 /**
@@ -17,7 +18,8 @@ use ReflectionClass;
  */
 final class PagesMigrationRollbackGuard
 {
-    public function __construct(private readonly DatabaseManager $database) {}
+    /** Retain the configured database and exact migration ownership inventory. */
+    public function __construct(private readonly DatabaseManager $database, private readonly SchemaMigrationPaths $paths) {}
 
     /**
      * Remove only the internal hierarchy links before SQLite drops the table.
@@ -154,20 +156,13 @@ final class PagesMigrationRollbackGuard
         }
 
         $migrationFile = (new ReflectionClass($event->migration))->getFileName();
-        $releasedMigrationFile = dirname(__DIR__, 2)
-            .'/database/migrations/2026_07_28_100001_nvl_pages_create_pages_table.php';
-
-        if (! is_string($migrationFile)
-            || ! is_file($migrationFile)
-            || ! is_file($releasedMigrationFile)) {
+        if (! is_string($migrationFile)) {
             return false;
         }
+        $identity = $this->paths->identity($migrationFile);
 
-        $migrationHash = hash_file('sha256', $migrationFile);
-        $releasedMigrationHash = hash_file('sha256', $releasedMigrationFile);
-
-        return is_string($migrationHash)
-            && is_string($releasedMigrationHash)
-            && hash_equals($releasedMigrationHash, $migrationHash);
+        return $identity !== null && $identity['package'] === 'pages'
+            && $identity['name'] === '2026_07_28_100001_nvl_pages_create_pages_table'
+            && $identity['current'];
     }
 }

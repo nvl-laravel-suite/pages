@@ -17,7 +17,7 @@ final class PagesRouteConfiguration
      */
     public static function path(string $group): string
     {
-        $path = config("pages.routes.{$group}.prefix", "api/v1/pages/{$group}");
+        $path = config("nvl-pages.routes.{$group}.prefix", "nvl/api/v1/pages/{$group}");
 
         if (! is_string($path)) {
             throw new InvalidArgumentException("pages.routes.{$group}.prefix must be a string.");
@@ -42,7 +42,7 @@ final class PagesRouteConfiguration
      */
     public static function name(string $group): string
     {
-        $name = config("pages.routes.{$group}.name", "nvl.pages.{$group}.");
+        $name = config("nvl-pages.routes.{$group}.name", "nvl.pages.{$group}.");
 
         if (! is_string($name)) {
             throw new InvalidArgumentException("pages.routes.{$group}.name must be a string.");
@@ -66,7 +66,7 @@ final class PagesRouteConfiguration
      */
     public static function middleware(string $group): array
     {
-        $middleware = config("pages.routes.{$group}.middleware", ['api']);
+        $middleware = config("nvl-pages.routes.{$group}.middleware", ['api']);
 
         if (! is_array($middleware)) {
             throw new InvalidArgumentException(
@@ -88,7 +88,7 @@ final class PagesRouteConfiguration
             );
         }
 
-        if ($group === 'public' && config('tenancy.enabled') === true
+        if ($group === 'public' && config('nvl-tenancy.enabled') === true
             && ! in_array(ResolvePublicTenant::class, $middleware, true)) {
             array_unshift($middleware, ResolvePublicTenant::class);
         }

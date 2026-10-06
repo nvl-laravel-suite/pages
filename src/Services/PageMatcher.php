@@ -113,7 +113,7 @@ final readonly class PageMatcher
             $handlerQuery = $handler->query($request);
             $this->resources->assertOwner($page->resource, $handlerQuery->getModel());
             $tenantResource = null;
-            if ($this->configuration->get('tenancy.enabled') === true) {
+            if ($this->configuration->get('nvl-tenancy.enabled') === true) {
                 if (! $handler instanceof TenantSafePageResourceHandler
                     || $handlerQuery->getModel()::class !== $handler->tenantResourceModel()) {
                     throw new InvalidArgumentException('The Page resource query differs from its tenant capability.');

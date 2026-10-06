@@ -26,7 +26,7 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
      */
     public function url(Page $page, ?string $locale = null): string
     {
-        $tenantSite = $this->configuration->get('tenancy.enabled') === true
+        $tenantSite = $this->configuration->get('nvl-tenancy.enabled') === true
             ? $this->container->make(TenantSiteContext::class)
             : null;
         if ($tenantSite !== null && $page->site !== $tenantSite->site) {
@@ -34,7 +34,7 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
         }
         $base = $tenantSite instanceof TenantSiteContext
             ? $tenantSite->canonicalOrigin
-            : config('pages.urls.base_url', config('app.url', 'http://localhost'));
+            : config('nvl-pages.urls.base_url', config('app.url', 'http://localhost'));
 
         if (! is_string($base)
             || filter_var($base, FILTER_VALIDATE_URL) === false
@@ -43,9 +43,9 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
         }
 
         $segments = [];
-        $defaultLocale = config('pages.urls.default_locale') ?? $this->locales->default();
+        $defaultLocale = config('nvl-pages.urls.default_locale') ?? $this->locales->default();
 
-        if ((bool) config('pages.urls.locale_prefix', false)
+        if ((bool) config('nvl-pages.urls.locale_prefix', false)
             && $locale !== null
             && $locale !== $defaultLocale) {
             $segments[] = rawurlencode($locale);

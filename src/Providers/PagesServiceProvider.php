@@ -38,10 +38,12 @@ use Nvl\Seo\Services\SeoOwnerRegistry;
 use Nvl\Seo\Services\SitemapRegistry;
 use Nvl\Support\Doctor\PackageDoctorContributor;
 use Nvl\Support\Integrations\OptionalIntegration;
+use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Support\Providers\TenantServiceProvider;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Nvl\Support\Traits\MergesPackageConfiguration;
+use Nvl\Support\Traits\RegistersNamespacedResources;
 use Nvl\Tenancy\Services\TenantAdoptionRegistry;
 use Nvl\Translatable\Services\TranslationResourceRegistry;
 
@@ -51,6 +53,7 @@ use Nvl\Translatable\Services\TranslationResourceRegistry;
 final class PagesServiceProvider extends ServiceProvider
 {
     use MergesPackageConfiguration;
+    use RegistersNamespacedResources;
 
     /**
      * Register validated Pages contracts and singleton registries.
@@ -60,7 +63,7 @@ final class PagesServiceProvider extends ServiceProvider
         $this->app->register(SupportServiceProvider::class);
         PackageDoctorContributor::register($this->app, 'nvl/pages', fn (): array => PackageDoctorContributor::reportChecks($this->app->make(PagesDoctor::class)->inspect(), 'nvl:pages:doctor'));
 
-        $this->mergePackageConfiguration(__DIR__.'/../../config/pages.php', 'pages');
+        $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-pages.php', 'pages');
         $this->app->register(TenantServiceProvider::class);
         (new PagesResourceRegistrar)->register($this->app->make(TenantResourceRegistry::class));
         $this->app->booted(function (): void {
@@ -69,15 +72,15 @@ final class PagesServiceProvider extends ServiceProvider
             }
         });
         $authorization = config(
-            'pages.authorization.class',
+            'nvl-pages.authorization.class',
             ConfiguredPageAuthorization::class,
         );
         $urlGenerator = config(
-            'pages.urls.generator',
+            'nvl-pages.urls.generator',
             ConfiguredPageUrlGenerator::class,
         );
         $contextResolver = config(
-            'pages.public.context_resolver',
+            'nvl-pages.public.context_resolver',
             ConfiguredPageRequestContextResolver::class,
         );
 
@@ -130,6 +133,7 @@ final class PagesServiceProvider extends ServiceProvider
         PageResourceRegistry $resources,
         SeoOwnerRegistry $seoOwners,
     ): void {
+        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, ['page']);
         $migrationRollbackGuard = $this->app->make(PagesMigrationRollbackGuard::class);
         $typeScriptSources->register(__DIR__.'/..', 'nvl/pages');
         $this->registerResources($resources);
@@ -138,11 +142,11 @@ final class PagesServiceProvider extends ServiceProvider
 
             return MetafieldsPageAdapter::relation($page);
         });
-        $seoOwners->register(PagesConfiguration::alias('seo_owner_alias', 'page'), Page::class);
+        $seoOwners->register(PagesConfiguration::alias('seo_owner_alias', 'nvl-page'), Page::class);
         if ($this->app->make(OptionalIntegration::class)->enabled('pages.integrations.metafields', MetafieldsServiceProvider::class)) {
-            $sections = config('pages.integrations.metafield_sections', ['general']);
+            $sections = config('nvl-pages.integrations.metafield_sections', ['general']);
             $this->app->make(MetafieldOwnerRegistry::class)->register(
-                PagesConfiguration::alias('metafield_owner_alias', 'page'), Page::class, 'Pages',
+                PagesConfiguration::alias('metafield_owner_alias', 'nvl-page'), Page::class, 'Pages',
                 is_array($sections) ? array_values(array_filter($sections, 'is_string')) : ['general'],
             );
         }
@@ -170,7 +174,7 @@ final class PagesServiceProvider extends ServiceProvider
         Event::listen(PageChanged::class, InvalidatePageSitemap::class);
         Event::listen(MigrationStarted::class, $migrationRollbackGuard->before(...));
 
-        if ((bool) config('pages.migrations.enabled', true)) {
+        if ((bool) config('nvl-pages.migrations.enabled', true)) {
             $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
         }
 
@@ -181,7 +185,7 @@ final class PagesServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/../../config/pages.php' => config_path('pages.php'),
+            __DIR__.'/../../config/nvl-pages.php' => config_path('nvl-pages.php'),
         ], 'pages-config');
         $this->publishesMigrations([
             __DIR__.'/../../database/migrations' => database_path('migrations'),
@@ -193,7 +197,7 @@ final class PagesServiceProvider extends ServiceProvider
 
     private function registerResources(PageResourceRegistry $registry): void
     {
-        $configured = config('pages.resources', []);
+        $configured = config('nvl-pages.resources', []);
 
         if (! is_array($configured)) {
             throw new InvalidArgumentException('pages.resources must be an alias-to-handler map.');

@@ -21,9 +21,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $connection = config('pages.connection');
+        $connection = config('nvl-pages.connection');
         $schema = Schema::connection(is_string($connection) ? $connection : null);
-        $tableName = (string) config('pages.tables.pages_i18n', PagesTables::get(PagesTables::I18n));
+        $tableName = (string) config('nvl-pages.tables.pages_i18n', PagesTables::get(PagesTables::I18n));
 
         if ($schema->hasTable($tableName)) {
             throw new LogicException('Existing package table is not owned by this migration. Run nvl:doctor --strict and use nvl:schema:upgrade for a verified legacy installation.');
@@ -42,7 +42,7 @@ return new class extends Migration
             $table->index(['locale', 'title'], 'pages_i18n_locale_title_index');
             $table->foreign('page_id')
                 ->references('id')
-                ->on((string) config('pages.tables.pages', PagesTables::get(PagesTables::Pages)))
+                ->on((string) config('nvl-pages.tables.pages', PagesTables::get(PagesTables::Pages)))
                 ->cascadeOnDelete();
         });
     }
@@ -52,8 +52,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $connection = config('pages.connection');
+        $connection = config('nvl-pages.connection');
         Schema::connection(is_string($connection) ? $connection : null)
-            ->dropIfExists((string) config('pages.tables.pages_i18n', PagesTables::get(PagesTables::I18n)));
+            ->dropIfExists((string) config('nvl-pages.tables.pages_i18n', PagesTables::get(PagesTables::I18n)));
     }
 };

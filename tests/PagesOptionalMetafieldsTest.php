@@ -41,6 +41,6 @@ it('serializes a complete editor bootstrap with an empty Metafields section', fu
 });
 
 it('rejects explicitly requiring an unavailable Metafields adapter', function (): void {
-    config()->set('pages.integrations.metafields', true);
+    config()->set('nvl-pages.integrations.metafields', true);
     expect(fn () => app(PageMetafields::class))->toThrow(InvalidArgumentException::class, 'requires the loaded provider');
 });

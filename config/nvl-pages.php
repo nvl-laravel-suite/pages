@@ -6,6 +6,7 @@ use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
 use Nvl\Pages\Services\ConfiguredPageRequestContextResolver;
 use Nvl\Pages\Services\ConfiguredPageUrlGenerator;
+use Nvl\Support\Config\PackageEnvironment;
 
 return [
     'connection' => null,
@@ -51,28 +52,28 @@ return [
 
     'urls' => [
         'generator' => ConfiguredPageUrlGenerator::class,
-        'base_url' => env('PAGES_BASE_URL', env('APP_URL', 'http://localhost')),
+        'base_url' => PackageEnvironment::get('NVL_PAGES_BASE_URL', env('APP_URL', 'http://localhost')),
         'locale_prefix' => false,
         'default_locale' => env('APP_LOCALE', 'en'),
     ],
 
     'integrations' => [
         'metafields' => null,
-        'seo_owner_alias' => 'page',
-        'metafield_owner_alias' => 'page',
+        'seo_owner_alias' => 'nvl-page',
+        'metafield_owner_alias' => 'nvl-page',
         'metafield_sections' => ['general', 'navigation'],
     ],
 
     'routes' => [
         'public' => [
             'enabled' => false,
-            'prefix' => 'api/v1/pages',
+            'prefix' => 'nvl/api/v1/pages',
             'name' => 'nvl.pages.public.',
             'middleware' => ['api', 'throttle:120,1'],
         ],
         'management' => [
             'enabled' => false,
-            'prefix' => 'api/v1/pages/_manage',
+            'prefix' => 'nvl/api/v1/pages/_manage',
             'name' => 'nvl.pages.management.',
             'middleware' => ['api', 'auth', 'throttle:60,1'],
         ],

@@ -21,9 +21,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $connection = config('pages.connection');
+        $connection = config('nvl-pages.connection');
         $schema = Schema::connection(is_string($connection) ? $connection : null);
-        $tableName = (string) config('pages.tables.page_tree_locks', PagesTables::get(PagesTables::TreeLocks));
+        $tableName = (string) config('nvl-pages.tables.page_tree_locks', PagesTables::get(PagesTables::TreeLocks));
 
         if ($schema->hasTable($tableName)) {
             throw new LogicException('Existing package table is not owned by this migration. Run nvl:doctor --strict and use nvl:schema:upgrade for a verified legacy installation.');
@@ -39,9 +39,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $connection = config('pages.connection');
+        $connection = config('nvl-pages.connection');
 
         Schema::connection(is_string($connection) ? $connection : null)
-            ->dropIfExists((string) config('pages.tables.page_tree_locks', PagesTables::get(PagesTables::TreeLocks)));
+            ->dropIfExists((string) config('nvl-pages.tables.page_tree_locks', PagesTables::get(PagesTables::TreeLocks)));
     }
 };

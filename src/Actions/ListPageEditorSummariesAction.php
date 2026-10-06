@@ -124,7 +124,7 @@ final readonly class ListPageEditorSummariesAction
                 return new PageEditorSummaryData(
                     page: PageData::fromModel($page),
                     label: $label !== '' ? $label : $page->key,
-                    placements: $placements[Page::CONTENT_OWNER_TYPE.':'.$page->id] ?? [],
+                    placements: $placements[$page->getMorphClass().':'.$page->id] ?? [],
                     seo: $seoProfilesByPage[$page->id] ?? null,
                 );
             },

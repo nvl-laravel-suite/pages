@@ -34,7 +34,7 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
     public function resolve(Request $request): PageRequestContextData
     {
         $tenantSite = null;
-        if ($this->configuration->get('tenancy.enabled') === true) {
+        if ($this->configuration->get('nvl-tenancy.enabled') === true) {
             $resolvedTenantSite = TenantSiteAttributes::read($request);
             if (! $resolvedTenantSite instanceof TenantSiteContext) {
                 throw new InvalidArgumentException('A verified public tenant site is required.');
@@ -43,7 +43,7 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
         }
         $site = $tenantSite instanceof TenantSiteContext
             ? $tenantSite->site
-            : config('pages.public.default_site', 'default');
+            : config('nvl-pages.public.default_site', 'default');
 
         if (! is_string($site)
             || preg_match('/^[a-z0-9][a-z0-9._-]{0,63}$/D', $site) !== 1) {

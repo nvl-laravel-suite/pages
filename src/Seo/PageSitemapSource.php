@@ -113,8 +113,8 @@ final readonly class PageSitemapSource implements TenantSafeSitemapSource
      */
     private function staticEntries(Page $page): iterable
     {
-        $localePrefix = (bool) config('pages.urls.locale_prefix', false);
-        $defaultLocale = config('pages.urls.default_locale') ?? $this->locales->default();
+        $localePrefix = (bool) config('nvl-pages.urls.locale_prefix', false);
+        $defaultLocale = config('nvl-pages.urls.default_locale') ?? $this->locales->default();
         $locales = $page->translations->pluck('locale')->all();
         $locales = array_values(array_filter($locales, 'is_string'));
 

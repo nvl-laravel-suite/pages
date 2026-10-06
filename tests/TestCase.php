@@ -52,13 +52,15 @@ abstract class TestCase extends Orchestra
             'app.url' => 'https://pages.test',
             'cache.default' => 'array',
             'filesystems.default' => 'local',
-            'media.disk' => 'local',
-            'media.routes.assets_enabled' => false,
-            'content.authorization.callback' => static fn (): bool => true,
-            'translatable.locales' => ['en', 'bg'],
-            'translatable.fallback_locales' => ['en'],
-            'pages.urls.base_url' => 'https://pages.test',
-            'pages.resources' => [
+            'nvl-media.disk' => 'local',
+            'nvl-media.routes.assets_enabled' => false,
+            'nvl-content.authorization.callback' => static fn (): bool => true,
+            'nvl-translatable.locales' => ['en', 'bg'],
+            'nvl-translatable.fallback_locales' => ['en'],
+            'nvl-pages.urls.base_url' => 'https://pages.test',
+            'nvl-seo.routes.sitemap_path' => 'sitemap.xml',
+            'nvl-seo.routes.sitemap_chunk_path' => 'sitemap-{chunk}.xml',
+            'nvl-pages.resources' => [
                 'records.detail' => TestPageResourceHandler::class,
             ],
         ]);

@@ -17,11 +17,11 @@ abstract class HttpTestCase extends TestCase
         parent::defineEnvironment($app);
 
         $app['config']->set([
-            'pages.authorization.class' => RecordingPageAuthorization::class,
-            'pages.routes.public.enabled' => true,
-            'pages.routes.public.middleware' => ['api'],
-            'pages.routes.management.enabled' => true,
-            'pages.routes.management.middleware' => ['api'],
+            'nvl-pages.authorization.class' => RecordingPageAuthorization::class,
+            'nvl-pages.routes.public.enabled' => true,
+            'nvl-pages.routes.public.middleware' => ['api'],
+            'nvl-pages.routes.management.enabled' => true,
+            'nvl-pages.routes.management.middleware' => ['api'],
         ]);
     }
 

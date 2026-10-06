@@ -27,7 +27,7 @@ final readonly class PageTreeLock
         $table = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
 
         $identity = ['site' => $site];
-        if ($this->configuration->get('tenancy.enabled') === true) {
+        if ($this->configuration->get('nvl-tenancy.enabled') === true) {
             $identity = ['tenant_id' => $this->tenancy->requireTenant()->value, ...$identity];
         }
         $connection->table($table)->insertOrIgnore($identity);

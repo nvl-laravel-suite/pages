@@ -11,11 +11,11 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/pages:^2.0` |
+| Installed through | `composer require nvl/pages:^5.0` |
 | Module identifier | `nvl/pages` |
 | PHP namespace | `Nvl\Pages` |
 | Service provider | `Nvl\Pages\Providers\PagesServiceProvider` |
-| Configuration | `config/pages.php` |
+| Configuration | `config/nvl-pages.php` |
 
 `nvl/pages` is a headless Laravel package for structural pages, four-level navigation trees, localized editorial copy, dynamic resource-backed routes, composed Content blocks, SEO, Metafields, and sitemap discovery.
 
@@ -56,22 +56,22 @@ models are canonically checked again before projection.
 Install the package in a clean Laravel application:
 
 ```bash
-composer require nvl/pages:^2.0
-php artisan vendor:publish --tag=pages-config
-php artisan vendor:publish --tag=pages-skills
+composer require nvl/pages:^5.0
+php artisan vendor:publish --tag=nvl-pages-config
+php artisan vendor:publish --tag=nvl-pages-skills
 php artisan migrate
 php artisan nvl:pages:doctor --strict
 ```
 
 Laravel package discovery registers the provider. Composer installs the required Content, Core, Filterable, SEO, and Translatable packages and their dependencies automatically. Metafields and Tenancy are optional integrations. The default tables are `nvl_pages_pages`, `nvl_pages_i18n`, and `nvl_pages_tree_locks`; their names and the database connection are configurable.
 
-Routes are disabled by default. Publishing migrations is optional because package migrations load automatically while `pages.migrations.enabled` is true.
+Routes are disabled by default. Publishing migrations is optional because package migrations load automatically while `nvl-pages.migrations.enabled` is true.
 
 Choose exactly one migration owner. For automatic vendor loading, leave
-`pages.migrations.enabled=true` and do not publish `pages-migrations`. For
+`nvl-pages.migrations.enabled=true` and do not publish `nvl-pages-migrations`. For
 host-owned migrations, run
-`php artisan vendor:publish --tag=pages-migrations`, set
-`pages.migrations.enabled=false` before the first migration, and maintain the
+`php artisan vendor:publish --tag=nvl-pages-migrations`, set
+`nvl-pages.migrations.enabled=false` before the first migration, and maintain the
 copied files as application migrations. Never run both sources; Laravel
 retimestamps published migrations.
 
@@ -131,7 +131,7 @@ Slugs are structural and locale-independent. Titles, navigation labels, and summ
 
 ## Dynamic resource pages
 
-A resource page stores a stable handler alias, never an arbitrary class name from a request. Register handlers in `pages.resources`:
+A resource page stores a stable handler alias, never an arbitrary class name from a request. Register handlers in `nvl-pages.resources`:
 
 ```php
 use Domain\Site\CatalogEntryPageHandler;
@@ -209,7 +209,7 @@ through Translatable fallback, then fall back to the stable key. Empty search
 returns the default bounded list, one-character typeahead input returns an
 empty collection without storage queries, and longer input searches key, path,
 title, and navigation label case-insensitively. The requested limit is clamped
-to `pages.limits.maximum_page_options` and an absolute 100-row ceiling. Search
+to `nvl-pages.limits.maximum_page_options` and an absolute 100-row ceiling. Search
 input must be valid UTF-8 without NUL bytes so behavior remains portable across
 supported databases.
 
@@ -224,7 +224,7 @@ The default uses canonical sibling order. Consumers can allowlist one
 `PageKind` and select `PublicChildPageOrder::Newest` to filter and order by the
 effective publication timestamp before the requested limit—for example, a
 static news-card feed. Results are clamped to
-`pages.limits.maximum_public_children` plus the same absolute 100-row ceiling.
+`nvl-pages.limits.maximum_public_children` plus the same absolute 100-row ceiling.
 Option reads use two fixed queries and populated public-child reads use three,
 whether one or 25 records are returned. These projections are uncached because
 authorization, locale fallback, publication windows, and hierarchy are
@@ -343,7 +343,7 @@ Bind `PageUrlGenerator` for tenant domains, locale domains, signed previews, or 
 
 Mutation Actions fail closed unless called by a system actor or allowed by a consumer `PageAuthorization` binding. Anonymous reads are allowed only for publicly eligible pages and navigation. Scheduled pages resolve after `published_at`; expired and archived pages do not.
 
-Public HTTP requests use `PageRequestContextResolver`. The default implementation takes the site from `pages.public.default_site` and validates the requested locale against Translatable. It never trusts a caller-supplied site. Bind the contract to a host-, domain-, or tenant-aware implementation for multi-site applications.
+Public HTTP requests use `PageRequestContextResolver`. The default implementation takes the site from `nvl-pages.public.default_site` and validates the requested locale against Translatable. It never trusts a caller-supplied site. Bind the contract to a host-, domain-, or tenant-aware implementation for multi-site applications.
 
 The public and management route groups are independent:
 
@@ -351,20 +351,20 @@ The public and management route groups are independent:
 'routes' => [
     'public' => [
         'enabled' => true,
-        'prefix' => 'api/v1/pages',
+        'prefix' => 'nvl/api/v1/pages',
         'name' => 'nvl.pages.public.',
         'middleware' => ['api', 'throttle:120,1'],
     ],
         'management' => [
             'enabled' => false,
-            'prefix' => 'api/v1/pages/_manage',
+            'prefix' => 'nvl/api/v1/pages/_manage',
         'name' => 'nvl.pages.management.',
         'middleware' => ['api', 'auth', 'throttle:60,1'],
     ],
 ],
 ```
 
-The public endpoints resolve `GET /api/v1/pages/{path}` and `GET /api/v1/pages/_navigation`. Management endpoints default to `/api/v1/pages/_manage`, where they list one explicit site, create, inspect, replace, move, preview, soft-delete, and restore pages. The leading-underscore transport segments cannot collide with valid page slugs. Route names, prefixes, and non-empty middleware lists are validated before registration and work with route caching.
+The public endpoints resolve `GET /nvl/api/v1/pages/{path}` and `GET /nvl/api/v1/pages/_navigation`. Management endpoints default to `/nvl/api/v1/pages/_manage`, where they list one explicit site, create, inspect, replace, move, preview, soft-delete, and restore pages. The leading-underscore transport segments cannot collide with valid page slugs. Route names, prefixes, and non-empty middleware lists are validated before registration and work with route caching.
 
 ## Commands and operations
 
@@ -414,20 +414,20 @@ NVL Pages is open-sourced software licensed under the MIT license.
 Declare a model once in `config/nvl-core.php`:
 
 ```php
-'owners' => ['article' => Article::class],
+'owners' => [Article::class],
 ```
 
-Enable this package capability separately in `config/pages.php`:
+Enable this package capability separately in `config/nvl-pages.php`:
 
 ```php
 'resources' => [
-    'articles.detail' => ['owner' => 'article', 'handler' => ArticlePageHandler::class],
+    'articles.detail' => ['owner' => Article::class, 'handler' => ArticlePageHandler::class],
 ],
 ```
 
 Keep the resource handler, route pattern, query visibility, and presentation behavior. Resource keys may differ from owner aliases; query and fetched models must match the declared owner. Core registration does not add the model to this package's allowlist.
 
-Existing package class/resolver/handler registrations remain accepted for one major cycle. Run `php artisan nvl:doctor --strict --format=json` to inspect compatibility diagnostics. See [UPGRADING.md](UPGRADING.md) before changing a persisted morph type.
+Laravel's `getMorphClass()` determines stored identity. These class declarations do not install host morph maps. Keep resolvers, handlers and authorization independent; use `nvl:doctor --strict --format=json` to review legacy alias mismatches or stored identity drift. See [UPGRADING.md](UPGRADING.md) before changing the host's morph map.
 
 ## Shared consumer diagnostics
 
@@ -435,7 +435,7 @@ Run `php artisan nvl:doctor --strict --format=json` to combine the read-only che
 
 ## Optional Metafields editor adapter
 
-Pages installs without `nvl/metafields`. `pages.integrations.metafields` accepts `null` (automatic activation from a loaded Metafields provider), `false` (disabled), or `true` (required). Explicitly requiring an unavailable adapter produces a configuration error. Core Doctor reports automatic inactivity as information.
+Pages installs without `nvl/metafields`. `nvl-pages.integrations.metafields` accepts `null` (automatic activation from a loaded Metafields provider), `false` (disabled), or `true` (required). Explicitly requiring an unavailable adapter produces a configuration error. Core Doctor reports automatic inactivity as information.
 
 `GetPageEditorBootstrapAction` returns an empty `metafields` array while this adapter is inactive. Content and SEO remain required editor integrations. When Metafields is loaded, its own authorized read Action supplies fields through `Nvl\Pages\Contracts\PageMetafields`. Hosts can bind that contract before the package default.
 
@@ -445,7 +445,7 @@ Existing `$page->metafields()` calls remain supported through a lazy relation re
 
 ## Next major: isolated schema identities
 
-Use `pages.tables.<logical-key>` for every table and `pages.connection` for its database connection. Null connection inherits `nvl-core.connection`, then Laravel's default. Tables are resolved at runtime by the package table definition helper.
+Use `nvl-pages.tables.<logical-key>` for every table and `nvl-pages.connection` for its database connection. Null connection inherits `nvl-core.connection`, then Laravel's default. Tables are resolved at runtime by the package table definition helper.
 
 | Logical key | New default | Previous name |
 | --- | --- | --- |
@@ -453,4 +453,8 @@ Use `pages.tables.<logical-key>` for every table and `pages.connection` for its 
 | `i18n` | `nvl_pages_i18n` | `pages_i18n` |
 | `tree_locks` | `nvl_pages_tree_locks` | `page_tree_locks` |
 
-Migration filenames contain `nvl_pages_`. Existing installations must complete the upgrade in `UPGRADING.md` before running new migrations. A pending creator rejects an existing target before any migration in the batch runs; legacy storage with old history needs an ownership decision.
+Migration filenames contain `nvl_pages_`. Existing installations must complete the upgrade in `UPGRADING.md` before running new migrations. A pending creator rejects an existing target before that owned migration runs; use `nvl:schema:preflight` for an explicit whole-batch check; legacy storage with old history needs an ownership decision.
+
+## Canonical configuration ownership
+
+Use `nvl-pages` settings in `config/nvl-pages.php` and canonical package environment names. Old generic roots are foreign unless an upgrading NVL host explicitly selects them in Core's default-off compatibility. Canonical false/null/empty values win; no old roots are populated or written back. Keep logical package/resource IDs unchanged. Review [Core's rename inventory and cache/worker cutover](https://github.com/nvl-laravel-suite/core/blob/main/UPGRADING.md#major-5-canonical-configuration-and-environment).

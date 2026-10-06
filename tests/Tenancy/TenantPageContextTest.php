@@ -29,8 +29,8 @@ it('resolves tenant site before public Page binding and canonical URL work', fun
         'X-Tenant-Id' => TenantScenario::B,
         'X-Site' => 'foreign',
         'X-Canonical-Origin' => 'https://b.pages.test',
-    ])->getJson('https://a.pages.test/api/v1/pages/about?tenant_id='.TenantScenario::B.'&site=foreign');
-    $b = $this->getJson('https://b.pages.test/api/v1/pages/about');
+    ])->getJson('https://a.pages.test/nvl/api/v1/pages/about?tenant_id='.TenantScenario::B.'&site=foreign');
+    $b = $this->getJson('https://b.pages.test/nvl/api/v1/pages/about');
 
     $a->assertOk()->assertJsonPath('data.page.title', 'About A');
     $b->assertOk()->assertJsonPath('data.page.title', 'About B');
@@ -40,6 +40,6 @@ it('resolves tenant site before public Page binding and canonical URL work', fun
 });
 
 it('fails closed for an unknown host without leaking another site', function (): void {
-    $this->getJson('https://unknown.pages.test/api/v1/pages/about')
+    $this->getJson('https://unknown.pages.test/nvl/api/v1/pages/about')
         ->assertNotFound();
 });

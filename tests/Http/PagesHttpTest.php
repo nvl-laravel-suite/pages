@@ -28,47 +28,47 @@ function pageHttpPayload(string $key, string $slug, array $overrides = []): arra
 it('keeps public transport endpoints disjoint from valid page paths', function (): void {
     expect(app(PageAuthorization::class))->toBeInstanceOf(RecordingPageAuthorization::class)
         ->and(Route::getRoutes()->getByName('nvl.pages.public.navigation')?->uri())
-        ->toBe('api/v1/pages/_navigation')
+        ->toBe('nvl/api/v1/pages/_navigation')
         ->and(Route::getRoutes()->getByName('nvl.pages.management.index')?->uri())
-        ->toBe('api/v1/pages/_manage');
+        ->toBe('nvl/api/v1/pages/_manage');
 
     $this->postJson(
-        '/api/v1/pages/_manage',
+        '/nvl/api/v1/pages/_manage',
         pageHttpPayload('pages.navigation', 'navigation'),
     )->assertCreated();
     $this->postJson(
-        '/api/v1/pages/_manage',
+        '/nvl/api/v1/pages/_manage',
         pageHttpPayload('pages.manage', 'manage'),
     )->assertCreated();
 
-    $this->getJson('/api/v1/pages/navigation?locale=en')
+    $this->getJson('/nvl/api/v1/pages/navigation?locale=en')
         ->assertSuccessful()
         ->assertJsonPath('data.page.path', 'navigation');
-    $this->getJson('/api/v1/pages/manage?locale=en')
+    $this->getJson('/nvl/api/v1/pages/manage?locale=en')
         ->assertSuccessful()
         ->assertJsonPath('data.page.path', 'manage');
-    $this->getJson('/api/v1/pages/_navigation?locale=en')
+    $this->getJson('/nvl/api/v1/pages/_navigation?locale=en')
         ->assertSuccessful()
         ->assertJsonCount(2, 'data.items');
-    $this->getJson('/api/v1/pages/_manage?site=default&perPage=1')
+    $this->getJson('/nvl/api/v1/pages/_manage?site=default&perPage=1')
         ->assertSuccessful()
         ->assertJsonPath('meta.per_page', 1)
         ->assertJsonCount(1, 'data');
-    $this->getJson('/api/v1/pages/_manage/preview/navigation?site=default&locale=en')
+    $this->getJson('/nvl/api/v1/pages/_manage/preview/navigation?site=default&locale=en')
         ->assertSuccessful()
         ->assertJsonPath('data.page.path', 'navigation');
 });
 
 it('validates page management query boundaries with camel-case keys', function (): void {
-    $this->getJson('/api/v1/pages/_manage')
+    $this->getJson('/nvl/api/v1/pages/_manage')
         ->assertUnprocessable()
         ->assertJsonValidationErrors('site');
 
-    $this->getJson('/api/v1/pages/_manage?site=default&perPage=0')
+    $this->getJson('/nvl/api/v1/pages/_manage?site=default&perPage=0')
         ->assertUnprocessable()
         ->assertJsonValidationErrors('perPage');
 
-    $this->getJson('/api/v1/pages/_manage/preview/navigation?site=default')
+    $this->getJson('/nvl/api/v1/pages/_manage/preview/navigation?site=default')
         ->assertUnprocessable()
         ->assertJsonValidationErrors('locale');
 });
@@ -77,7 +77,7 @@ it('rejects management payloads that exceed portable persistence bounds', functi
     array $overrides,
 ): void {
     $this->postJson(
-        '/api/v1/pages/_manage',
+        '/nvl/api/v1/pages/_manage',
         pageHttpPayload('pages.unsafe-'.md5(serialize($overrides)), 'unsafe', $overrides),
     )->assertUnprocessable();
 })->with([

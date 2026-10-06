@@ -49,7 +49,7 @@ it('maps a current-schema Page and derives its lock identity before constraints'
     $page = $scenario->runWithSite(TenantScenario::A, static fn () => Page::query()->findOrFail($id));
 
     expect($page->tenant_id)->toBe(TenantScenario::A)
-        ->and(DB::table((string) config('pages.tables.page_tree_locks'))
+        ->and(DB::table((string) config('nvl-pages.tables.page_tree_locks'))
             ->where('tenant_id', TenantScenario::A)
             ->where('site', 'default')
             ->exists())->toBeTrue();

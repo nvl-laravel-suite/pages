@@ -4,6 +4,13 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Prepare lockstep major 5 with required and development NVL peer floors of `^5.0`. This candidate has not been tagged or published.
+- Write package Page morph identity as nvl-page with collision validation and legacy read compatibility.
+- Keep rollback checks confined to exact package migration ownership.
+- Review [UPGRADING.md](UPGRADING.md) before adopting the new names and infrastructure boundaries.
+
 ## [2.2.1] - 2026-09-26
 
 ### Documentation

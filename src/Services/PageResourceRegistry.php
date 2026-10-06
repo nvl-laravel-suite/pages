@@ -155,7 +155,7 @@ final class PageResourceRegistry
             label: "Page resource [{$alias}]",
         );
 
-        if ($this->configuration->get('tenancy.enabled') === true) {
+        if ($this->configuration->get('nvl-tenancy.enabled') === true) {
             /** @var TenantSafePageResourceHandler<Model> $handler */
             $model = $handler->tenantResourceModel();
             $this->tenantResources->forModel(new $model);

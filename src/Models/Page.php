@@ -71,7 +71,7 @@ final class Page extends Model implements ContentOwner, TranslatableModel
     use SoftDeletes;
     use Translatable;
 
-    public const string CONTENT_OWNER_TYPE = 'page';
+    public const string CONTENT_OWNER_TYPE = 'nvl-page';
 
     public const string TENANT_RESOURCE = 'pages.pages';
 

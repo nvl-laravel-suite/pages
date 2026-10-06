@@ -8,7 +8,7 @@ use Nvl\Pages\Http\Controllers\PublicNavigationController;
 use Nvl\Pages\Http\Controllers\PublicPagesController;
 use Nvl\Pages\Support\PagesRouteConfiguration;
 
-if ((bool) config('pages.routes.management.enabled', false)) {
+if ((bool) config('nvl-pages.routes.management.enabled', false)) {
     Route::prefix(PagesRouteConfiguration::path('management'))
         ->name(PagesRouteConfiguration::name('management'))
         ->middleware(PagesRouteConfiguration::middleware('management'))
@@ -30,7 +30,7 @@ if ((bool) config('pages.routes.management.enabled', false)) {
         });
 }
 
-if ((bool) config('pages.routes.public.enabled', false)) {
+if ((bool) config('nvl-pages.routes.public.enabled', false)) {
     Route::prefix(PagesRouteConfiguration::path('public'))
         ->name(PagesRouteConfiguration::name('public'))
         ->middleware(PagesRouteConfiguration::middleware('public'))

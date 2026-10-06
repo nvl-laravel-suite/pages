@@ -34,7 +34,7 @@ final class PagesConfiguration
      */
     public static function maximumDepth(): int
     {
-        $value = config('pages.hierarchy.maximum_depth', 4);
+        $value = config('nvl-pages.hierarchy.maximum_depth', 4);
 
         if (! is_int($value) || $value < 1 || $value > 4) {
             throw new InvalidArgumentException(
@@ -52,7 +52,7 @@ final class PagesConfiguration
      */
     public static function transactionAttempts(): int
     {
-        $value = config('pages.transactions.attempts', 3);
+        $value = config('nvl-pages.transactions.attempts', 3);
 
         if (! is_int($value) || $value < 1 || $value > 10) {
             throw new InvalidArgumentException(
@@ -68,7 +68,7 @@ final class PagesConfiguration
      */
     public static function limit(string $key, int $default): int
     {
-        $value = config("pages.limits.{$key}", $default);
+        $value = config("nvl-pages.limits.{$key}", $default);
 
         return is_int($value) && $value > 0 ? $value : $default;
     }
@@ -78,7 +78,7 @@ final class PagesConfiguration
      */
     public static function alias(string $integration, string $default): string
     {
-        $value = config("pages.integrations.{$integration}", $default);
+        $value = config("nvl-pages.integrations.{$integration}", $default);
 
         if (! is_string($value)
             || preg_match('/^[a-z][a-z0-9_.-]{0,99}$/D', $value) !== 1) {

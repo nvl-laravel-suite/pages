@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use LogicException;
 use Nvl\Content\Contracts\ContentOwner;
 use Nvl\Content\Traits\HasContent;
+use Nvl\Pages\Database\Factories\PageFactory;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
@@ -67,7 +69,10 @@ use Nvl\Translatable\Translatable;
 final class Page extends Model implements ContentOwner, TranslatableModel
 {
     use GuardsTenantOwnership;
+
     use HasContent;
+    /** @use HasFactory<PageFactory> */
+    use HasFactory;
     use HasSeo;
     use HasUuids;
     use SoftDeletes;
@@ -252,5 +257,15 @@ final class Page extends Model implements ContentOwner, TranslatableModel
                 $page->revision = is_numeric($revision) ? ((int) $revision) + 1 : 1;
             }
         });
+    }
+
+    /**
+     * Return the package's runtime fixture factory.
+     *
+     * @internal
+     */
+    protected static function newFactory(): PageFactory
+    {
+        return PageFactory::new();
     }
 }

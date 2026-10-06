@@ -7,6 +7,7 @@ namespace Nvl\Pages\Actions;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Nvl\Filterable\Data\FilterSet;
 use Nvl\Filterable\Services\EloquentFilterApplier;
+use Nvl\Pages\Contracts\ListPagesContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
@@ -21,7 +22,7 @@ use Nvl\Pages\Support\PagesConfiguration;
  *
  * @api
  */
-final readonly class ListPagesAction
+final readonly class ListPagesAction implements ListPagesContract
 {
     /**
      * Create the site-scoped page list action.

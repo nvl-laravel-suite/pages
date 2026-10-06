@@ -8,6 +8,8 @@ use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Canonical operation names emitted by committed page-change events.
+ *
+ * @api
  */
 #[Hidden]
 enum PageChangeOperation: string

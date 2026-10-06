@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Actions;
 
+use Nvl\Pages\Contracts\GetPageContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageData;
@@ -15,7 +16,7 @@ use Nvl\Pages\Models\Page;
  *
  * @api
  */
-final readonly class GetPageAction
+final readonly class GetPageAction implements GetPageContract
 {
     /**
      * Create the authorized page read action.

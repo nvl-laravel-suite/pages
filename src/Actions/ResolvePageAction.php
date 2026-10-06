@@ -7,6 +7,7 @@ namespace Nvl\Pages\Actions;
 use Nvl\Content\Content;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Contracts\PageUrlGenerator;
+use Nvl\Pages\Contracts\ResolvePageContract;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
 use Nvl\Pages\Data\PublicPageData;
@@ -21,7 +22,7 @@ use Nvl\Seo\Services\SeoMetadataResolver;
  *
  * @api
  */
-final readonly class ResolvePageAction
+final readonly class ResolvePageAction implements ResolvePageContract
 {
     /**
      * Create the public page resolution action.

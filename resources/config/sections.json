@@ -1,0 +1,45 @@
+{
+    "schema_version": 1,
+    "configs": {
+        "nvl-pages": {
+            "required": [],
+            "common": [
+                "authorization.class",
+                "connection",
+                "migrations.enabled",
+                "resources",
+                "routes.management.enabled",
+                "routes.management.middleware",
+                "routes.management.name",
+                "routes.management.prefix",
+                "routes.public.enabled",
+                "routes.public.middleware",
+                "routes.public.name",
+                "routes.public.prefix",
+                "tables.page_tree_locks",
+                "tables.pages",
+                "tables.pages_i18n"
+            ],
+            "advanced": [
+                "hierarchy.maximum_depth",
+                "integrations.metafield_owner_alias",
+                "integrations.metafield_sections",
+                "integrations.metafields",
+                "integrations.seo_owner_alias",
+                "limits.maximum_page_options",
+                "limits.maximum_path_bytes",
+                "limits.maximum_per_page",
+                "limits.maximum_public_children",
+                "limits.maximum_resource_parameters",
+                "limits.per_page",
+                "public.context_resolver",
+                "public.default_site",
+                "transactions.attempts",
+                "urls.base_url",
+                "urls.default_locale",
+                "urls.generator",
+                "urls.locale_prefix"
+            ]
+        }
+    }
+}

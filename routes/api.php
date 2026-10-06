@@ -6,12 +6,13 @@ use Illuminate\Support\Facades\Route;
 use Nvl\Pages\Http\Controllers\PagesManagementController;
 use Nvl\Pages\Http\Controllers\PublicNavigationController;
 use Nvl\Pages\Http\Controllers\PublicPagesController;
+use Nvl\Pages\Http\Middleware\RenderPagesExceptions;
 use Nvl\Pages\Support\PagesRouteConfiguration;
 
 if ((bool) config('nvl-pages.routes.management.enabled', false)) {
     Route::prefix(PagesRouteConfiguration::path('management'))
         ->name(PagesRouteConfiguration::name('management'))
-        ->middleware(PagesRouteConfiguration::middleware('management'))
+        ->middleware([RenderPagesExceptions::class, ...PagesRouteConfiguration::middleware('management')])
         ->group(function (): void {
             Route::get('/', [PagesManagementController::class, 'index'])->name('index');
             Route::post('/', [PagesManagementController::class, 'store'])->name('store');
@@ -33,7 +34,7 @@ if ((bool) config('nvl-pages.routes.management.enabled', false)) {
 if ((bool) config('nvl-pages.routes.public.enabled', false)) {
     Route::prefix(PagesRouteConfiguration::path('public'))
         ->name(PagesRouteConfiguration::name('public'))
-        ->middleware(PagesRouteConfiguration::middleware('public'))
+        ->middleware([RenderPagesExceptions::class, ...PagesRouteConfiguration::middleware('public')])
         ->group(function (): void {
             Route::get('/_navigation', PublicNavigationController::class)
                 ->name('navigation');

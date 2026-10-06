@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Pages\Actions;
 
 use Illuminate\Support\Collection;
+use Nvl\Pages\Contracts\ListPublicChildPagesContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Data\PageActorData;
@@ -24,7 +25,7 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * @api
  */
-final readonly class ListPublicChildPagesAction
+final readonly class ListPublicChildPagesAction implements ListPublicChildPagesContract
 {
     /**
      * Create the authorized public child projection.

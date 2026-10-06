@@ -6,8 +6,10 @@ namespace Nvl\Pages\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Nvl\Pages\Database\Factories\PageTranslationFactory;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Concerns\GuardsTenantOwnership;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -26,10 +28,17 @@ use Nvl\Support\Config\PackageStorage;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Page $page
+ *
+ * @api
+ *
+ * @nvl-consumer-read id
  */
 final class PageTranslation extends Model
 {
     use GuardsTenantOwnership;
+
+    /** @use HasFactory<PageTranslationFactory> */
+    use HasFactory;
     use HasUuids;
 
     public const string TENANT_RESOURCE = 'pages.translations';
@@ -65,5 +74,15 @@ final class PageTranslation extends Model
     public function page(): BelongsTo
     {
         return $this->belongsTo(Page::class);
+    }
+
+    /**
+     * Return the package's runtime fixture factory.
+     *
+     * @internal
+     */
+    protected static function newFactory(): PageTranslationFactory
+    {
+        return PageTranslationFactory::new();
     }
 }

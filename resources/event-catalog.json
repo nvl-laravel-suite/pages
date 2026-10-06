@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "package": "nvl/pages",
+  "documentation": "docs/events.md",
+  "implementation_status": "implemented; executable acceptance proof pending",
+  "events": [
+    {
+      "class": "Nvl\\Pages\\Events\\PageChanged",
+      "source": "packages/nvl/pages/src/Events/PageChanged.php",
+      "constructor_fields": [
+        {
+          "name": "pageId",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "site",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "operation",
+          "type": "Nvl\\Pages\\Enums\\PageChangeOperation",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "revision",
+          "type": "int",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "actor",
+          "type": "Nvl\\Pages\\Data\\PageActorData",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "affectedPageIds",
+          "type": "array",
+          "visibility": "public",
+          "required": false,
+          "default_expression": "[]",
+          "phpdoc_type": "list<string>"
+        },
+        {
+          "name": "sitemapIdentity",
+          "type": "?Nvl\\Seo\\Data\\SitemapCacheIdentity",
+          "visibility": "parameter",
+          "required": false,
+          "default_expression": "null"
+        },
+        {
+          "name": "schemaVersion",
+          "type": "int",
+          "visibility": "public",
+          "required": false,
+          "default_expression": "1"
+        }
+      ],
+      "public_fields": [
+        {
+          "name": "pageId",
+          "type": "string"
+        },
+        {
+          "name": "site",
+          "type": "string"
+        },
+        {
+          "name": "operation",
+          "type": "Nvl\\Pages\\Enums\\PageChangeOperation"
+        },
+        {
+          "name": "revision",
+          "type": "int"
+        },
+        {
+          "name": "actor",
+          "type": "Nvl\\Pages\\Data\\PageActorData"
+        },
+        {
+          "name": "affectedPageIds",
+          "type": "array",
+          "phpdoc_type": "list<string>"
+        },
+        {
+          "name": "sitemapIdentity",
+          "type": "Nvl\\Seo\\Data\\SitemapCacheIdentity"
+        },
+        {
+          "name": "schemaVersion",
+          "type": "int"
+        }
+      ],
+      "kind": "value_object",
+      "schema_version": 1,
+      "trigger": "Page structure/lifecycle revision changed.",
+      "aliases": [],
+      "producers": [
+        {
+          "path": "packages/nvl/pages/src/Actions/CreatePageAction.php",
+          "trigger": "Page structure/lifecycle revision changed.",
+          "connection": "$page->getConnection()",
+          "construction_expression": "new PageChanged( $page->id, $page->site, PageChangeOperation::Created, $page->revision, $actor, [$page->id], )"
+        },
+        {
+          "path": "packages/nvl/pages/src/Actions/DeletePageAction.php",
+          "trigger": "Page structure/lifecycle revision changed.",
+          "connection": "$page->getConnection()",
+          "construction_expression": "new PageChanged( $page->id, $page->site, PageChangeOperation::Deleted, $page->revision, $actor, [$page->id], )"
+        },
+        {
+          "path": "packages/nvl/pages/src/Actions/MovePageAction.php",
+          "trigger": "Page structure/lifecycle revision changed.",
+          "connection": "$page->getConnection()",
+          "construction_expression": "new PageChanged( $page->id, $page->site, PageChangeOperation::Moved, $page->revision, $actor, [ $page->id, ...array_map( static fn (Page $descendant): string => $descendant->id, $descendants, ), ], )"
+        },
+        {
+          "path": "packages/nvl/pages/src/Actions/RestorePageAction.php",
+          "trigger": "Page structure/lifecycle revision changed.",
+          "connection": "$page->getConnection()",
+          "construction_expression": "new PageChanged( $page->id, $page->site, PageChangeOperation::Restored, $page->revision, $actor, [$page->id], )"
+        },
+        {
+          "path": "packages/nvl/pages/src/Actions/UpdatePageAction.php",
+          "trigger": "Page structure/lifecycle revision changed.",
+          "connection": "$page->getConnection()",
+          "construction_expression": "new PageChanged( $page->id, $page->site, PageChangeOperation::Updated, $page->revision, $actor, [ $page->id, ...array_map( static fn (Page $descendant): string => $descendant->id, $descendants, ), ], )"
+        }
+      ],
+      "security_notes": [
+        "Scalar actor/page/site identities and affected page IDs, plus captured SitemapCacheIdentity (connection, tenantId, site, origin, scope, version, key, namespace). Cache identity is internal infrastructure metadata; do not expose it as a public API."
+      ],
+      "no_op_semantics": "Existing change/revision guards govern publication, including affected-page snapshots. No generic request deduplication is added."
+    }
+  ],
+  "value_types": [
+    {
+      "class": "Nvl\\Pages\\Data\\PageActorData",
+      "source": "packages/nvl/pages/src/Data/PageActorData.php",
+      "constructor_fields": [
+        {
+          "name": "type",
+          "type": "?string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int|string|null",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "system",
+          "type": "bool",
+          "visibility": "public",
+          "required": false,
+          "default_expression": "false"
+        }
+      ],
+      "public_fields": [
+        {
+          "name": "type",
+          "type": "?string"
+        },
+        {
+          "name": "id",
+          "type": "int|string|null"
+        },
+        {
+          "name": "system",
+          "type": "bool"
+        }
+      ],
+      "kind": "value_object"
+    },
+    {
+      "class": "Nvl\\Pages\\Enums\\PageChangeOperation",
+      "source": "packages/nvl/pages/src/Enums/PageChangeOperation.php",
+      "constructor_fields": [],
+      "public_fields": [],
+      "kind": "enum",
+      "backing_type": "string",
+      "cases": [
+        {
+          "name": "Created",
+          "value": "created"
+        },
+        {
+          "name": "Updated",
+          "value": "updated"
+        },
+        {
+          "name": "Moved",
+          "value": "moved"
+        },
+        {
+          "name": "Deleted",
+          "value": "deleted"
+        },
+        {
+          "name": "Restored",
+          "value": "restored"
+        }
+      ]
+    },
+    {
+      "class": "Nvl\\Seo\\Data\\SitemapCacheIdentity",
+      "source": "packages/nvl/seo/src/Data/SitemapCacheIdentity.php",
+      "constructor_fields": [
+        {
+          "name": "connection",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "tenantId",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "site",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "origin",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "scope",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "version",
+          "type": "int",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        },
+        {
+          "name": "namespace",
+          "type": "string",
+          "visibility": "public",
+          "required": true
+        }
+      ],
+      "public_fields": [
+        {
+          "name": "connection",
+          "type": "string"
+        },
+        {
+          "name": "tenantId",
+          "type": "string"
+        },
+        {
+          "name": "site",
+          "type": "string"
+        },
+        {
+          "name": "origin",
+          "type": "string"
+        },
+        {
+          "name": "scope",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        }
+      ],
+      "kind": "value_object"
+    }
+  ],
+  "aliases": [],
+  "publication": {
+    "publication": "The native host dispatcher receives the captured event after the supplied source connection outer commit, or immediately when that connection has no active transaction.",
+    "rollback": "Callbacks attach to the matching native connection and current nesting record; native outer/savepoint rollback discards the corresponding callbacks.",
+    "registration_failure": "Missing source transaction records fail before commit; Mail Notifications reports and drops unusable observations.",
+    "host_policy": "Host after-commit listeners and queue after_commit policies can add their own deferral after publication. Host transaction infrastructure and dispatcher bindings are preserved.",
+    "delivery_limit": "Local callbacks are not an outbox. Process exit between commit and callback can lose delivery; no crash durability or exactly-once delivery is promised.",
+    "cardinality": "One canonical object is dispatched per qualifying producer call. This is local publication, not cross-process deduplication or a guarantee that repeated observations are unique.",
+    "manual_producers": "Use Nvl\\Support\\Events\\DomainEventDispatcher::dispatch($event, $writerConnection). Native Event::dispatch() is immediate and has no package interception."
+  },
+  "security_notes": [
+    "Scalar actor/page/site identities and affected page IDs, plus captured SitemapCacheIdentity (connection, tenantId, site, origin, scope, version, key, namespace). Cache identity is internal infrastructure metadata; do not expose it as a public API."
+  ],
+  "no_op_semantics": "Existing change/revision guards govern publication, including affected-page snapshots. No generic request deduplication is added.",
+  "notes": [
+    "The sitemapIdentity constructor parameter is nullable with default null; the public property is a non-null SitemapCacheIdentity captured during construction. Its fallback resolves SitemapCache from the current container, so manual producers should pass a captured identity."
+  ]
+}

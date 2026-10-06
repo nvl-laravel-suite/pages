@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Actions;
 
+use Nvl\Pages\Contracts\CheckPageKeyAvailabilityContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
@@ -17,7 +18,7 @@ use Nvl\Pages\Services\PageIdentityGuard;
  *
  * @api
  */
-final readonly class CheckPageKeyAvailabilityAction
+final readonly class CheckPageKeyAvailabilityAction implements CheckPageKeyAvailabilityContract
 {
     /**
      * Create the authorized Page key availability check.

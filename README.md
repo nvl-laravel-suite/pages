@@ -1,5 +1,28 @@
 # NVL Pages — API and usage
 
+## Quickstart
+
+```sh
+composer require nvl/pages:^5.0
+php artisan nvl:install pages --dry-run
+php artisan nvl:install pages
+```
+
+Required NVL dependencies: `nvl/content` (`^5.0`), `nvl/core` (`^5.0`), `nvl/filterable` (`^5.0`), `nvl/seo` (`^5.0`), `nvl/translatable` (`^5.0`). Configure sites, locale/content/media integrations and PageActorData authorization. Supply validated FilterSet and an allowed site from host configuration.
+Review the published common config, select one migration owner, and run schema preflight before existing-table upgrades. The installer does not enable features or run migrations. Follow the detailed installation and capability sections below before invoking a storage/provider operation.
+
+Inject `Nvl\Pages\Contracts\ListPagesContract` in a host service. After supplying the trusted inputs described above, the first public call is:
+
+```php
+use Nvl\Pages\Contracts\ListPagesContract;
+
+/** @var ListPagesContract $capability */
+$result = $capability->execute($filters, $site, $actor);
+```
+
+Use the [event catalog](docs/events.md) and [Testing your app](#testing-your-app) below. The suite [getting-started guide](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/getting-started.md) provides a complete Comments host fixture; package archives retain their own local references.
+
+
 [← NVL Laravel Suite](https://github.com/nvl-laravel-suite)
 
 For support, [open an issue](https://github.com/nvl-laravel-suite/pages/issues). For vulnerabilities, use
@@ -57,6 +80,7 @@ Install the package in a clean Laravel application:
 
 ```bash
 composer require nvl/pages:^5.0
+php artisan vendor:publish --tag=nvl-pages-translations
 php artisan vendor:publish --tag=nvl-pages-config
 php artisan vendor:publish --tag=nvl-pages-skills
 php artisan migrate
@@ -405,15 +429,54 @@ composer quality
 
 Maintainer CI additionally checks the package family and generated types from the private source workbench. The test suite boots Pages with only declared dependencies and covers clean migration, redacted static resolution, dynamic handler conditions, localized navigation, hierarchy limits, selective path rebuilding, site locks, lifecycle abilities, stale and duplicate mutations, site-scoped lists, preview, restoration, sitemap delegation, route defaults, and doctor output.
 
+## Injectable workflow contracts
+
+Constructor-inject focused interfaces from `Nvl\Pages\Contracts` when composing host workflows. Each interface retains the native Action’s complete `execute` parameters, defaults, return type, and documented generic/shape result. Concrete Actions remain directly usable in major 5.
+
+```php
+use Nvl\Pages\Contracts\CreatePageContract;
+use Nvl\Pages\Data\Mutations\CreatePageData;
+use Nvl\Pages\Data\PageActorData;
+use Nvl\Pages\Models\Page;
+
+final readonly class CreatePageWorkflow
+{
+    public function __construct(private CreatePageContract $workflow) {}
+
+    public function execute(CreatePageData $data, PageActorData $actor): Page
+    {
+        return $this->workflow->execute($data, $actor);
+    }
+}
+```
+
+The provider installs conditional transient defaults (`bindIf`) for the following selected workflows. A host interface binding registered before package discovery is retained; a later binding/instance replacement is used by newly resolved host services. Keep authorization, validation, query ownership, and mutation behavior inside the owning package workflow.
+
+| Contract | Native implementation |
+| --- | --- |
+| `CheckPageKeyAvailabilityContract` | `CheckPageKeyAvailabilityAction` |
+| `CreatePageContract` | `CreatePageAction` |
+| `DeletePageContract` | `DeletePageAction` |
+| `FindPageByKeyContract` | `FindPageByKeyAction` |
+| `GetNavigationContract` | `GetNavigationAction` |
+| `GetPageContract` | `GetPageAction` |
+| `GetPageEditorBootstrapContract` | `GetPageEditorBootstrapAction` |
+| `GetPagePublicationProjectionContract` | `GetPagePublicationProjectionAction` |
+| `ListPageEditorSummariesContract` | `ListPageEditorSummariesAction` |
+| `ListPageOptionsContract` | `ListPageOptionsAction` |
+| `ListPagesContract` | `ListPagesAction` |
+| `ListPublicChildPagesContract` | `ListPublicChildPagesAction` |
+| `MovePageContract` | `MovePageAction` |
+| `PreviewPageContract` | `PreviewPageAction` |
+| `ResolvePageContract` | `ResolvePageAction` |
+| `RestorePageContract` | `RestorePageAction` |
+| `UpdatePageContract` | `UpdatePageAction` |
+
 ## Supported PHP usage
 
 The source `@api` declarations identify supported workflows, extension contracts, and value types. Public members marked `@internal` and untagged implementation types remain package-owned. Concrete Actions retain their existing constructors, qualifiers, and `execute()` signatures.
 
 A package model returned or accepted by a public workflow is an identity/result handle. Use its declared type and `getKey()`, `getKeyName()`, `getMorphClass()`, `getRouteKey()`, `getRouteKeyName()`, `is()`, `isNot()`, and `relationLoaded()`. Read only explicitly declared in-memory `@nvl-consumer-read` fields; ordinary model PHPDocs and fillable attributes do not grant consumer reads. Obtain display projections through public reads. Persistence, additional model queries, relation access/loading, and generic model serialization are outside this contract. Host-model queries remain available, while traversal or aggregates of package capability relations require the package public reader or authorized adapter.
-
-## License
-
-NVL Pages is open-sourced software licensed under the MIT license.
 
 ## Shared owner identity
 
@@ -464,3 +527,68 @@ Migration filenames contain `nvl_pages_`. Existing installations must complete t
 ## Canonical configuration ownership
 
 Use `nvl-pages` settings in `config/nvl-pages.php` and canonical package environment names. Old generic roots are foreign unless an upgrading NVL host explicitly selects them in Core's default-off compatibility. Canonical false/null/empty values win; no old roots are populated or written back. Keep logical package/resource IDs unchanged. Review [Core's rename inventory and cache/worker cutover](https://github.com/nvl-laravel-suite/core/blob/main/UPGRADING.md#major-5-canonical-configuration-and-environment).
+
+## Testing your app
+
+Inject the supported contract rather than constructing its concrete Action or querying package tables. Replace `Nvl\Pages\Contracts\ListPagesContract` in Laravel's native container for a host-workflow test:
+
+```php
+use Nvl\Pages\Contracts\ListPagesContract;
+
+$double = Mockery::mock(ListPagesContract::class);
+$this->app->instance(ListPagesContract::class, $double);
+// Configure the exact execute arguments and documented return value for your host case.
+```
+
+The package's conditional native binding preserves host substitutions. Production uses the real contract; test doubles do not prove its storage/authorization behavior.
+
+A detached fixture for a returned identity/data handle is:
+
+```php
+use Nvl\Pages\Models\Page;
+$fixture = Page::factory()->withoutParents()->make();
+```
+
+Ordinary `make()` may persist declared package parents. `withoutParents()->make()` disables parent expansion/admission for detached fixtures; use explicit persisted parents/owners and matching effective connections for a real `create()`. Factories do not authorize workflows, call Stripe, create backing Media objects or publish Template artifacts. Enabled tenancy requires explicit admitted persisted tenants/parents. Your host test installation supplies Faker; no test runner is a runtime package dependency.
+
+Use Laravel `Event::fake()`, `Queue::fake()`, `Mail::fake()` or `Storage::fake()` only for the effects the host test intends to isolate. Use real commits/listeners for timing proof. Add the optional Core consumer boundary rules to host PHPStan:
+
+```neon
+includes:
+    - vendor/nvl/core/support/consumer-audit.neon
+parameters:
+    nvlConsumer:
+        testPaths: [tests]
+        tableNames: []
+        exceptions: []
+```
+
+Rules read installed public metadata without suite boot. They flag internal symbols, package model queries/writes, capability relations and owned tables; they cannot prove dynamic code or runtime authorization. Exact exceptions require `file`, `identifier`, `symbol`, and a documented `reason`. New C3/C4/E tests, archives and guide execution remain pending until the integration phase records results.
+
+### Shipped factory states
+
+These runtime builders keep Laravel's native Factory API. The listed methods name explicit supported parent/owner/lifecycle states; follow each factory's native admission requirements. Detached examples above do not assert persistence validity.
+
+| Factory | Explicit states |
+| --- | --- |
+| [`PageFactory`](database/factories/PageFactory.php) | Native Factory states only |
+| [`PageTranslationFactory`](database/factories/PageTranslationFactory.php) | `forPage(Page $parent)` |
+
+## Error codes and events
+
+All recognized package failures implement `Nvl\Support\Contracts\PackageException`; only `RespondableException` opts into safe response metadata. Keep native PHP programmer errors and Laravel/SDK exceptions distinct. The optional `PackageExceptionRenderer` is registered by the host in `withExceptions`; it leaves unrelated, marker-only and non-JSON handling to the host. Its JSON envelope is `{message:string, code:string, context:object}`. Request locale is host-owned; diagnostics/previous exceptions are not public copy. Event schemas and source connections are documented in [events](docs/events.md).
+
+The table lists enum discriminators, including any successful codes retained for compatibility. A code is not itself an HTTP status; the throwing exception's `suggestedStatus()` is authoritative, especially legacy/custom constructors. Empty context renders as `{}`; only documented JSON-safe context is presented.
+
+| Code | Suggested status | Public context | Translation key |
+| --- | --- | --- | --- |
+| `operation_failed` | Exception-defined; see `suggestedStatus()` | Declared safe scalar/array map; otherwise `{}` | `nvl-pages::responsecode.operation_failed` |
+| `invalid_page_mutation` | 422 | Declared safe scalar/array map; otherwise `{}` | `nvl-pages::responsecode.invalid_page_mutation` |
+| `page_conflict` | 409 | Declared safe scalar/array map; otherwise `{}` | `nvl-pages::responsecode.page_conflict` |
+| `page_hierarchy_conflict` | 409 | Declared safe scalar/array map; otherwise `{}` | `nvl-pages::responsecode.page_hierarchy_conflict` |
+| `stale_page` | 409 | Declared safe scalar/array map; otherwise `{}` | `nvl-pages::responsecode.stale_page` |
+
+
+## License
+
+NVL Pages is open-sourced software licensed under the MIT license.

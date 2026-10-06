@@ -6,6 +6,7 @@ namespace Nvl\Pages\Actions;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Nvl\Pages\Contracts\CreatePageContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\Mutations\CreatePageData;
 use Nvl\Pages\Data\PageActorData;
@@ -20,6 +21,7 @@ use Nvl\Pages\Services\PageLifecycle;
 use Nvl\Pages\Services\PageMutationValues;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Events\DomainEventDispatcher;
 use Nvl\Translatable\Services\TranslationWriter;
 
 /**
@@ -27,7 +29,7 @@ use Nvl\Translatable\Services\TranslationWriter;
  *
  * @api
  */
-final readonly class CreatePageAction
+final readonly class CreatePageAction implements CreatePageContract
 {
     /**
      * Create the page creation action.
@@ -40,6 +42,7 @@ final readonly class CreatePageAction
         private PageMutationValues $values,
         private PageTreeLock $treeLock,
         private TranslationWriter $translations,
+        private DomainEventDispatcher $domainEvents,
     ) {}
 
     /**
@@ -99,14 +102,14 @@ final readonly class CreatePageAction
                         $page,
                         $this->values->translations($data->translations),
                     );
-                    PageChanged::dispatch(
+                    $this->domainEvents->dispatch(new PageChanged(
                         $page->id,
                         $page->site,
                         PageChangeOperation::Created,
                         $page->revision,
                         $actor,
                         [$page->id],
-                    );
+                    ), $page->getConnection());
 
                     return $page->refresh()->load('translations');
                 }, attempts: PagesConfiguration::transactionAttempts());

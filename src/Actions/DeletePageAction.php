@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Pages\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Nvl\Pages\Contracts\DeletePageContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\Mutations\DeletePageData;
 use Nvl\Pages\Data\PageActorData;
@@ -16,13 +17,14 @@ use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Events\DomainEventDispatcher;
 
 /**
  * Soft-deletes one leaf page while preserving composed data for restoration.
  *
  * @api
  */
-final readonly class DeletePageAction
+final readonly class DeletePageAction implements DeletePageContract
 {
     /**
      * Create the page deletion action.
@@ -30,6 +32,7 @@ final readonly class DeletePageAction
     public function __construct(
         private PageAuthorization $authorization,
         private PageTreeLock $treeLock,
+        private DomainEventDispatcher $domainEvents,
     ) {}
 
     /**
@@ -66,14 +69,14 @@ final readonly class DeletePageAction
                 }
 
                 $deleted = $page->delete() === true;
-                PageChanged::dispatch(
+                $this->domainEvents->dispatch(new PageChanged(
                     $page->id,
                     $page->site,
                     PageChangeOperation::Deleted,
                     $page->revision,
                     $actor,
                     [$page->id],
-                );
+                ), $page->getConnection());
 
                 return $deleted;
             }, attempts: PagesConfiguration::transactionAttempts());

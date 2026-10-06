@@ -6,6 +6,7 @@ namespace Nvl\Pages\Actions;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Nvl\Pages\Contracts\MovePageContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\Mutations\MovePageData;
 use Nvl\Pages\Data\PageActorData;
@@ -19,13 +20,14 @@ use Nvl\Pages\Services\PageDatabaseConflict;
 use Nvl\Pages\Services\PageHierarchy;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Events\DomainEventDispatcher;
 
 /**
  * Reparents a page subtree after locked cycle and depth validation.
  *
  * @api
  */
-final readonly class MovePageAction
+final readonly class MovePageAction implements MovePageContract
 {
     /**
      * Create the page move action.
@@ -35,6 +37,7 @@ final readonly class MovePageAction
         private PageDatabaseConflict $conflicts,
         private PageHierarchy $hierarchy,
         private PageTreeLock $treeLock,
+        private DomainEventDispatcher $domainEvents,
     ) {}
 
     /**
@@ -82,7 +85,7 @@ final readonly class MovePageAction
                     $descendants = $page->path !== $originalPath
                         ? $this->hierarchy->rebuildDescendantPaths($page)
                         : [];
-                    PageChanged::dispatch(
+                    $this->domainEvents->dispatch(new PageChanged(
                         $page->id,
                         $page->site,
                         PageChangeOperation::Moved,
@@ -95,7 +98,7 @@ final readonly class MovePageAction
                                 $descendants,
                             ),
                         ],
-                    );
+                    ), $page->getConnection());
 
                     return $page->refresh()->load('translations');
                 }, attempts: PagesConfiguration::transactionAttempts());

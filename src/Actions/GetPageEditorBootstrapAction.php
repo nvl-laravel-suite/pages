@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Pages\Actions;
 
 use Nvl\Content\Actions\GetOwnerContentEditorAction;
+use Nvl\Pages\Contracts\GetPageEditorBootstrapContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Contracts\PageMetafields;
 use Nvl\Pages\Data\PageActorData;
@@ -29,7 +30,7 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * @api
  */
-final readonly class GetPageEditorBootstrapAction
+final readonly class GetPageEditorBootstrapAction implements GetPageEditorBootstrapContract
 {
     /**
      * Create the complete Page editor bootstrap reader.

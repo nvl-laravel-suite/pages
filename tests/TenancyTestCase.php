@@ -15,6 +15,7 @@ use Nvl\Pages\Tests\Fixtures\PagesTenancyFixtureServiceProvider;
 use Nvl\Pages\Tests\Fixtures\TenantPageResourceHandler;
 use Nvl\Pages\Tests\Fixtures\TenantScenario;
 use Nvl\Seo\Providers\SeoServiceProvider;
+use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Tenancy\Providers\TenancyServiceProvider;
 use Nvl\Translatable\Providers\TranslatableServiceProvider;
@@ -30,6 +31,7 @@ abstract class TenancyTestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
+            LocaleServiceProvider::class,
             SupportServiceProvider::class,
             DataServiceProvider::class,
             FilterableServiceProvider::class,

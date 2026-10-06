@@ -8,6 +8,7 @@ use Nvl\Pages\Services\ConfiguredPageRequestContextResolver;
 use Nvl\Pages\Services\ConfiguredPageUrlGenerator;
 use Nvl\Support\Config\PackageEnvironment;
 
+/** Complete runtime defaults; publication sections are declared in ../resources/config/sections.json. */
 return [
     'connection' => null,
 

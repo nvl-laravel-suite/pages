@@ -14,12 +14,46 @@ use Nvl\Content\Contracts\ContentOwnerRegistrar;
 use Nvl\Data\Services\TypeScriptSourceRegistry;
 use Nvl\Metafields\Providers\MetafieldsServiceProvider;
 use Nvl\Metafields\Support\MetafieldOwnerRegistry;
+use Nvl\Pages\Actions\CheckPageKeyAvailabilityAction;
+use Nvl\Pages\Actions\CreatePageAction;
+use Nvl\Pages\Actions\DeletePageAction;
+use Nvl\Pages\Actions\FindPageByKeyAction;
+use Nvl\Pages\Actions\GetNavigationAction;
+use Nvl\Pages\Actions\GetPageAction;
+use Nvl\Pages\Actions\GetPageEditorBootstrapAction;
+use Nvl\Pages\Actions\GetPagePublicationProjectionAction;
+use Nvl\Pages\Actions\ListPageEditorSummariesAction;
+use Nvl\Pages\Actions\ListPageOptionsAction;
+use Nvl\Pages\Actions\ListPagesAction;
+use Nvl\Pages\Actions\ListPublicChildPagesAction;
+use Nvl\Pages\Actions\MovePageAction;
+use Nvl\Pages\Actions\PreviewPageAction;
+use Nvl\Pages\Actions\ResolvePageAction;
+use Nvl\Pages\Actions\RestorePageAction;
+use Nvl\Pages\Actions\UpdatePageAction;
 use Nvl\Pages\Console\PagesDoctorCommand;
+use Nvl\Pages\Contracts\CheckPageKeyAvailabilityContract;
+use Nvl\Pages\Contracts\CreatePageContract;
+use Nvl\Pages\Contracts\DeletePageContract;
+use Nvl\Pages\Contracts\FindPageByKeyContract;
+use Nvl\Pages\Contracts\GetNavigationContract;
+use Nvl\Pages\Contracts\GetPageContract;
+use Nvl\Pages\Contracts\GetPageEditorBootstrapContract;
+use Nvl\Pages\Contracts\GetPagePublicationProjectionContract;
+use Nvl\Pages\Contracts\ListPageEditorSummariesContract;
+use Nvl\Pages\Contracts\ListPageOptionsContract;
+use Nvl\Pages\Contracts\ListPagesContract;
+use Nvl\Pages\Contracts\ListPublicChildPagesContract;
+use Nvl\Pages\Contracts\MovePageContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Contracts\PageMetafields;
 use Nvl\Pages\Contracts\PageRequestContextResolver;
 use Nvl\Pages\Contracts\PageResourceHandler;
 use Nvl\Pages\Contracts\PageUrlGenerator;
+use Nvl\Pages\Contracts\PreviewPageContract;
+use Nvl\Pages\Contracts\ResolvePageContract;
+use Nvl\Pages\Contracts\RestorePageContract;
+use Nvl\Pages\Contracts\UpdatePageContract;
 use Nvl\Pages\Events\PageChanged;
 use Nvl\Pages\Integrations\EmptyPageMetafields;
 use Nvl\Pages\Integrations\MetafieldsPageAdapter;
@@ -37,6 +71,7 @@ use Nvl\Pages\Tenancy\PagesResourceRegistrar;
 use Nvl\Seo\Services\SeoOwnerRegistry;
 use Nvl\Seo\Services\SitemapRegistry;
 use Nvl\Support\Doctor\PackageDoctorContributor;
+use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\Integrations\OptionalIntegration;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Providers\SupportServiceProvider;
@@ -60,6 +95,24 @@ final class PagesServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bindIf(CheckPageKeyAvailabilityContract::class, CheckPageKeyAvailabilityAction::class);
+        $this->app->bindIf(CreatePageContract::class, CreatePageAction::class);
+        $this->app->bindIf(DeletePageContract::class, DeletePageAction::class);
+        $this->app->bindIf(FindPageByKeyContract::class, FindPageByKeyAction::class);
+        $this->app->bindIf(GetNavigationContract::class, GetNavigationAction::class);
+        $this->app->bindIf(GetPageContract::class, GetPageAction::class);
+        $this->app->bindIf(GetPageEditorBootstrapContract::class, GetPageEditorBootstrapAction::class);
+        $this->app->bindIf(GetPagePublicationProjectionContract::class, GetPagePublicationProjectionAction::class);
+        $this->app->bindIf(ListPageEditorSummariesContract::class, ListPageEditorSummariesAction::class);
+        $this->app->bindIf(ListPageOptionsContract::class, ListPageOptionsAction::class);
+        $this->app->bindIf(ListPagesContract::class, ListPagesAction::class);
+        $this->app->bindIf(ListPublicChildPagesContract::class, ListPublicChildPagesAction::class);
+        $this->app->bindIf(MovePageContract::class, MovePageAction::class);
+        $this->app->bindIf(PreviewPageContract::class, PreviewPageAction::class);
+        $this->app->bindIf(ResolvePageContract::class, ResolvePageAction::class);
+        $this->app->bindIf(RestorePageContract::class, RestorePageAction::class);
+        $this->app->bindIf(UpdatePageContract::class, UpdatePageAction::class);
+
         $this->app->register(SupportServiceProvider::class);
         PackageDoctorContributor::register($this->app, 'nvl/pages', fn (): array => PackageDoctorContributor::reportChecks($this->app->make(PagesDoctor::class)->inspect(), 'nvl:pages:doctor'));
 
@@ -133,6 +186,10 @@ final class PagesServiceProvider extends ServiceProvider
         PageResourceRegistry $resources,
         SeoOwnerRegistry $seoOwners,
     ): void {
+        $this->app->make(GlobalNames::class)->translations('pages', __DIR__.'/../../lang', $this->app->make('translation.loader'));
+        $this->publishes([
+            __DIR__.'/../../lang' => lang_path('vendor/nvl-pages'),
+        ], 'nvl-pages-translations');
         $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, ['page']);
         $migrationRollbackGuard = $this->app->make(PagesMigrationRollbackGuard::class);
         $typeScriptSources->register(__DIR__.'/..', 'nvl/pages');

@@ -7,6 +7,7 @@ namespace Nvl\Pages\Actions;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Nvl\Pages\Contracts\PageAuthorization;
+use Nvl\Pages\Contracts\RestorePageContract;
 use Nvl\Pages\Data\Mutations\RestorePageData;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Enums\PageAbility;
@@ -19,13 +20,14 @@ use Nvl\Pages\Services\PageDatabaseConflict;
 use Nvl\Pages\Services\PageHierarchy;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Events\DomainEventDispatcher;
 
 /**
  * Restores one soft-deleted page after locked hierarchy and revision validation.
  *
  * @api
  */
-final readonly class RestorePageAction
+final readonly class RestorePageAction implements RestorePageContract
 {
     /**
      * Create the page restoration action.
@@ -35,6 +37,7 @@ final readonly class RestorePageAction
         private PageDatabaseConflict $conflicts,
         private PageHierarchy $hierarchy,
         private PageTreeLock $treeLock,
+        private DomainEventDispatcher $domainEvents,
     ) {}
 
     /**
@@ -78,14 +81,14 @@ final readonly class RestorePageAction
                     $this->hierarchy->assertValid($page->site, $page->parent_id, $page->id);
                     $page->path = $this->hierarchy->path($page->site, $page->parent_id, $page->slug);
                     $page->restore();
-                    PageChanged::dispatch(
+                    $this->domainEvents->dispatch(new PageChanged(
                         $page->id,
                         $page->site,
                         PageChangeOperation::Restored,
                         $page->revision,
                         $actor,
                         [$page->id],
-                    );
+                    ), $page->getConnection());
 
                     return $page->refresh()->load('translations');
                 }, attempts: PagesConfiguration::transactionAttempts());

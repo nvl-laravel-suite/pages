@@ -15,6 +15,7 @@ use Nvl\Metafields\Providers\MetafieldsServiceProvider;
 use Nvl\Pages\Providers\PagesServiceProvider;
 use Nvl\Pages\Tests\Fixtures\TestPageResourceHandler;
 use Nvl\Seo\Providers\SeoServiceProvider;
+use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Translatable\Providers\TranslatableServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -32,13 +33,14 @@ abstract class TestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
+            LocaleServiceProvider::class,
             SupportServiceProvider::class,
             DataServiceProvider::class,
             FilterableServiceProvider::class,
             TranslatableServiceProvider::class,
             MediaServiceProvider::class,
             ContentServiceProvider::class,
-            MetafieldsServiceProvider::class,
+            ...(class_exists(MetafieldsServiceProvider::class) ? [MetafieldsServiceProvider::class] : []),
             SeoServiceProvider::class,
             PagesServiceProvider::class,
         ];

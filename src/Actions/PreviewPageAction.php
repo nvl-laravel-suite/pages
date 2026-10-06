@@ -6,6 +6,7 @@ namespace Nvl\Pages\Actions;
 
 use Nvl\Content\Content;
 use Nvl\Pages\Contracts\PageAuthorization;
+use Nvl\Pages\Contracts\PreviewPageContract;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
 use Nvl\Pages\Data\PageData;
@@ -20,7 +21,7 @@ use Nvl\Seo\Services\SeoMetadataResolver;
  *
  * @api
  */
-final readonly class PreviewPageAction
+final readonly class PreviewPageAction implements PreviewPageContract
 {
     /**
      * Create the authorized page preview action.

@@ -6,6 +6,7 @@ namespace Nvl\Pages\Actions;
 
 use InvalidArgumentException;
 use Nvl\Content\Content;
+use Nvl\Pages\Contracts\GetPagePublicationProjectionContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Data\PageActorData;
@@ -24,7 +25,7 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * @api
  */
-final readonly class GetPagePublicationProjectionAction
+final readonly class GetPagePublicationProjectionAction implements GetPagePublicationProjectionContract
 {
     /**
      * Create the ID-based public Page projection reader.

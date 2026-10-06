@@ -6,6 +6,7 @@ namespace Nvl\Pages\Actions;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Nvl\Pages\Contracts\ListPageOptionsContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
@@ -21,7 +22,7 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * @api
  */
-final readonly class ListPageOptionsAction
+final readonly class ListPageOptionsAction implements ListPageOptionsContract
 {
     /**
      * Create the authorized Page option read.

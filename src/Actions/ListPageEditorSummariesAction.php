@@ -7,6 +7,7 @@ namespace Nvl\Pages\Actions;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Nvl\Content\Actions\ListOwnerContentPlacementSummariesAction;
+use Nvl\Pages\Contracts\ListPageEditorSummariesContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
@@ -27,7 +28,7 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * @api
  */
-final readonly class ListPageEditorSummariesAction
+final readonly class ListPageEditorSummariesAction implements ListPageEditorSummariesContract
 {
     /**
      * Create the authorized Page editor index reader.

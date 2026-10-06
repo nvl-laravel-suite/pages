@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Actions;
 
+use Nvl\Pages\Contracts\GetNavigationContract;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Data\NavigationData;
 use Nvl\Pages\Data\PageActorData;
@@ -18,7 +19,7 @@ use Nvl\Pages\Services\PageNavigationBuilder;
  *
  * @api
  */
-final readonly class GetNavigationAction
+final readonly class GetNavigationAction implements GetNavigationContract
 {
     /**
      * Create the public navigation query action.

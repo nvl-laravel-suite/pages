@@ -17,6 +17,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Locale-resolved and redacted page projection for public delivery.
+ *
+ * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
 #[TypeScript]
@@ -46,6 +48,8 @@ final class PublicPageData extends Data
 
     /**
      * Build a locale-resolved public projection from one page.
+     *
+     * @internal
      */
     public static function fromModel(
         Page $page,

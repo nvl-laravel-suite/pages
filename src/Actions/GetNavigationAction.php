@@ -15,6 +15,8 @@ use Nvl\Pages\Services\PageNavigationBuilder;
 
 /**
  * Reads one site-scoped localized public navigation tree.
+ *
+ * @api
  */
 final readonly class GetNavigationAction
 {

@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  * @template TResource of Model
  *
  * @extends PageResourceHandler<TResource>
+ *
+ * @api
  */
 interface TenantSafePageResourceHandler extends PageResourceHandler
 {

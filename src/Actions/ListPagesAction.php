@@ -18,6 +18,8 @@ use Nvl\Pages\Support\PagesConfiguration;
 
 /**
  * Lists pages through authorization and an explicit filter allowlist.
+ *
+ * @api
  */
 final readonly class ListPagesAction
 {

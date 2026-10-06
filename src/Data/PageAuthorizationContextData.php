@@ -9,6 +9,8 @@ use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Typed request-independent context supplied to consumer page authorization.
+ *
+ * @api
  */
 #[Hidden]
 final class PageAuthorizationContextData extends Data

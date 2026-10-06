@@ -24,6 +24,8 @@ use Nvl\Translatable\Services\TranslationWriter;
 
 /**
  * Replaces editable page state and locale rows with optimistic concurrency.
+ *
+ * @api
  */
 final readonly class UpdatePageAction
 {

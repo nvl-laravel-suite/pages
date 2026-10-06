@@ -24,6 +24,8 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * Delegation to Content and SEO Actions is deliberate orchestration so their
  * authorization, batching, and bounded projections remain canonical.
+ *
+ * @api
  */
 final readonly class ListPageEditorSummariesAction
 {

@@ -22,6 +22,8 @@ use Nvl\Pages\Support\PagesConfiguration;
 
 /**
  * Restores one soft-deleted page after locked hierarchy and revision validation.
+ *
+ * @api
  */
 final readonly class RestorePageAction
 {

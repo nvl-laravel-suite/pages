@@ -8,6 +8,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Editorial lifecycle for a page.
+ *
+ * @api
  */
 #[TypeScript]
 enum PageStatus: string

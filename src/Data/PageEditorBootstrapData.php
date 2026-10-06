@@ -14,6 +14,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Complete package-owned bootstrap for one authorized Page editor.
+ *
+ * @api
  */
 #[TypeScript]
 final class PageEditorBootstrapData extends Data

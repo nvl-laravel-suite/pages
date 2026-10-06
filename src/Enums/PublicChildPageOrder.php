@@ -8,6 +8,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Allowlisted ordering modes for bounded public child-page reads.
+ *
+ * @api
  */
 #[TypeScript]
 enum PublicChildPageOrder: string

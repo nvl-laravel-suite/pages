@@ -101,7 +101,7 @@ Pages installs without `nvl/metafields`. `nvl-pages.integrations.metafields` acc
 
 Editor fields use Pages-owned `PageMetafieldFieldData`; the serialized field shape is preserved without importing a foreign DTO. DTO discovery and generated TypeScript work when Metafields is absent.
 
-Existing `$page->metafields()` calls remain supported through a lazy relation resolver when the Metafields provider is loaded and the integration is active. The relation preserves the Page's registered morph identity. Page no longer composes `HasMetafields` directly. Calling the relation while the provider is absent or the integration is disabled raises a configuration error; the empty editor section does not imply an available relation. Use package Actions for authorized field reads and mutations.
+Pages retains an internal lazy Metafields relation resolver when the provider is loaded and the integration is active; Page no longer composes `HasMetafields` directly. Consumers read editor fields through `GetPageEditorBootstrapAction` and `PageMetafields`, and use the authorized Metafields Actions for reads and mutations. Migrate direct `$page->metafields()` traversal to these entry points or an explicitly authorized host adapter. An empty editor section while the integration is inactive does not grant relation access.
 
 ### Brownfield storage identities
 

@@ -14,6 +14,8 @@ use Nvl\Pages\Services\PageIdentityGuard;
 
 /**
  * Finds one exact Page key inside an authorized site boundary.
+ *
+ * @api
  */
 final readonly class FindPageByKeyAction
 {

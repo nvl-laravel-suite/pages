@@ -24,6 +24,8 @@ use Nvl\Translatable\Services\TranslationWriter;
 
 /**
  * Creates one page and its initial localized copy atomically.
+ *
+ * @api
  */
 final readonly class CreatePageAction
 {

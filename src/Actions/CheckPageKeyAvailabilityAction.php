@@ -14,6 +14,8 @@ use Nvl\Pages\Services\PageIdentityGuard;
 
 /**
  * Checks the actual globally unique Page key constraint without exposing models.
+ *
+ * @api
  */
 final readonly class CheckPageKeyAvailabilityAction
 {

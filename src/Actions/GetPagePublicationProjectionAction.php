@@ -21,6 +21,8 @@ use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Composes one public static Page projection from its persisted identity.
+ *
+ * @api
  */
 final readonly class GetPagePublicationProjectionAction
 {

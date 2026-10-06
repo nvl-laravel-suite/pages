@@ -7,7 +7,11 @@ namespace Nvl\Pages\Contracts;
 use Nvl\Pages\Data\PageMetafieldFieldData;
 use Nvl\Pages\Models\Page;
 
-/** Provides optional metafield display projections through a Pages-owned boundary. */
+/**
+ * Provides optional metafield display projections through a Pages-owned boundary.
+ *
+ * @api
+ */
 interface PageMetafields
 {
     /**

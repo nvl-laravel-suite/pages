@@ -9,6 +9,8 @@ use Nvl\Pages\Data\PageRequestContextData;
 
 /**
  * Resolves trusted public site and locale context at the HTTP boundary.
+ *
+ * @api
  */
 interface PageRequestContextResolver
 {

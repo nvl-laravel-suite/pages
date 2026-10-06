@@ -61,6 +61,8 @@ use Nvl\Translatable\Translatable;
  *
  * @method static Builder<static> publiclyVisible(?Carbon $at = null)
  * @method static Builder<static> ordered()
+ *
+ * @api
  */
 final class Page extends Model implements ContentOwner, TranslatableModel
 {

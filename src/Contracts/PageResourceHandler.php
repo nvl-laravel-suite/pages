@@ -15,6 +15,8 @@ use Nvl\Seo\Data\SitemapEntry;
  * Defines query, fetch, presentation, routing, and sitemap behavior for one resource page.
  *
  * @template TResource of Model
+ *
+ * @api
  */
 interface PageResourceHandler
 {

@@ -12,6 +12,8 @@ use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Transport-neutral actor identity for authorization and event context.
+ *
+ * @api
  */
 #[Hidden]
 final class PageActorData extends Data

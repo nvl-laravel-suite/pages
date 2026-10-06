@@ -8,6 +8,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Fine-grained capabilities enforced by every public Page action.
+ *
+ * @api
  */
 #[TypeScript]
 enum PageAbility: string

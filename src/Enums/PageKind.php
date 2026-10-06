@@ -8,6 +8,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Distinguishes persisted pages from resource-backed route definitions.
+ *
+ * @api
  */
 #[TypeScript]
 enum PageKind: string

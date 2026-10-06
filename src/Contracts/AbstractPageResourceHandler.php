@@ -16,6 +16,8 @@ use Nvl\Seo\Data\SitemapEntry;
  * @template TResource of Model
  *
  * @implements PageResourceHandler<TResource>
+ *
+ * @api
  */
 abstract class AbstractPageResourceHandler implements PageResourceHandler
 {

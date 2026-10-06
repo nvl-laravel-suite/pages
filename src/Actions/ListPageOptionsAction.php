@@ -18,6 +18,8 @@ use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Lists bounded localized Page options for management consumers.
+ *
+ * @api
  */
 final readonly class ListPageOptionsAction
 {

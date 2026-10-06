@@ -18,6 +18,8 @@ use Nvl\Seo\Services\SeoMetadataResolver;
 
 /**
  * Resolves one public path into Page, Content, SEO, and optional resource DTOs.
+ *
+ * @api
  */
 final readonly class ResolvePageAction
 {

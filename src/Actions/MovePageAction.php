@@ -22,6 +22,8 @@ use Nvl\Pages\Support\PagesConfiguration;
 
 /**
  * Reparents a page subtree after locked cycle and depth validation.
+ *
+ * @api
  */
 final readonly class MovePageAction
 {

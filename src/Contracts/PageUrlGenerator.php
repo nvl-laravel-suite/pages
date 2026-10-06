@@ -8,6 +8,8 @@ use Nvl\Pages\Models\Page;
 
 /**
  * Produces absolute canonical URLs for persisted static pages.
+ *
+ * @api
  */
 interface PageUrlGenerator
 {

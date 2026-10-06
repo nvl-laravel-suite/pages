@@ -18,6 +18,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Complete sanitized page projection for authorized management consumers.
+ *
+ * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
 #[TypeScript]
@@ -56,6 +58,8 @@ final class PageData extends Data
 
     /**
      * Build a complete management projection from one page.
+     *
+     * @internal
      */
     public static function fromModel(Page $page): self
     {

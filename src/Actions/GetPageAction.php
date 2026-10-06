@@ -12,6 +12,8 @@ use Nvl\Pages\Models\Page;
 
 /**
  * Reads one page through the package authorization boundary.
+ *
+ * @api
  */
 final readonly class GetPageAction
 {

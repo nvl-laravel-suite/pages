@@ -15,6 +15,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Minimal localized Page identity for bounded management selectors.
+ *
+ * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
 #[TypeScript]
@@ -37,6 +39,8 @@ final class PageOptionData extends Data
 
     /**
      * Build an option from one already eager-loaded Page.
+     *
+     * @internal
      */
     public static function fromModel(Page $page, string $locale): self
     {

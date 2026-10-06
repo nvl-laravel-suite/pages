@@ -11,6 +11,8 @@ use Nvl\Pages\Models\Page;
 
 /**
  * Consumer-owned authorization boundary for every page operation.
+ *
+ * @api
  */
 interface PageAuthorization
 {

@@ -12,7 +12,11 @@ use Spatie\LaravelData\Mappers\CamelCaseMapper;
 use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
-/** Pages-owned display projection of an optional owner metafield. */
+/**
+ * Pages-owned display projection of an optional owner metafield.
+ *
+ * @api
+ */
 #[MapOutputName(CamelCaseMapper::class)]
 #[MapInputName(CamelCaseMapper::class)]
 #[TypeScript]

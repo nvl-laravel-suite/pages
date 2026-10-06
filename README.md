@@ -405,6 +405,12 @@ composer quality
 
 Maintainer CI additionally checks the package family and generated types from the private source workbench. The test suite boots Pages with only declared dependencies and covers clean migration, redacted static resolution, dynamic handler conditions, localized navigation, hierarchy limits, selective path rebuilding, site locks, lifecycle abilities, stale and duplicate mutations, site-scoped lists, preview, restoration, sitemap delegation, route defaults, and doctor output.
 
+## Supported PHP usage
+
+The source `@api` declarations identify supported workflows, extension contracts, and value types. Public members marked `@internal` and untagged implementation types remain package-owned. Concrete Actions retain their existing constructors, qualifiers, and `execute()` signatures.
+
+A package model returned or accepted by a public workflow is an identity/result handle. Use its declared type and `getKey()`, `getKeyName()`, `getMorphClass()`, `getRouteKey()`, `getRouteKeyName()`, `is()`, `isNot()`, and `relationLoaded()`. Read only explicitly declared in-memory `@nvl-consumer-read` fields; ordinary model PHPDocs and fillable attributes do not grant consumer reads. Obtain display projections through public reads. Persistence, additional model queries, relation access/loading, and generic model serialization are outside this contract. Host-model queries remain available, while traversal or aggregates of package capability relations require the package public reader or authorized adapter.
+
 ## License
 
 NVL Pages is open-sourced software licensed under the MIT license.
@@ -441,7 +447,7 @@ Pages installs without `nvl/metafields`. `nvl-pages.integrations.metafields` acc
 
 Editor fields use Pages-owned `PageMetafieldFieldData`; the serialized field shape is preserved without importing a foreign DTO. DTO discovery and generated TypeScript work when Metafields is absent.
 
-Existing `$page->metafields()` calls remain supported through a lazy relation resolver when the Metafields provider is loaded and the integration is active. The relation preserves the Page's registered morph identity. Page no longer composes `HasMetafields` directly. Calling the relation while the provider is absent or the integration is disabled raises a configuration error; the empty editor section does not imply an available relation. Use package Actions for authorized field reads and mutations.
+Pages retains an internal lazy Metafields relation resolver when the provider is loaded and the integration is active; Page no longer composes `HasMetafields` directly. Consumers read editor fields through `GetPageEditorBootstrapAction` and `PageMetafields`, and use the authorized Metafields Actions for reads and mutations. Migrate direct `$page->metafields()` traversal to these entry points or an explicitly authorized host adapter. An empty editor section while the integration is inactive does not grant relation access.
 
 ## Next major: isolated schema identities
 

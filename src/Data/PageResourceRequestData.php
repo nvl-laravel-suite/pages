@@ -12,6 +12,8 @@ use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Validated context supplied to a registered dynamic resource handler.
+ *
+ * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
 #[Hidden]

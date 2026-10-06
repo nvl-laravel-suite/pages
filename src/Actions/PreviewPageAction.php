@@ -17,6 +17,8 @@ use Nvl\Seo\Services\SeoMetadataResolver;
 
 /**
  * Resolves an authorized non-public page preview with draft content included.
+ *
+ * @api
  */
 final readonly class PreviewPageAction
 {

@@ -13,6 +13,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Bounded Page, Content, and SEO projection for management indexes.
+ *
+ * @api
  */
 #[TypeScript]
 final class PageEditorSummaryData extends Data

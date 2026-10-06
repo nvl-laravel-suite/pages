@@ -26,6 +26,8 @@ use Nvl\Support\Contracts\LocaleCatalog;
  *
  * Delegation to Content, SEO, and Metafields Actions is deliberate orchestration
  * so their authorization and projection contracts remain package-owned.
+ *
+ * @api
  */
 final readonly class GetPageEditorBootstrapAction
 {

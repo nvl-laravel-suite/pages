@@ -19,6 +19,8 @@ use Nvl\Pages\Support\PagesConfiguration;
 
 /**
  * Soft-deletes one leaf page while preserving composed data for restoration.
+ *
+ * @api
  */
 final readonly class DeletePageAction
 {

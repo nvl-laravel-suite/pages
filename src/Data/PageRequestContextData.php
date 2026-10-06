@@ -10,6 +10,8 @@ use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Validated site and content-locale context for one public page request.
+ *
+ * @api
  */
 #[Hidden]
 final class PageRequestContextData extends Data

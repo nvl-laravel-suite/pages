@@ -21,6 +21,8 @@ use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Lists one bounded level of publicly visible child Pages.
+ *
+ * @api
  */
 final readonly class ListPublicChildPagesAction
 {

@@ -190,7 +190,7 @@ final class PagesServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../../lang' => lang_path('vendor/nvl-pages'),
         ], 'nvl-pages-translations');
-        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, ['page']);
+        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, ['page'], package: 'pages');
         $migrationRollbackGuard = $this->app->make(PagesMigrationRollbackGuard::class);
         $typeScriptSources->register(__DIR__.'/..', 'nvl/pages');
         $this->registerResources($resources);

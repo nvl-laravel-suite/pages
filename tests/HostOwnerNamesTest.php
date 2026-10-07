@@ -15,5 +15,5 @@ it('boots default Pages without reclaiming a host generic page alias', function 
         ->and(Relation::getMorphedModel('page'))->toBe(TestPageResource::class)
         ->and(Relation::getMorphedModel('nvl-page'))->toBe(Page::class)
         ->and((new Page)->getMorphClass())->toBe('nvl-page')
-        ->and(collect(app(GlobalNames::class)->diagnostics())->contains(static fn ($check): bool => str_contains($check->message, '[page]')))->toBeTrue();
+        ->and(collect(app(GlobalNames::class)->diagnostics())->contains(static fn ($check): bool => str_contains($check->message, '[page]')))->toBeFalse();
 });

@@ -69,10 +69,11 @@ use Nvl\Translatable\Translatable;
 final class Page extends Model implements ContentOwner, TranslatableModel
 {
     use GuardsTenantOwnership;
-
     use HasContent;
+
     /** @use HasFactory<PageFactory> */
     use HasFactory;
+
     use HasSeo;
     use HasUuids;
     use SoftDeletes;

@@ -39,6 +39,7 @@ final class PageTranslation extends Model
 
     /** @use HasFactory<PageTranslationFactory> */
     use HasFactory;
+
     use HasUuids;
 
     public const string TENANT_RESOURCE = 'pages.translations';

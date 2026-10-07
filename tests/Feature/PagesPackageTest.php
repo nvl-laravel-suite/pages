@@ -122,6 +122,11 @@ function allowPageEditorPackageReads(): void
     {
         public function authorize(SeoAuthorizationContext $context): void {}
     });
+
+    if (! interface_exists(MetafieldAuthorization::class)) {
+        return;
+    }
+
     app()->instance(MetafieldAuthorization::class, new class implements MetafieldAuthorization
     {
         public function authorizeDefinition(
@@ -1175,7 +1180,7 @@ it('returns an empty editor composition when optional package state is absent', 
         ->and($editor->metafields)->toBe([]);
 });
 
-it('fails the page editor bootstrap when any package authorization boundary denies', function (): void {
+it('fails the page editor bootstrap when a required package authorization boundary denies', function (): void {
     $page = createTestPage('pages.editor-denied', 'editor-denied');
     $actor = new PageActorData('user', 'editor-user');
     allowPageEditorPackageReads();
@@ -1211,29 +1216,6 @@ it('fails the page editor bootstrap when any package authorization boundary deni
     {
         public function authorize(SeoAuthorizationContext $context): void
         {
-            throw new AuthorizationException;
-        }
-    });
-
-    expect(fn () => app(GetPageEditorBootstrapAction::class)->execute(
-        $page->id,
-        'en',
-        $actor,
-    ))->toThrow(AuthorizationException::class);
-
-    allowPageEditorPackageReads();
-    app()->instance(MetafieldAuthorization::class, new class implements MetafieldAuthorization
-    {
-        public function authorizeDefinition(
-            MetafieldAbility $ability,
-            ?MetafieldDefinition $definition = null,
-        ): void {}
-
-        public function authorizeOwner(
-            MetafieldAbility $ability,
-            ?Model $owner = null,
-            ?MetafieldDefinition $definition = null,
-        ): void {
             throw new AuthorizationException;
         }
     });

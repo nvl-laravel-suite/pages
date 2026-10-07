@@ -52,7 +52,7 @@ Pages owns URL structure, hierarchy, lifecycle, navigation state, resource-handl
 - application-defined custom fields, which belong to `nvl/metafields`;
 - binary assets, which are referenced by Content through `nvl/media`.
 
-The package is intended for Laravel applications that need a stable front-end content entry point without adopting an admin UI or a monolithic CMS. It supports PHP 8.4+ and Laravel 13.
+The package is intended for Laravel applications that need a stable front-end content entry point without adopting an admin UI or a monolithic CMS. It supports PHP 8.4+ and Laravel 12–13.
 
 ## Optional tenant sites
 

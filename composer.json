@@ -34,12 +34,12 @@
         "mockery/mockery": "^1.6",
         "nvl/media": "^5.1",
         "nvl/metafields": "^5.1",
+        "nvl/ownership": "^5.0",
         "nvl/tenancy": "^5.0",
         "orchestra/testbench": "^10.0 || ^11.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
-        "spatie/typescript-transformer": "^3.3",
-        "nvl/ownership": "^5.0"
+        "spatie/typescript-transformer": "^3.3"
     },
     "autoload": {
         "psr-4": {
@@ -102,14 +102,14 @@
     "prefer-stable": true,
     "suggest": {
         "nvl/metafields": "Enables authorized optional metafields in the Pages editor.",
-        "nvl/tenancy": "Enables enforcing tenant ownership, scoped execution, adoption, and captured tenant queue contexts.",
-        "spatie/typescript-transformer": "Consume the declared TypeScript attributes and metadata (^3.3); Core retains the runtime transformation engine.",
-        "nvl/ownership": "Optional native ownership and verified public owner/site admission without NVL Auth or Tenancy."
+        "nvl/ownership": "Adds optional model-declared ownership, isolation, adoption and captured worker contexts.",
+        "nvl/tenancy": "Temporary legacy tenancy bridge for existing tenant installations; native ownership does not require it.",
+        "spatie/typescript-transformer": "Consume the declared TypeScript attributes and metadata (^3.3); Core retains the runtime transformation engine."
     },
     "conflict": {
         "nvl/metafields": "<5.1 || >=6.0",
-        "nvl/tenancy": "<5.0 || >=6.0",
-        "nvl/ownership": "<5.0 || >=6.0"
+        "nvl/ownership": "<5.0 || >=6.0",
+        "nvl/tenancy": "<5.0 || >=6.0"
     },
     "homepage": "https://github.com/nvl-laravel-suite/pages",
     "authors": [

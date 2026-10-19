@@ -11,7 +11,6 @@ use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Contracts\OwnershipWriter;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\Traits\HasOwnership;
-use Nvl\Support\Tenancy\Contracts\TenantBoundary;
 use Nvl\Support\Tenancy\Enums\TenantResourceKind;
 use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
@@ -51,7 +50,7 @@ trait GuardsTenantOwnership
                 return;
             }
             $definition = $container->make(TenantResourceRegistry::class)->get(self::TENANT_RESOURCE);
-            $boundary = $container->make(TenantBoundary::class);
+            $boundary = $container->make(OwnershipBoundary::class);
 
             if ($definition->kind === TenantResourceKind::Root) {
                 $model->forceFill($boundary->attributes(self::TENANT_RESOURCE));

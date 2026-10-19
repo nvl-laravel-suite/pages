@@ -18,6 +18,7 @@ use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageDatabaseConflict;
 use Nvl\Pages\Services\PageHierarchy;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Events\DomainEventDispatcher;
@@ -51,14 +52,14 @@ final readonly class RestorePageAction implements RestorePageContract
         $pageId = $page instanceof Page ? $page->id : $page;
         $resolved = $page instanceof Page
             ? $page
-            : Page::query()->withTrashed()->findOrFail($pageId);
+            : PageModelRegistry::query()->withTrashed()->findOrFail($pageId);
         $site = $resolved->site;
 
         try {
             return DB::connection(PagesConfiguration::connection())
                 ->transaction(function () use ($actor, $data, $pageId, $site): Page {
                     $this->treeLock->acquire($site);
-                    $page = Page::query()
+                    $page = PageModelRegistry::query()
                         ->withTrashed()
                         ->lockForUpdate()
                         ->findOrFail($pageId);

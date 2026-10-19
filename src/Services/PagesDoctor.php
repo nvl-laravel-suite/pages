@@ -90,7 +90,7 @@ final class PagesDoctor
                 $checks['column.pages.tenant_id'] = $schema->hasColumn($pages, 'tenant_id');
             }
 
-            $pageRows = Page::query()
+            $pageRows = PageModelRegistry::query()
                 ->withTrashed()
                 ->get([
                     'id',
@@ -114,7 +114,7 @@ final class PagesDoctor
             $checks['data.parent_site_drift'] = $hierarchy['parent_site_drift'];
             $checks['data.parent_key_drift'] = $hierarchy['parent_key_drift'];
             $checks['data.parent_path_drift'] = $hierarchy['parent_path_drift'];
-            $checks['data.unknown_resource'] = Page::query()
+            $checks['data.unknown_resource'] = PageModelRegistry::query()
                 ->withTrashed()
                 ->where('kind', PageKind::Resource)
                 ->whereNotNull('resource')
@@ -124,7 +124,7 @@ final class PagesDoctor
                         && ! $resources->has($alias),
                 )
                 ->isNotEmpty();
-            $checks['data.invalid_kind_resource'] = Page::query()
+            $checks['data.invalid_kind_resource'] = PageModelRegistry::query()
                 ->withTrashed()
                 ->where(static function ($query): void {
                     $query
@@ -140,11 +140,11 @@ final class PagesDoctor
                         });
                 })
                 ->exists();
-            $checks['data.invalid_status'] = Page::query()
+            $checks['data.invalid_status'] = PageModelRegistry::query()
                 ->withTrashed()
                 ->whereNotIn('status', array_column(PageStatus::cases(), 'value'))
                 ->exists();
-            $checks['data.invalid_lifecycle_dates'] = Page::query()
+            $checks['data.invalid_lifecycle_dates'] = PageModelRegistry::query()
                 ->withTrashed()
                 ->where(static function ($query): void {
                     $query

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Data;
 
+use Nvl\Support\Ownership\ValueObjects\VerifiedOwnerSiteContext;
 use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\Hidden;
@@ -23,5 +24,6 @@ final class PageRequestContextData extends Data
         public readonly string $site,
         public readonly string $locale,
         public readonly ?TenantSiteContext $tenantSite = null,
+        public readonly ?VerifiedOwnerSiteContext $ownerSite = null,
     ) {}
 }

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Nvl\Pages\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Services\PageModelRegistry;
+use Nvl\Support\Ownership\Contracts\OwnershipWriter;
 
 /**
  * Builds Page fixture rows and their declared package parents.
@@ -17,6 +20,32 @@ use Nvl\Pages\Models\Page;
  */
 final class PageFactory extends Factory
 {
+    /** Resolve the one configured concrete Page model. */
+    public function modelName(): string
+    {
+        return PageModelRegistry::modelClass();
+    }
+
+    /** Persist native factory roots under the same actual source assignment as Actions.
+     * @param  Collection<int,Page>  $results
+     */
+    protected function store(Collection $results): void
+    {
+        if (PageModelRegistry::modelClass()::ownershipDefinition()->strategy === 'unscoped') {
+            parent::store($results);
+
+            return;
+        }
+        foreach ($results as $model) {
+            app(OwnershipWriter::class)->create($model::class, function (array $attributes) use ($model): Page {
+                $model->forceFill($attributes);
+                parent::store(new Collection([$model]));
+
+                return $model;
+            });
+        }
+    }
+
     protected $model = Page::class;
 
     /**

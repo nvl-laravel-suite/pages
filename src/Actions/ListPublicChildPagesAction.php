@@ -17,6 +17,7 @@ use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PublicChildPageOrder;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Contracts\LocaleCatalog;
 
@@ -53,7 +54,7 @@ final readonly class ListPublicChildPagesAction implements ListPublicChildPagesC
         $site = $this->identities->site($context->site);
         $locale = $this->locales->assertSupported($context->locale);
         $at = now();
-        $parent = Page::query()
+        $parent = PageModelRegistry::query()
             ->where('site', $site)
             ->publiclyVisible($at)
             ->findOrFail($parentId);
@@ -72,7 +73,7 @@ final readonly class ListPublicChildPagesAction implements ListPublicChildPagesC
             PagesConfiguration::limit('maximum_public_children', 100),
         );
 
-        $query = Page::query()
+        $query = PageModelRegistry::query()
             ->where('site', $site)
             ->where('parent_id', $parent->id)
             ->publiclyVisible($at)

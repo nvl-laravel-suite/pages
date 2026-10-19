@@ -15,6 +15,7 @@ use Nvl\Pages\Events\PageChanged;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Events\DomainEventDispatcher;
@@ -44,13 +45,13 @@ final readonly class DeletePageAction implements DeletePageContract
         PageActorData $actor,
     ): bool {
         $pageId = $page instanceof Page ? $page->id : $page;
-        $page = $page instanceof Page ? $page : Page::query()->findOrFail($pageId);
+        $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
         $site = $page->site;
 
         return DB::connection(PagesConfiguration::connection())
             ->transaction(function () use ($actor, $data, $pageId, $site): bool {
                 $this->treeLock->acquire($site);
-                $page = Page::query()->lockForUpdate()->findOrFail($pageId);
+                $page = PageModelRegistry::query()->lockForUpdate()->findOrFail($pageId);
 
                 if ($page->site !== $site) {
                     throw new StalePageException('The page site changed during the operation.');

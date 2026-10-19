@@ -17,6 +17,8 @@ final class PagesTables
 
     public const string TreeLocks = 'nvl_pages_tree_locks';
 
+    public const string OwnerTreeLocks = 'nvl_pages_owner_tree_locks';
+
     /** Return one configured logical or historical package table. */
     public static function get(string $key): string
     {

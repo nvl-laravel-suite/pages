@@ -14,6 +14,7 @@ use Nvl\Content\Contracts\ContentOwnerRegistrar;
 use Nvl\Data\Services\TypeScriptSourceRegistry;
 use Nvl\Metafields\Providers\MetafieldsServiceProvider;
 use Nvl\Metafields\Support\MetafieldOwnerRegistry;
+use Nvl\Ownership\Services\OwnershipAdoptionRegistry;
 use Nvl\Pages\Actions\CheckPageKeyAvailabilityAction;
 use Nvl\Pages\Actions\CreatePageAction;
 use Nvl\Pages\Actions\DeletePageAction;
@@ -59,10 +60,13 @@ use Nvl\Pages\Integrations\EmptyPageMetafields;
 use Nvl\Pages\Integrations\MetafieldsPageAdapter;
 use Nvl\Pages\Listeners\InvalidatePageSitemap;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Ownership\PagesAdoptionAdapter;
+use Nvl\Pages\Ownership\PagesResourceRegistrar as OwnershipPagesResourceRegistrar;
 use Nvl\Pages\Seo\PageSitemapSource;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
 use Nvl\Pages\Services\ConfiguredPageRequestContextResolver;
 use Nvl\Pages\Services\ConfiguredPageUrlGenerator;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageResourceRegistry;
 use Nvl\Pages\Services\PagesDoctor;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -74,6 +78,8 @@ use Nvl\Support\Doctor\PackageDoctorContributor;
 use Nvl\Support\Globals\GlobalNames;
 use Nvl\Support\Integrations\OptionalIntegration;
 use Nvl\Support\OwnerRegistry;
+use Nvl\Support\Ownership\Contracts\OwnershipIntegratedProvider;
+use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Support\Providers\TenantServiceProvider;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
@@ -85,7 +91,7 @@ use Nvl\Translatable\Services\TranslationResourceRegistry;
 /**
  * Registers the standalone Pages runtime and its package integrations.
  */
-final class PagesServiceProvider extends ServiceProvider
+final class PagesServiceProvider extends ServiceProvider implements OwnershipIntegratedProvider
 {
     use MergesPackageConfiguration;
     use RegistersNamespacedResources;
@@ -118,7 +124,8 @@ final class PagesServiceProvider extends ServiceProvider
 
         $this->mergePackageConfiguration(__DIR__.'/../../config/nvl-pages.php', 'pages');
         $this->app->register(TenantServiceProvider::class);
-        (new PagesResourceRegistrar)->register($this->app->make(TenantResourceRegistry::class));
+        $this->app->singleton(PageModelRegistry::class);
+        $this->app->booting(fn () => $this->app->make(PageModelRegistry::class)->prepare());
         $this->app->booted(function (): void {
             if ($this->app->bound(TenantAdoptionRegistry::class)) {
                 (new PagesResourceRegistrar)->register($this->app->make(TenantResourceRegistry::class), $this->app->make(TenantAdoptionRegistry::class));
@@ -186,24 +193,30 @@ final class PagesServiceProvider extends ServiceProvider
         PageResourceRegistry $resources,
         SeoOwnerRegistry $seoOwners,
     ): void {
+        (new PagesResourceRegistrar)->register($this->app->make(TenantResourceRegistry::class));
+        $this->app->make(OwnershipPagesResourceRegistrar::class)->register($this->app->make(OwnershipResourceRegistry::class));
+        if ($this->app->bound(OwnershipAdoptionRegistry::class)) {
+            $this->app->make(OwnershipAdoptionRegistry::class)->register('pages', PagesAdoptionAdapter::class);
+        }
+
         $this->app->make(GlobalNames::class)->translations('pages', __DIR__.'/../../lang', $this->app->make('translation.loader'));
         $this->publishes([
             __DIR__.'/../../lang' => lang_path('vendor/nvl-pages'),
         ], 'nvl-pages-translations');
-        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, ['page'], package: 'pages');
+        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, PageModelRegistry::modelClass(), ['page'], package: 'pages');
         $migrationRollbackGuard = $this->app->make(PagesMigrationRollbackGuard::class);
         $typeScriptSources->register(__DIR__.'/..', 'nvl/pages');
         $this->registerResources($resources);
-        Page::resolveRelationUsing('metafields', function (Page $page): MorphMany {
+        (PageModelRegistry::modelClass())::resolveRelationUsing('metafields', function (Page $page): MorphMany {
             $this->app->make(OptionalIntegration::class)->enabled('pages.integrations.metafields', MetafieldsServiceProvider::class, requested: true);
 
             return MetafieldsPageAdapter::relation($page);
         });
-        $seoOwners->register(PagesConfiguration::alias('seo_owner_alias', 'nvl-page'), Page::class);
+        $seoOwners->register(PagesConfiguration::alias('seo_owner_alias', 'nvl-page'), PageModelRegistry::modelClass());
         if ($this->app->make(OptionalIntegration::class)->enabled('pages.integrations.metafields', MetafieldsServiceProvider::class)) {
             $sections = config('nvl-pages.integrations.metafield_sections', ['general']);
             $this->app->make(MetafieldOwnerRegistry::class)->register(
-                PagesConfiguration::alias('metafield_owner_alias', 'nvl-page'), Page::class, 'Pages',
+                PagesConfiguration::alias('metafield_owner_alias', 'nvl-page'), PageModelRegistry::modelClass(), 'Pages',
                 is_array($sections) ? array_values(array_filter($sections, 'is_string')) : ['general'],
             );
         }
@@ -212,8 +225,8 @@ final class PagesServiceProvider extends ServiceProvider
         $registeredContentOwner = $contentOwners->registered($contentAlias);
 
         if ($registeredContentOwner === null) {
-            $contentOwners->register($contentAlias, Page::class);
-        } elseif ($registeredContentOwner !== Page::class) {
+            $contentOwners->register($contentAlias, PageModelRegistry::modelClass());
+        } elseif ($registeredContentOwner !== PageModelRegistry::modelClass()) {
             throw new InvalidArgumentException(
                 "Content owner alias [{$contentAlias}] must resolve to Page.",
             );
@@ -221,13 +234,13 @@ final class PagesServiceProvider extends ServiceProvider
 
         $translationResources->register(
             key: 'pages.pages',
-            modelClass: Page::class,
+            modelClass: PageModelRegistry::modelClass(),
             label: 'Pages',
             searchableColumns: ['key', 'site', 'slug', 'path', 'status', 'resource'],
             displayColumns: ['key', 'site', 'path', 'kind', 'status', 'revision'],
             orderColumn: 'path',
         );
-        $sitemaps->registerType(PageSitemapSource::class, 'nvl/pages', [Page::class]);
+        $sitemaps->registerType(PageSitemapSource::class, 'nvl/pages', [PageModelRegistry::modelClass()]);
         Event::listen(PageChanged::class, InvalidatePageSitemap::class);
         Event::listen(MigrationStarted::class, $migrationRollbackGuard->before(...));
 

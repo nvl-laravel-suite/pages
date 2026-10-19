@@ -5,6 +5,21 @@ description: Implement and review hierarchical pages, Content composition, dynam
 
 # NVL Pages
 
+## Native ownership and verified public admission
+
+- Keep the default unscoped graph independent from NVL Auth, Tenancy and Ownership.
+- Use the package README ownership section for configured roots, exact native host
+  resources and reviewed per-row adoption; never infer an owner from request input.
+- Resolve owned public work with `OwnerSiteResolver` and `PublicOwnerSiteRunner`.
+  Use only the admitted `VerifiedOwnerSiteContext` for owner/site/origin/resources;
+  preserve locale and content scope as separate identities. Public admission cannot
+  become actor/system/central/queue authority.
+- Retain actual-source transactions, native parent/pivot constraints and canonical
+  re-reads. Existing tenant rows/IDs/morph values and released migrations remain intact.
+- Select `nvl-pages.models.page`; adopt Content/Media/SEO before exposing Pages.
+- Dynamic handlers implement `OwnershipSafePageResourceHandler`; use the configured
+  root and scope the native query before fetch/presentation.
+
 ## Tenant sites
 
 - Resolve public hosts with `ResolvePublicTenant` before bindings, cache work,

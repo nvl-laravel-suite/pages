@@ -18,6 +18,7 @@ use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageDatabaseConflict;
 use Nvl\Pages\Services\PageHierarchy;
 use Nvl\Pages\Services\PageLifecycle;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageMutationValues;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -54,14 +55,14 @@ final readonly class UpdatePageAction implements UpdatePageContract
         PageActorData $actor,
     ): Page {
         $pageId = $page instanceof Page ? $page->id : $page;
-        $page = $page instanceof Page ? $page : Page::query()->findOrFail($pageId);
+        $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
         $site = $page->site;
 
         try {
             return DB::connection(PagesConfiguration::connection())
                 ->transaction(function () use ($actor, $data, $pageId, $site): Page {
                     $this->treeLock->acquire($site);
-                    $page = Page::query()->lockForUpdate()->findOrFail($pageId);
+                    $page = PageModelRegistry::query()->lockForUpdate()->findOrFail($pageId);
 
                     if ($page->site !== $site) {
                         throw new StalePageException('The page site changed during the operation.');

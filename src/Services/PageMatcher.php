@@ -9,13 +9,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Factory;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Nvl\Pages\Contracts\OwnershipSafePageResourceHandler;
 use Nvl\Pages\Contracts\TenantSafePageResourceHandler;
 use Nvl\Pages\Data\PageResourceRequestData;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Support\Tenancy\Contracts\TenantBoundary;
+use Nvl\Support\Ownership\Contracts\OwnershipBoundary as TenantBoundary;
+use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -33,6 +36,7 @@ final readonly class PageMatcher
         private Repository $configuration,
         private TenantBoundary $tenancy,
         private TenantResourceRegistry $tenantResources,
+        private OwnershipResourceRegistry $ownershipResources,
     ) {}
 
     /**
@@ -50,7 +54,7 @@ final readonly class PageMatcher
             throw new NotFoundHttpException('The requested page was not found.');
         }
 
-        $staticQuery = Page::query()
+        $staticQuery = PageModelRegistry::query()
             ->where('site', $site)
             ->where('kind', PageKind::Static)
             ->where('path_hash', PagePath::hash($site, strtolower($path)));
@@ -65,7 +69,7 @@ final readonly class PageMatcher
             return new ResolvedPageMatch($static);
         }
 
-        $resourceQuery = Page::query()
+        $resourceQuery = PageModelRegistry::query()
             ->where('site', $site)
             ->where('kind', PageKind::Resource)
             ->whereIn('path_hash', $this->candidateHashes($site, $path))
@@ -113,7 +117,14 @@ final readonly class PageMatcher
             $handlerQuery = $handler->query($request);
             $this->resources->assertOwner($page->resource, $handlerQuery->getModel());
             $tenantResource = null;
-            if ($this->configuration->get('nvl-tenancy.enabled') === true) {
+            if (PagesOwnership::declared()) {
+                if (! $handler instanceof OwnershipSafePageResourceHandler
+                    || $handlerQuery->getModel()::class !== $handler->ownershipResourceModel()) {
+                    throw new InvalidArgumentException('The Page resource query differs from its declared ownership capability.');
+                }
+                $tenantResource = $this->ownershipResources->forModel($handlerQuery->getModel());
+                $this->tenancy->query($handlerQuery, $tenantResource->key);
+            } elseif ($this->configuration->get('nvl-tenancy.enabled') === true) {
                 if (! $handler instanceof TenantSafePageResourceHandler
                     || $handlerQuery->getModel()::class !== $handler->tenantResourceModel()) {
                     throw new InvalidArgumentException('The Page resource query differs from its tenant capability.');

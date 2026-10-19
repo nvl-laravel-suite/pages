@@ -8,10 +8,13 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Nvl\Pages\Contracts\OwnershipSafePageResourceHandler;
 use Nvl\Pages\Contracts\PageResourceHandler;
 use Nvl\Pages\Contracts\TenantSafePageResourceHandler;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\OwnerRegistry;
+use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Tenancy\Services\TenantExtensionGuard;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 
@@ -155,7 +158,13 @@ final class PageResourceRegistry
             label: "Page resource [{$alias}]",
         );
 
-        if ($this->configuration->get('nvl-tenancy.enabled') === true) {
+        if (PagesOwnership::declared()) {
+            if (! $handler instanceof OwnershipSafePageResourceHandler) {
+                throw new InvalidArgumentException('Owned Page handlers require an explicit native resource capability.');
+            }
+            $model = $handler->ownershipResourceModel();
+            $this->container->make(OwnershipResourceRegistry::class)->forModel(new $model);
+        } elseif ($this->configuration->get('nvl-tenancy.enabled') === true) {
             /** @var TenantSafePageResourceHandler<Model> $handler */
             $model = $handler->tenantResourceModel();
             $this->tenantResources->forModel(new $model);

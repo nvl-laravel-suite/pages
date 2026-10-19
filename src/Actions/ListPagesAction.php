@@ -15,6 +15,7 @@ use Nvl\Pages\Data\PageData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageFilterSchema;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 
 /**
@@ -49,7 +50,7 @@ final readonly class ListPagesAction implements ListPagesContract
             $actor,
             context: new PageAuthorizationContextData(site: $site),
         );
-        $query = Page::query()
+        $query = PageModelRegistry::query()
             ->where('site', $site)
             ->with('translations');
         $this->filters->apply($query, $filters, $this->schema->make());

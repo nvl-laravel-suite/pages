@@ -12,8 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Nvl\Pages\Database\Factories\PageTranslationFactory;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Concerns\GuardsTenantOwnership;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Config\PackageStorage;
+use Nvl\Support\Ownership\Contracts\Ownable;
 
 /**
  * Localized editorial copy for one page.
@@ -33,7 +35,7 @@ use Nvl\Support\Config\PackageStorage;
  *
  * @nvl-consumer-read id
  */
-final class PageTranslation extends Model
+final class PageTranslation extends Model implements Ownable
 {
     use GuardsTenantOwnership;
 
@@ -74,7 +76,7 @@ final class PageTranslation extends Model
      */
     public function page(): BelongsTo
     {
-        return $this->belongsTo(Page::class);
+        return $this->belongsTo(PageModelRegistry::modelClass(), 'page_id');
     }
 
     /**

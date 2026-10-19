@@ -11,7 +11,7 @@ use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Enums\PageKind;
-use Nvl\Pages\Models\Page;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageNavigationBuilder;
 
 /**
@@ -42,7 +42,7 @@ final readonly class GetNavigationAction implements GetNavigationContract
             $actor,
             context: new PageAuthorizationContextData(site: $site, locale: $locale),
         );
-        $pages = Page::query()
+        $pages = PageModelRegistry::query()
             ->where('site', $site)
             ->where('kind', PageKind::Static)
             ->publiclyVisible()

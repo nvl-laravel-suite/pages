@@ -6,6 +6,7 @@ namespace Nvl\Pages\Tenancy;
 
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Models\PageTranslation;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Support\Tenancy\Enums\TenantResourceKind;
 use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Nvl\Support\Tenancy\ValueObjects\TenantResourceDefinition;
@@ -20,7 +21,7 @@ final class PagesResourceRegistrar
         foreach (['content', 'seo'] as $dependency) {
             $resources->requireCompatible('pages', $dependency);
         }
-        $resources->register(new TenantResourceDefinition('pages.pages', 'pages', Page::class));
+        $resources->register(new TenantResourceDefinition('pages.pages', 'pages', PageModelRegistry::modelClass()));
         $resources->register(new TenantResourceDefinition('pages.translations', 'pages', PageTranslation::class, TenantResourceKind::Inherited, 'pages.pages', 'page'));
         $adoption?->register('pages', PagesAdoptionAdapter::class);
     }

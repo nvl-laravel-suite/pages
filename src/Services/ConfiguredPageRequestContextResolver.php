@@ -10,7 +10,9 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageRequestContextResolver;
 use Nvl\Pages\Data\PageRequestContextData;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Support\Contracts\LocaleCatalog;
+use Nvl\Support\Ownership\Services\OwnerSiteContext;
 use Nvl\Support\Tenancy\Services\TenantSiteAttributes;
 use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 use Nvl\Translatable\Exceptions\InvalidLocaleException;
@@ -41,9 +43,10 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
             }
             $tenantSite = $resolvedTenantSite;
         }
-        $site = $tenantSite instanceof TenantSiteContext
+        $ownerSite = PagesOwnership::declared() ? OwnerSiteContext::require() : null;
+        $site = $ownerSite !== null ? $ownerSite->site : ($tenantSite instanceof TenantSiteContext
             ? $tenantSite->site
-            : config('nvl-pages.public.default_site', 'default');
+            : config('nvl-pages.public.default_site', 'default'));
 
         if (! is_string($site)
             || preg_match('/^[a-z0-9][a-z0-9._-]{0,63}$/D', $site) !== 1) {
@@ -63,6 +66,6 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
             ]);
         }
 
-        return new PageRequestContextData($site, $locale, $tenantSite);
+        return new PageRequestContextData($site, $locale, $tenantSite, $ownerSite);
     }
 }

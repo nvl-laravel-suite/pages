@@ -12,6 +12,7 @@ use Nvl\Pages\Data\PageKeyAvailabilityData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 
 /**
  * Checks the actual globally unique Page key constraint without exposing models.
@@ -45,7 +46,7 @@ final readonly class CheckPageKeyAvailabilityAction implements CheckPageKeyAvail
             $actor,
             context: new PageAuthorizationContextData(site: $site),
         );
-        $conflict = Page::query()
+        $conflict = PageModelRegistry::query()
             ->withTrashed()
             ->where('key', $key)
             ->first(['id', 'site']);

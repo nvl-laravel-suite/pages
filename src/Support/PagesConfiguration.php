@@ -6,7 +6,7 @@ namespace Nvl\Pages\Support;
 
 use InvalidArgumentException;
 use Nvl\Pages\Definitions\Tables\PagesTables;
-use Nvl\Support\Config\PackageStorage;
+use Nvl\Pages\Services\PageModelRegistry;
 
 /**
  * Normalizes values crossing Laravel's untyped configuration boundary.
@@ -26,7 +26,7 @@ final class PagesConfiguration
      */
     public static function connection(): ?string
     {
-        return PackageStorage::connection('pages');
+        return PageModelRegistry::newInstance()->getConnection()->getName();
     }
 
     /**

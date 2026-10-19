@@ -12,6 +12,7 @@ use Nvl\Pages\Data\PageData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 
 /**
  * Finds one exact Page key inside an authorized site boundary.
@@ -38,7 +39,7 @@ final readonly class FindPageByKeyAction implements FindPageByKeyContract
     ): PageData {
         $site = $this->identities->site($site);
         $key = $this->identities->key($key);
-        $page = Page::query()
+        $page = PageModelRegistry::query()
             ->where('site', $site)
             ->where('key', $key)
             ->firstOrFail();

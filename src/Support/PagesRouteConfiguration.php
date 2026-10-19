@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Nvl\Pages\Support;
 
 use InvalidArgumentException;
+use Nvl\Ownership\Http\Middleware\ResolvePublicOwnerSite;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Tenancy\Http\Middleware\ResolvePublicTenant;
 
 /**
@@ -91,6 +93,10 @@ final class PagesRouteConfiguration
         if ($group === 'public' && config('nvl-tenancy.enabled') === true
             && ! in_array(ResolvePublicTenant::class, $middleware, true)) {
             array_unshift($middleware, ResolvePublicTenant::class);
+        }
+
+        if ($group === 'public' && PagesOwnership::declared()) {
+            array_unshift($middleware, ResolvePublicOwnerSite::class);
         }
 
         return array_values($middleware);

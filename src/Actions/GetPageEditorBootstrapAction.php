@@ -17,6 +17,7 @@ use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageResourceRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Actions\GetOwnerSeoProfileAction;
@@ -55,7 +56,7 @@ final readonly class GetPageEditorBootstrapAction implements GetPageEditorBootst
     ): PageEditorBootstrapData {
         $pageId = $this->identities->id($pageId);
         $locale = $this->locales->assertSupported($locale);
-        $page = Page::query()->findOrFail($pageId);
+        $page = PageModelRegistry::query()->findOrFail($pageId);
         $this->authorization->authorize(
             PageAbility::View,
             $actor,

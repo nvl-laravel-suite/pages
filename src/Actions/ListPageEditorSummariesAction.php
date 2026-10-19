@@ -16,6 +16,7 @@ use Nvl\Pages\Data\PageEditorSummaryData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Actions\ListOwnerSeoProfilesAction;
 use Nvl\Support\Contracts\LocaleCatalog;
@@ -59,8 +60,8 @@ final readonly class ListPageEditorSummariesAction implements ListPageEditorSumm
             $actor,
             context: new PageAuthorizationContextData(site: $site, locale: $locale),
         );
-        $paginator = Page::query()
-            ->select([
+        $paginator = PageModelRegistry::query()
+            ->select(PageModelRegistry::projectionColumns([
                 'id',
                 'parent_id',
                 'key',
@@ -80,7 +81,7 @@ final readonly class ListPageEditorSummariesAction implements ListPageEditorSumm
                 'revision',
                 'created_at',
                 'updated_at',
-            ])
+            ]))
             ->where('site', $site)
             ->with([
                 'translations' => static function (Relation $query): void {

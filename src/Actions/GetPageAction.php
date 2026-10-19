@@ -10,6 +10,7 @@ use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Services\PageModelRegistry;
 
 /**
  * Reads one page through the package authorization boundary.
@@ -28,7 +29,7 @@ final readonly class GetPageAction implements GetPageContract
      */
     public function execute(Page|string $page, PageActorData $actor): PageData
     {
-        $page = $page instanceof Page ? $page : Page::query()->findOrFail($page);
+        $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($page);
         $this->authorization->authorize(PageAbility::View, $actor, $page);
 
         $page->loadMissing('translations');

@@ -17,6 +17,7 @@ use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Seo\Services\SeoMetadataResolver;
 use Nvl\Support\Contracts\LocaleCatalog;
 
@@ -49,7 +50,7 @@ final readonly class GetPagePublicationProjectionAction implements GetPagePublic
     ): ResolvedPageData {
         $pageId = $this->identities->id($pageId);
         $locale = $this->locales->assertSupported($locale);
-        $page = Page::query()->publiclyVisible()->findOrFail($pageId);
+        $page = PageModelRegistry::query()->publiclyVisible()->findOrFail($pageId);
         $this->authorization->authorize(
             PageAbility::View,
             $actor,

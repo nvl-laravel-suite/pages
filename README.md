@@ -1,14 +1,68 @@
 # NVL Pages — API and usage
 
+## Optional native ownership
+
+The default `Page` remains unscoped. Apps without ownership do not need
+`nvl/ownership`, NVL Auth or NVL Tenancy. To opt in, extend the package model,
+retain its native table, UUID, casts and guarded persistence methods, and configure
+`nvl-pages.models.page` to that exact class. Every Action, relationship,
+translation registration and shipped root factory resolves that class.
+
+```php
+use Nvl\Pages\Models\Page as BasePage;
+use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
+
+class Page extends BasePage
+{
+    public static function ownershipDefinition(): OwnershipDefinition
+    {
+        return OwnershipDefinition::column(Company::class, 'company_id');
+    }
+}
+```
+
+Create the native `company_id` FK yourself, or return
+`OwnershipDefinition::pivot(Company::class, 'company_pages_ownership',
+'page_id', 'company_id')` and create that concrete exclusive-primary pivot
+with native FKs and one primary assignment per record. The base already supplies
+`Ownable`/`HasOwnership`; a consumer does not add a second ownership scope.
+Inherited child records retain their canonical parent and cannot be reassigned.
+Existing records require explicit reviewed per-record mappings through the
+[Ownership adoption coordinator](https://github.com/nvl-laravel-suite/ownership#readme);
+selecting a subclass or enabling the runtime never adopts storage.
+
+Owned Pages requires owned Content, Media and SEO graphs. Include `pages.pages`
+in `nvl-content.ownership.owner_resources` and `nvl-seo.ownership.owner_resources`.
+An enabled Metafields integration must also adopt its complete native host graph.
+Natural page keys, sibling slugs and canonical paths become owner-local while
+sites and locales remain separate identities. Adoption restores native parent
+FKs, verifies retained trees/copy and creates a separate optional owner-tree lock
+table; released tenant lock rows remain intact.
+
+Public routes require a host binding of `Nvl\Ownership\Contracts\OwnerSiteResolver`.
+Resolve only an enabled persisted origin mapping and return
+`VerifiedOwnerSiteContext(owner: $canonicalReference, site: 'storefront',
+canonicalOrigin: 'https://example.test', resources: $explicitResourceKeys)`.
+The middleware revalidates the canonical owner and exact request origin before
+bindings, caching and public work. Request query/header owner/site selections
+never choose the partition. Include every read dependency in the graph; public
+admission grants neither actor/system/central entry nor queue capture.
+
+Owned dynamic handlers implement `OwnershipSafePageResourceHandler` and return
+an exact `ownershipResourceModel()`. Pages scopes their query before fetching and
+checks the returned persisted record before presentation. Public DTOs, Content
+composition, navigation, canonical URLs and sitemap sources all use the same
+verified owner/site graph. Public access does not authorize Page management.
+
 ## Quickstart
 
 ```sh
-composer require nvl/pages:^5.0
+composer require nvl/pages:^5.1
 php artisan nvl:install pages --dry-run
 php artisan nvl:install pages
 ```
 
-Required NVL dependencies: `nvl/content` (`^5.0`), `nvl/core` (`^5.0`), `nvl/filterable` (`^5.0`), `nvl/seo` (`^5.0`), `nvl/translatable` (`^5.0`). Configure sites, locale/content/media integrations and PageActorData authorization. Supply validated FilterSet and an allowed site from host configuration.
+Required NVL dependencies: `nvl/content` (`^5.1`), `nvl/core` (`^5.1`), `nvl/filterable` (`^5.0`), `nvl/seo` (`^5.1`), `nvl/translatable` (`^5.1`). Configure sites, locale/content/media integrations and PageActorData authorization. Supply validated FilterSet and an allowed site from host configuration.
 Review the published common config, select one migration owner, and run schema preflight before existing-table upgrades. The installer does not enable features or run migrations. Follow the detailed installation and capability sections below before invoking a storage/provider operation.
 
 Inject `Nvl\Pages\Contracts\ListPagesContract` in a host service. After supplying the trusted inputs described above, the first public call is:
@@ -34,7 +88,7 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/pages:^5.0` |
+| Installed through | `composer require nvl/pages:^5.1` |
 | Module identifier | `nvl/pages` |
 | PHP namespace | `Nvl\Pages` |
 | Service provider | `Nvl\Pages\Providers\PagesServiceProvider` |
@@ -79,7 +133,7 @@ models are canonically checked again before projection.
 Install the package in a clean Laravel application:
 
 ```bash
-composer require nvl/pages:^5.0
+composer require nvl/pages:^5.1
 php artisan vendor:publish --tag=nvl-pages-translations
 php artisan vendor:publish --tag=nvl-pages-config
 php artisan vendor:publish --tag=nvl-pages-skills

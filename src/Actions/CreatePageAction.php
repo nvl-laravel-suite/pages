@@ -18,6 +18,7 @@ use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageDatabaseConflict;
 use Nvl\Pages\Services\PageHierarchy;
 use Nvl\Pages\Services\PageLifecycle;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageMutationValues;
 use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -77,7 +78,7 @@ final readonly class CreatePageAction implements CreatePageContract
                 ->transaction(function () use ($actor, $data, $dates): Page {
                     $this->treeLock->acquire($data->site);
                     $this->hierarchy->assertValid($data->site, $data->parentId);
-                    $page = Page::query()->create([
+                    $page = PageModelRegistry::create([
                         'parent_id' => $data->parentId,
                         'key' => $data->key,
                         'site' => $data->site,

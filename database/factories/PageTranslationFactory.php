@@ -7,6 +7,7 @@ namespace Nvl\Pages\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Models\PageTranslation;
+use Nvl\Pages\Services\PageModelRegistry;
 
 /**
  * Builds PageTranslation fixture rows and their declared package parents.
@@ -38,7 +39,7 @@ final class PageTranslationFactory extends Factory
             }
 
             if ($model->getAttribute('page_id') !== null) {
-                $parent = Page::query()->findOrFail(FactoryGuard::identifier($model->getAttribute('page_id')));
+                $parent = PageModelRegistry::query()->findOrFail(FactoryGuard::identifier($model->getAttribute('page_id')));
                 FactoryGuard::parent($parent, $model);
                 FactoryGuard::inherit($model, $parent);
             }

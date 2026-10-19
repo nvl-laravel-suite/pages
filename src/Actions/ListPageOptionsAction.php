@@ -14,6 +14,7 @@ use Nvl\Pages\Data\PageOptionData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageIdentityGuard;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Contracts\LocaleCatalog;
 
@@ -62,7 +63,7 @@ final readonly class ListPageOptionsAction implements ListPageOptionsContract
             100,
             PagesConfiguration::limit('maximum_page_options', 100),
         );
-        $query = Page::query()
+        $query = PageModelRegistry::query()
             ->select(['id', 'key', 'path', 'kind', 'status', 'revision'])
             ->where('site', $site)
             ->with('translations');

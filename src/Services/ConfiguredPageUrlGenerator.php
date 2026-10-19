@@ -9,8 +9,10 @@ use Illuminate\Contracts\Config\Repository;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Support\Contracts\LocaleCatalog;
-use Nvl\Support\Tenancy\Exceptions\TenantBoundaryViolation;
+use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
+use Nvl\Support\Ownership\Services\OwnerSiteContext;
 use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 
 /**
@@ -26,13 +28,16 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
      */
     public function url(Page $page, ?string $locale = null): string
     {
-        $tenantSite = $this->configuration->get('nvl-tenancy.enabled') === true
-            ? $this->container->make(TenantSiteContext::class)
-            : null;
-        if ($tenantSite !== null && $page->site !== $tenantSite->site) {
-            throw new TenantBoundaryViolation('The Page site differs from the verified public site.');
+        if (PagesOwnership::declared()) {
+            $this->container->make(OwnershipBoundary::class)->assertRecord($page, 'pages.pages');
         }
-        $base = $tenantSite instanceof TenantSiteContext
+        $tenantSite = OwnerSiteContext::current() ?? ($this->configuration->get('nvl-tenancy.enabled') === true
+            ? $this->container->make(TenantSiteContext::class)
+            : null);
+        if ($tenantSite !== null && $page->site !== $tenantSite->site) {
+            throw PagesOwnership::violation('The Page site differs from the verified public site.');
+        }
+        $base = $tenantSite !== null
             ? $tenantSite->canonicalOrigin
             : config('nvl-pages.urls.base_url', config('app.url', 'http://localhost'));
 

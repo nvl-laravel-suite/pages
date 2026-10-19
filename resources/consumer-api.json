@@ -775,6 +775,7 @@
             ],
             "properties": [
                 "locale",
+                "ownerSite",
                 "site",
                 "tenantSite"
             ],
@@ -898,7 +899,8 @@
             "kind": "class",
             "file": "database/factories/PageFactory.php",
             "methods": [
-                "definition"
+                "definition",
+                "modelName"
             ],
             "properties": [],
             "constants": []
@@ -1160,6 +1162,17 @@
                 "id"
             ],
             "constants": []
+        },
+        "Nvl\\Pages\\Services\\PageModelRegistry": {
+            "kind": "class",
+            "file": "src/Services/PageModelRegistry.php",
+            "methods": [
+                "__construct",
+                "pageClass",
+                "projectionColumns"
+            ],
+            "properties": [],
+            "constants": []
         }
     },
     "models": {
@@ -1197,6 +1210,7 @@
     "capability_relations": {},
     "tables": {
         "i18n": "nvl_pages_i18n",
+        "owner_tree_locks": "nvl_pages_owner_tree_locks",
         "pages": "nvl_pages_pages",
         "tree_locks": "nvl_pages_tree_locks"
     }

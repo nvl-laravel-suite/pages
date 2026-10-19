@@ -10,6 +10,7 @@ use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Data\PageAuthorizationContextData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
+use Nvl\Support\Ownership\Services\OwnerSiteContext;
 
 /**
  * Allows public reads of eligible pages and requires an explicit policy for mutations.
@@ -25,6 +26,10 @@ final class ConfiguredPageAuthorization implements PageAuthorization
         ?Page $page = null,
         ?PageAuthorizationContextData $context = null,
     ): void {
+        if (OwnerSiteContext::current() !== null
+            && ! in_array($ability, [PageAbility::View, PageAbility::ViewNavigation], true)) {
+            throw new AuthorizationException('Public admission does not grant Page management rights.');
+        }
         if ($actor->system) {
             return;
         }

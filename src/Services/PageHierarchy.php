@@ -20,7 +20,7 @@ final class PageHierarchy
     public function assertValid(string $site, ?string $parentId, ?string $pageId = null): void
     {
         /** @var Collection<string, Page> $pages */
-        $pages = Page::query()->where('site', $site)->get()->keyBy('id');
+        $pages = PageModelRegistry::query()->where('site', $site)->get()->keyBy('id');
         $depth = 1;
         $visited = [];
         $cursor = $parentId !== null ? $pages->get($parentId) : null;
@@ -61,7 +61,7 @@ final class PageHierarchy
             return $slug;
         }
 
-        $parent = Page::query()
+        $parent = PageModelRegistry::query()
             ->where('site', $site)
             ->find($parentId);
 
@@ -82,7 +82,7 @@ final class PageHierarchy
     public function rebuildDescendantPaths(Page $page): array
     {
         $changed = [];
-        $children = Page::query()
+        $children = PageModelRegistry::query()
             ->where('site', $page->site)
             ->where('parent_id', $page->id)
             ->lockForUpdate()

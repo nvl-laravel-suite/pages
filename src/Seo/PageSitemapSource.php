@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageResourceRegistry;
+use Nvl\Seo\Contracts\OwnershipSafeSitemapSource;
 use Nvl\Seo\Contracts\TenantSafeSitemapSource;
 use Nvl\Seo\Data\SitemapEntry;
 use Nvl\Seo\Models\SeoProfile;
@@ -20,7 +22,7 @@ use Nvl\Support\Contracts\LocaleCatalog;
 /**
  * Owns Page sitemap eligibility and composes SEO metadata or dynamic handler entries.
  */
-final readonly class PageSitemapSource implements TenantSafeSitemapSource
+final readonly class PageSitemapSource implements OwnershipSafeSitemapSource, TenantSafeSitemapSource
 {
     /**
      * Create the static and dynamic page sitemap source.
@@ -37,7 +39,7 @@ final readonly class PageSitemapSource implements TenantSafeSitemapSource
      */
     public function entries(string $scope): iterable
     {
-        $pages = Page::query()
+        $pages = PageModelRegistry::query()
             ->where('site', $scope)
             ->where('sitemap_included', true)
             ->publiclyVisible()
@@ -86,6 +88,12 @@ final readonly class PageSitemapSource implements TenantSafeSitemapSource
                 yield $entry;
             }
         }
+    }
+
+    /** @return list<string> */
+    public function ownershipResources(): array
+    {
+        return ['pages.pages', 'pages.translations', 'seo.profiles', 'seo.translations'];
     }
 
     /** @return list<string> */

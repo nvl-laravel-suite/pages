@@ -21,11 +21,14 @@ use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Concerns\GuardsTenantOwnership;
+use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Enums\SitemapChangeFrequency;
 use Nvl\Seo\Traits\HasSeo;
 use Nvl\Support\Config\PackageStorage;
+use Nvl\Support\Ownership\Contracts\Ownable;
+use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 use Nvl\Translatable\Contracts\TranslatableModel;
 use Nvl\Translatable\Enums\TranslationMutationPolicy;
 use Nvl\Translatable\RelatedTranslationDefinition;
@@ -66,10 +69,10 @@ use Nvl\Translatable\Translatable;
  *
  * @api
  */
-final class Page extends Model implements ContentOwner, TranslatableModel
+class Page extends Model implements ContentOwner, Ownable, TranslatableModel
 {
-    use GuardsTenantOwnership;
-    use HasContent;
+    use GuardsTenantOwnership, HasContent { HasContent::delete insteadof GuardsTenantOwnership;
+        HasContent::delete as private deleteContent; }
 
     /** @use HasFactory<PageFactory> */
     use HasFactory;
@@ -78,6 +81,12 @@ final class Page extends Model implements ContentOwner, TranslatableModel
     use HasUuids;
     use SoftDeletes;
     use Translatable;
+
+    /** Guard both soft deletion and Content-aware hard deletion on the actual source. */
+    public function delete(): ?bool
+    {
+        return app(OwnershipModelPersistence::class)->delete($this, fn (): ?bool => $this->deleteContent());
+    }
 
     public const string CONTENT_OWNER_TYPE = 'nvl-page';
 
@@ -171,7 +180,7 @@ final class Page extends Model implements ContentOwner, TranslatableModel
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id');
+        return $this->belongsTo(PageModelRegistry::modelClass(), 'parent_id');
     }
 
     /**
@@ -181,7 +190,7 @@ final class Page extends Model implements ContentOwner, TranslatableModel
      */
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id')->ordered();
+        return $this->hasMany(PageModelRegistry::modelClass(), 'parent_id')->ordered();
     }
 
     /**

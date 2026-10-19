@@ -5,6 +5,13 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-10-20
+
+### Changed
+
+- Integrate configured model roots and inherited page graphs with verified public owner-site admission. Retain publication, locale, route/cache and private-resource isolation without requiring Tenancy.
+- Align required/development NVL peers on `^6.0`, optional peer conflicts on major 6, and `dev-main` on `6.x-dev`. Review [UPGRADING.md](UPGRADING.md) before rollout.
+
 ## [5.0.1] - 2026-10-08
 
 ### Changed

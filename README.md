@@ -57,12 +57,12 @@ verified owner/site graph. Public access does not authorize Page management.
 ## Quickstart
 
 ```sh
-composer require nvl/pages:^5.1
+composer require nvl/pages:^6.0
 php artisan nvl:install pages --dry-run
 php artisan nvl:install pages
 ```
 
-Required NVL dependencies: `nvl/content` (`^5.1`), `nvl/core` (`^5.1`), `nvl/filterable` (`^5.0`), `nvl/seo` (`^5.1`), `nvl/translatable` (`^5.1`). Configure sites, locale/content/media integrations and PageActorData authorization. Supply validated FilterSet and an allowed site from host configuration.
+Required NVL dependencies: `nvl/content` (`^6.0`), `nvl/core` (`^6.0`), `nvl/filterable` (`^6.0`), `nvl/seo` (`^6.0`), `nvl/translatable` (`^6.0`). Configure sites, locale/content/media integrations and PageActorData authorization. Supply validated FilterSet and an allowed site from host configuration.
 Review the published common config, select one migration owner, and run schema preflight before existing-table upgrades. The installer does not enable features or run migrations. Follow the detailed installation and capability sections below before invoking a storage/provider operation.
 
 Inject `Nvl\Pages\Contracts\ListPagesContract` in a host service. After supplying the trusted inputs described above, the first public call is:
@@ -88,7 +88,7 @@ See the [installation and publishing guide](https://github.com/nvl-laravel-suite
 
 | Item | Value |
 |---|---|
-| Installed through | `composer require nvl/pages:^5.1` |
+| Installed through | `composer require nvl/pages:^6.0` |
 | Module identifier | `nvl/pages` |
 | PHP namespace | `Nvl\Pages` |
 | Service provider | `Nvl\Pages\Providers\PagesServiceProvider` |
@@ -133,7 +133,7 @@ models are canonically checked again before projection.
 Install the package in a clean Laravel application:
 
 ```bash
-composer require nvl/pages:^5.1
+composer require nvl/pages:^6.0
 php artisan vendor:publish --tag=nvl-pages-translations
 php artisan vendor:publish --tag=nvl-pages-config
 php artisan vendor:publish --tag=nvl-pages-skills

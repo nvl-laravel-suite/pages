@@ -304,6 +304,22 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Pages\\Contracts\\OwnershipSafePageResourceHandler": {
+            "kind": "interface",
+            "file": "src/Contracts/OwnershipSafePageResourceHandler.php",
+            "methods": [
+                "alias",
+                "fetch",
+                "ownershipResourceModel",
+                "present",
+                "query",
+                "routePattern",
+                "rules",
+                "sitemapEntries"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Pages\\Contracts\\PageAuthorization": {
             "kind": "interface",
             "file": "src/Contracts/PageAuthorization.php",

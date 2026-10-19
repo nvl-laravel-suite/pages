@@ -6,7 +6,11 @@ namespace Nvl\Pages\Contracts;
 
 use Illuminate\Database\Eloquent\Model;
 
-/** Declares the exact native model scoped by Pages before a dynamic query executes. @api
+/**
+ * Declares the exact native model scoped by Pages before a dynamic query executes.
+ *
+ * @api
+ *
  * @template TResource of Model
  *
  * @extends PageResourceHandler<TResource>

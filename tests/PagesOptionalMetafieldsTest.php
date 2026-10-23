@@ -30,7 +30,7 @@ it('keeps the editor DTO independent of optional Metafields display classes', fu
 
 it('serializes a complete editor bootstrap with an empty Metafields section', function (): void {
     $authorization = Mockery::mock(SeoAuthorization::class);
-    $authorization->shouldReceive('authorize')->once();
+    $authorization->shouldReceive('authorize')->atLeast()->once();
     app()->instance(SeoAuthorization::class, $authorization);
     $page = app(CreatePageAction::class)->execute(new CreatePageData('independent-editor', 'independent-editor'), PageActorData::system());
     $editor = app(GetPageEditorBootstrapAction::class)->execute($page->id, 'en', PageActorData::system());

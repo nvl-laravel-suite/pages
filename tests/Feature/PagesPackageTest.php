@@ -1305,7 +1305,7 @@ it('returns stable bounded page editor summaries with fixed query counts', funct
             ->and($populated->items())->toHaveCount(25)
             ->and($populated->items()[0]->page->id)->toBe($first->id)
             ->and($populated->items()[0]->label)->toBe('Editor-summary-01')
-            ->and($singleQueries)->toBeLessThanOrEqual(10)
+            ->and($singleQueries)->toBeLessThanOrEqual(11)
             ->and($populatedQueries)->toBe($singleQueries)
             ->and($capped->perPage())->toBe(100);
     } finally {

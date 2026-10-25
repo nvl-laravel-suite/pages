@@ -7,14 +7,12 @@ namespace Nvl\Pages\Data;
 use Nvl\Support\Ownership\ValueObjects\VerifiedOwnerSiteContext;
 use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 use Spatie\LaravelData\Data;
-use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Validated site and content-locale context for one public page request.
  *
  * @api
  */
-#[Hidden]
 final class PageRequestContextData extends Data
 {
     /**

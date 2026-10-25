@@ -8,7 +8,6 @@ use Nvl\Data\Traits\DataTransform;
 use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Consumer-safe result for a globally unique Page key availability check.
@@ -16,7 +15,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
-#[TypeScript]
 final class PageKeyAvailabilityData extends Data
 {
     use DataTransform;

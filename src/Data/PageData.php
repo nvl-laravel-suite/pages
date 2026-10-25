@@ -13,8 +13,6 @@ use Nvl\Seo\Enums\SitemapChangeFrequency;
 use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Complete sanitized page projection for authorized management consumers.
@@ -22,7 +20,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
-#[TypeScript]
 final class PageData extends Data
 {
     use DataTransform;
@@ -50,7 +47,6 @@ final class PageData extends Data
         public readonly ?string $publishedAt,
         public readonly ?string $expiresAt,
         public readonly int $revision,
-        #[LiteralTypeScriptType('Record<string, { title: string; navigationLabel: string | null; summary: string | null }>')]
         public readonly array $translations,
         public readonly string $createdAt,
         public readonly string $updatedAt,

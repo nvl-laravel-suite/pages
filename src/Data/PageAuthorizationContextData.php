@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Nvl\Pages\Data;
 
 use Spatie\LaravelData\Data;
-use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Typed request-independent context supplied to consumer page authorization.
  *
  * @api
  */
-#[Hidden]
 final class PageAuthorizationContextData extends Data
 {
     /**

@@ -10,7 +10,6 @@ use Nvl\Seo\Data\ResolvedSeoData;
 use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Complete headless page response assembled from package-owned boundaries.
@@ -18,7 +17,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
-#[TypeScript]
 final class ResolvedPageData extends Data
 {
     use DataTransform;

@@ -8,14 +8,12 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Content\Data\ContentActorData;
 use Spatie\LaravelData\Data;
-use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Transport-neutral actor identity for authorization and event context.
  *
  * @api
  */
-#[Hidden]
 final class PageActorData extends Data
 {
     /**

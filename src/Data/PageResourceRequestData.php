@@ -8,7 +8,6 @@ use Nvl\Data\Traits\DataTransform;
 use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\TypeScriptTransformer\Attributes\Hidden;
 
 /**
  * Validated context supplied to a registered dynamic resource handler.
@@ -16,7 +15,6 @@ use Spatie\TypeScriptTransformer\Attributes\Hidden;
  * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
-#[Hidden]
 final class PageResourceRequestData extends Data
 {
     use DataTransform;

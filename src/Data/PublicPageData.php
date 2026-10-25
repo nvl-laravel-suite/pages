@@ -13,7 +13,6 @@ use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
 use Spatie\LaravelData\Optional;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Locale-resolved and redacted page projection for public delivery.
@@ -21,7 +20,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
-#[TypeScript]
 final class PublicPageData extends Data
 {
     use DataTransform;

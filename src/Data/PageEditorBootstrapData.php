@@ -9,15 +9,12 @@ use Nvl\Data\Traits\DataTransform;
 use Nvl\Seo\Data\SeoProfileData;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
-use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Complete package-owned bootstrap for one authorized Page editor.
  *
  * @api
  */
-#[TypeScript]
 final class PageEditorBootstrapData extends Data
 {
     use DataTransform;
@@ -34,11 +31,8 @@ final class PageEditorBootstrapData extends Data
         public readonly ?SeoProfileData $seo,
         #[DataCollectionOf(PageMetafieldFieldData::class)]
         public readonly array $metafields,
-        #[LiteralTypeScriptType('Array<string>')]
         public readonly array $pageKinds,
-        #[LiteralTypeScriptType('Array<string>')]
         public readonly array $pageStatuses,
-        #[LiteralTypeScriptType('Array<string>')]
         public readonly array $resourceAliases,
         public readonly int $maximumDepth,
     ) {}

@@ -14,8 +14,6 @@ use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Validated contract for creating a structural page and its initial locale rows.
@@ -24,7 +22,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  */
 #[MapInputName(CamelCaseMapper::class)]
 #[MapOutputName(CamelCaseMapper::class)]
-#[TypeScript]
 final class CreatePageData extends Data
 {
     use DataTransform;
@@ -49,7 +46,6 @@ final class CreatePageData extends Data
         public readonly ?SitemapChangeFrequency $sitemapChangeFrequency = null,
         public readonly ?string $publishedAt = null,
         public readonly ?string $expiresAt = null,
-        #[LiteralTypeScriptType('Record<string, Record<string, unknown>>')]
         public readonly array $translations = [],
     ) {}
 

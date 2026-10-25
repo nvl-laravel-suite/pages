@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Enums;
 
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
-
 /**
  * Fine-grained capabilities enforced by every public Page action.
  *
  * @api
  */
-#[TypeScript]
 enum PageAbility: string
 {
     case List = 'list';

@@ -9,14 +9,12 @@ use Nvl\Data\Traits\DataTransform;
 use Nvl\Seo\Data\SeoProfileData;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Bounded Page, Content, and SEO projection for management indexes.
  *
  * @api
  */
-#[TypeScript]
 final class PageEditorSummaryData extends Data
 {
     use DataTransform;

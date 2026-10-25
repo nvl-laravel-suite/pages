@@ -11,7 +11,6 @@ use Nvl\Pages\Models\Page;
 use Spatie\LaravelData\Attributes\MapOutputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * Minimal localized Page identity for bounded management selectors.
@@ -19,7 +18,6 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * @api
  */
 #[MapOutputName(CamelCaseMapper::class)]
-#[TypeScript]
 final class PageOptionData extends Data
 {
     use DataTransform;

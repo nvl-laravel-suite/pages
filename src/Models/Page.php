@@ -147,7 +147,7 @@ class Page extends Model implements ContentOwner, Ownable, TranslatableModel
             translationModel: PageTranslation::class,
             foreignKey: 'page_id',
             fields: ['title', 'navigation_label', 'summary'],
-            mutationPolicy: TranslationMutationPolicy::DomainActionOnly,
+            mutationPolicy: TranslationMutationPolicy::OwningServiceOnly,
             ownershipResource: self::TENANT_RESOURCE,
         );
     }

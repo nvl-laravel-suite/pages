@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Nvl\Pages\Actions\CreatePageAction;
-use Nvl\Pages\Data\Mutations\CreatePageData;
-use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\OwnershipPage;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 

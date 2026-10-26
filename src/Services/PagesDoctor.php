@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Nvl\Pages\Services;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use InvalidArgumentException;
+use Nvl\Content\Providers\ContentServiceProvider;
 use Nvl\Metafields\Providers\MetafieldsServiceProvider;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Definitions\Tables\PagesTables;
@@ -16,7 +15,7 @@ use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
-use Nvl\Pages\Support\PagesRouteConfiguration;
+use Nvl\Seo\Providers\SeoServiceProvider;
 use Nvl\Support\Integrations\OptionalIntegration;
 
 /**
@@ -45,27 +44,15 @@ final class PagesDoctor
         $pages = PagesConfiguration::table(PagesTables::get(PagesTables::Pages), PagesTables::get(PagesTables::Pages));
         $i18n = PagesConfiguration::table(PagesTables::get(PagesTables::I18n), PagesTables::get(PagesTables::I18n));
         $treeLocks = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
-        $publicRoutesEnabled = (bool) config('nvl-pages.routes.public.enabled', false);
-        $managementRoutesEnabled = (bool) config('nvl-pages.routes.management.enabled', false);
         $checks = [
+            'integrations.content' => $this->integrations->check('pages.integrations.content', ContentServiceProvider::class),
+            'integrations.seo' => $this->integrations->check('pages.integrations.seo', SeoServiceProvider::class),
             'integrations.metafields' => $this->integrations->check('pages.integrations.metafields', MetafieldsServiceProvider::class),
             'table.pages' => $schema->hasTable($pages),
             'table.pages_i18n' => $schema->hasTable($i18n),
             'table.page_tree_locks' => $schema->hasTable($treeLocks),
             'hierarchy.maximum_depth' => PagesConfiguration::maximumDepth(),
             'resources' => $resources->aliases(),
-            'routes.public.enabled' => $publicRoutesEnabled,
-            'routes.management.enabled' => $managementRoutesEnabled,
-            'routes.public.middleware' => $this->hasValidMiddleware('public'),
-            'routes.management.middleware' => $this->hasValidMiddleware('management'),
-            'routes.management.authorization' => ! $managementRoutesEnabled
-                || ! $authorization instanceof ConfiguredPageAuthorization,
-            'routes.public.registered' => Route::has(
-                PagesRouteConfiguration::name('public').'resolve',
-            ),
-            'routes.management.registered' => Route::has(
-                PagesRouteConfiguration::name('management').'index',
-            ),
         ];
 
         if ($schema->hasTable($pages)) {
@@ -85,9 +72,6 @@ final class PagesDoctor
 
             foreach ($required as $column) {
                 $checks["column.pages.{$column}"] = $schema->hasColumn($pages, $column);
-            }
-            if (config('nvl-tenancy.enabled') === true) {
-                $checks['column.pages.tenant_id'] = $schema->hasColumn($pages, 'tenant_id');
             }
 
             $pageRows = PageModelRegistry::query()
@@ -167,9 +151,6 @@ final class PagesDoctor
             foreach (['id', 'page_id', 'locale', 'title'] as $column) {
                 $checks["column.pages_i18n.{$column}"] = $schema->hasColumn($i18n, $column);
             }
-            if (config('nvl-tenancy.enabled') === true) {
-                $checks['column.pages_i18n.tenant_id'] = $schema->hasColumn($i18n, 'tenant_id');
-            }
         }
 
         if ($schema->hasTable($treeLocks)) {
@@ -177,9 +158,6 @@ final class PagesDoctor
                 $treeLocks,
                 'site',
             );
-            if (config('nvl-tenancy.enabled') === true) {
-                $checks['column.page_tree_locks.tenant_id'] = $schema->hasColumn($treeLocks, 'tenant_id');
-            }
         }
 
         $healthy = collect($checks)->every(
@@ -276,19 +254,5 @@ final class PagesDoctor
         }
 
         return $issues;
-    }
-
-    /**
-     * Determine whether one route group has a valid non-empty middleware list.
-     */
-    private function hasValidMiddleware(string $group): bool
-    {
-        try {
-            PagesRouteConfiguration::middleware($group);
-        } catch (InvalidArgumentException) {
-            return false;
-        }
-
-        return true;
     }
 }

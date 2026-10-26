@@ -9,12 +9,19 @@ use Nvl\Ownership\Services\OwnershipAdoptionCoordinator;
 use Nvl\Ownership\ValueObjects\OwnershipOperation;
 use Nvl\Pages\Providers\PagesServiceProvider;
 use Nvl\Pages\Tests\CompositionOwnershipTestCase as SeoOwnershipTestCase;
+use Nvl\Pages\Tests\Fixtures\Consumer\Contracts\PageRequestContextResolver;
+use Nvl\Pages\Tests\Fixtures\Consumer\Services\ConfiguredPageRequestContextResolver;
 use Nvl\Pages\Tests\Fixtures\OwnershipPage;
 use Nvl\Seo\Providers\SeoServiceProvider;
 
 /** Exercises the real Pages/Content/Media/SEO ownership graph through verified public routes. */
 abstract class OwnershipTestCase extends SeoOwnershipTestCase
 {
+    protected function defineRoutes($router): void
+    {
+        require __DIR__.'/Fixtures/Consumer/routes.php';
+    }
+
     protected function getPackageProviders($app): array
     {
         return [...parent::getPackageProviders($app), PagesServiceProvider::class];
@@ -23,6 +30,8 @@ abstract class OwnershipTestCase extends SeoOwnershipTestCase
     protected function defineEnvironment($app): void
     {
         parent::defineEnvironment($app);
+        $app->bind(PageRequestContextResolver::class,
+            ConfiguredPageRequestContextResolver::class);
         $app['config']->set([
             'nvl-pages.models.page' => $this->pageClass(),
             'nvl-pages.migrations.enabled' => false,

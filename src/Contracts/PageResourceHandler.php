@@ -6,10 +6,8 @@ namespace Nvl\Pages\Contracts;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Nvl\Pages\Data\PageResourceData;
-use Nvl\Pages\Data\PageResourceRequestData;
 use Nvl\Pages\Models\Page;
-use Nvl\Seo\Data\SitemapEntry;
+use Nvl\Seo\ValueObjects\SitemapEntry;
 
 /**
  * Defines query, fetch, presentation, routing, and sitemap behavior for one resource page.
@@ -17,6 +15,9 @@ use Nvl\Seo\Data\SitemapEntry;
  * @template TResource of Model
  *
  * @api
+ *
+ * @phpstan-type ResourceRequest array{pageId:string,site:string,locale:string,parameters:array<string,string>}
+ * @phpstan-type ResourceResult array{type:string,id:string,payload:array<string,mixed>}
  */
 interface PageResourceHandler
 {
@@ -40,24 +41,28 @@ interface PageResourceHandler
     /**
      * Return a query with all publication, tenancy, ownership, and eager-load conditions applied.
      *
+     * @param  ResourceRequest  $request
      * @return Builder<TResource>
      */
-    public function query(PageResourceRequestData $request): Builder;
+    public function query(array $request): Builder;
 
     /**
      * Fetch one resource from the already constrained query.
      *
+     * @param  ResourceRequest  $request
      * @param  Builder<TResource>  $query
      * @return TResource|null
      */
-    public function fetch(Builder $query, PageResourceRequestData $request): ?Model;
+    public function fetch(Builder $query, array $request): ?Model;
 
     /**
      * Convert one resolved resource to its sanitized transport projection.
      *
+     * @param  ResourceRequest  $request
      * @param  TResource  $resource
+     * @return ResourceResult
      */
-    public function present(Model $resource, PageResourceRequestData $request): PageResourceData;
+    public function present(Model $resource, array $request): array;
 
     /**
      * Stream already absolute, canonical entries for this dynamic page.

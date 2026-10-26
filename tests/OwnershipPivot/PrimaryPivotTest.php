@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
-use Nvl\Pages\Actions\CreatePageAction;
-use Nvl\Pages\Data\Mutations\CreatePageData;
-use Nvl\Pages\Data\PageActorData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\PivotPage;
 
 it('uses native primary pivots across duplicate owner-local identities and inherited copy', function (): void {

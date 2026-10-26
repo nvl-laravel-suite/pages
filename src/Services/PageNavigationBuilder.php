@@ -6,7 +6,6 @@ namespace Nvl\Pages\Services;
 
 use Illuminate\Support\Collection;
 use Nvl\Pages\Contracts\PageUrlGenerator;
-use Nvl\Pages\Data\NavigationItemData;
 use Nvl\Pages\Models\Page;
 
 /**
@@ -23,7 +22,7 @@ final readonly class PageNavigationBuilder
      * Build navigation nodes while excluding children of hidden or missing ancestors.
      *
      * @param  Collection<int, Page>  $pages
-     * @return list<NavigationItemData>
+     * @return list<array{id:string,key:string,path:string,url:string,label:string,children:list<array<string,mixed>>}>
      */
     public function build(Collection $pages, string $locale): array
     {
@@ -43,7 +42,7 @@ final readonly class PageNavigationBuilder
      *
      * @param  Collection<string, Collection<int, Page>>  $byParent
      * @param  Collection<string, Page>  $knownIds
-     * @return list<NavigationItemData>
+     * @return list<array{id:string,key:string,path:string,url:string,label:string,children:list<array<string,mixed>>}>
      */
     private function children(
         Collection $byParent,
@@ -65,14 +64,7 @@ final readonly class PageNavigationBuilder
                 $label = $page->displayTitle($locale);
             }
 
-            $items[] = new NavigationItemData(
-                id: $page->id,
-                key: $page->key,
-                path: $page->path,
-                url: $this->urls->url($page, $locale),
-                label: $label,
-                children: $this->children($byParent, $knownIds, $page->id, $locale),
-            );
+            $items[] = ['id' => $page->id, 'key' => $page->key, 'path' => $page->path, 'url' => $this->urls->url($page, $locale), 'label' => $label, 'children' => $this->children($byParent, $knownIds, $page->id, $locale)];
         }
 
         return $items;

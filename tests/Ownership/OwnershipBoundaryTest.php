@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
-use Nvl\Pages\Actions\CreatePageAction;
-use Nvl\Pages\Data\Mutations\CreatePageData;
-use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Services\PageModelRegistry;
+use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\OwnershipPage;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 

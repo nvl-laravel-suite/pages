@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\OwnershipSafePageResourceHandler;
 use Nvl\Pages\Contracts\PageResourceHandler;
-use Nvl\Pages\Contracts\TenantSafePageResourceHandler;
 use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\OwnerRegistry;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
-use Nvl\Support\Tenancy\Services\TenantExtensionGuard;
-use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 
 /**
  * Deterministic allowlist of dynamic page-resource handlers.
@@ -34,9 +30,6 @@ final class PageResourceRegistry
      */
     public function __construct(
         private readonly Container $container,
-        private readonly Repository $configuration,
-        private readonly TenantResourceRegistry $tenantResources,
-        private readonly TenantExtensionGuard $extensions,
         private readonly OwnerRegistry $identities,
     ) {}
 
@@ -53,12 +46,9 @@ final class PageResourceRegistry
             throw new InvalidArgumentException("Page resource [{$alias}] is already registered.");
         }
 
-        $handler = $this->extensions->assertCompatible(
-            extension: $handler,
-            baseContract: PageResourceHandler::class,
-            tenantContract: TenantSafePageResourceHandler::class,
-            label: "Page resource [{$alias}]",
-        );
+        if (! is_a($handler, PageResourceHandler::class, true)) {
+            throw new InvalidArgumentException('Invalid Page resource handler.');
+        }
 
         $this->validate($this->make($handler), $alias);
         if ($owner !== null) {
@@ -151,12 +141,6 @@ final class PageResourceRegistry
      */
     private function validate(PageResourceHandler $handler, string $alias): void
     {
-        $this->extensions->assertCompatible(
-            extension: $handler,
-            baseContract: PageResourceHandler::class,
-            tenantContract: TenantSafePageResourceHandler::class,
-            label: "Page resource [{$alias}]",
-        );
 
         if (PagesOwnership::declared()) {
             if (! $handler instanceof OwnershipSafePageResourceHandler) {
@@ -164,10 +148,6 @@ final class PageResourceRegistry
             }
             $model = $handler->ownershipResourceModel();
             $this->container->make(OwnershipResourceRegistry::class)->forModel(new $model);
-        } elseif ($this->configuration->get('nvl-tenancy.enabled') === true) {
-            /** @var TenantSafePageResourceHandler<Model> $handler */
-            $model = $handler->tenantResourceModel();
-            $this->tenantResources->forModel(new $model);
         }
 
         if ($handler->alias() !== $alias) {

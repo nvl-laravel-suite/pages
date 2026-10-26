@@ -6,9 +6,8 @@ namespace Nvl\Pages\Contracts;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Nvl\Pages\Data\PageResourceRequestData;
 use Nvl\Pages\Models\Page;
-use Nvl\Seo\Data\SitemapEntry;
+use Nvl\Seo\ValueObjects\SitemapEntry;
 
 /**
  * Convenience base for handlers that fetch by their first route parameter.
@@ -18,6 +17,8 @@ use Nvl\Seo\Data\SitemapEntry;
  * @implements PageResourceHandler<TResource>
  *
  * @api
+ *
+ * @phpstan-import-type ResourceRequest from PageResourceHandler
  */
 abstract class AbstractPageResourceHandler implements PageResourceHandler
 {
@@ -36,13 +37,14 @@ abstract class AbstractPageResourceHandler implements PageResourceHandler
     /**
      * Fetch one resource by its model route key.
      *
+     * @param  ResourceRequest  $request
      * @param  Builder<TResource>  $query
      * @return TResource|null
      */
-    public function fetch(Builder $query, PageResourceRequestData $request): ?Model
+    public function fetch(Builder $query, array $request): ?Model
     {
         $parameter = $this->parameterNames()[0] ?? 'id';
-        $value = $request->parameters[$parameter] ?? null;
+        $value = $request['parameters'][$parameter] ?? null;
 
         if ($value === null) {
             return null;

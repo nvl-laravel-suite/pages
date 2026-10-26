@@ -12,17 +12,16 @@ use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Services\PageResourceRegistry;
 use Nvl\Seo\Contracts\OwnershipSafeSitemapSource;
-use Nvl\Seo\Contracts\TenantSafeSitemapSource;
-use Nvl\Seo\Data\SitemapEntry;
 use Nvl\Seo\Models\SeoProfile;
 use Nvl\Seo\Models\SeoProfileTranslation;
 use Nvl\Seo\Services\EloquentSeoSitemapSource;
+use Nvl\Seo\ValueObjects\SitemapEntry;
 use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Owns Page sitemap eligibility and composes SEO metadata or dynamic handler entries.
  */
-final readonly class PageSitemapSource implements OwnershipSafeSitemapSource, TenantSafeSitemapSource
+final readonly class PageSitemapSource implements OwnershipSafeSitemapSource
 {
     /**
      * Create the static and dynamic page sitemap source.
@@ -92,12 +91,6 @@ final readonly class PageSitemapSource implements OwnershipSafeSitemapSource, Te
 
     /** @return list<string> */
     public function ownershipResources(): array
-    {
-        return ['pages.pages', 'pages.translations', 'seo.profiles', 'seo.translations'];
-    }
-
-    /** @return list<string> */
-    public function tenantResources(): array
     {
         return ['pages.pages', 'pages.translations', 'seo.profiles', 'seo.translations'];
     }

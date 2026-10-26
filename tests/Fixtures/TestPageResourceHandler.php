@@ -7,10 +7,8 @@ namespace Nvl\Pages\Tests\Fixtures;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Pages\Contracts\AbstractPageResourceHandler;
-use Nvl\Pages\Data\PageResourceData;
-use Nvl\Pages\Data\PageResourceRequestData;
 use Nvl\Pages\Models\Page;
-use Nvl\Seo\Data\SitemapEntry;
+use Nvl\Seo\ValueObjects\SitemapEntry;
 
 /**
  * Demonstrates query-constrained fetching and explicit public projection.
@@ -40,20 +38,16 @@ final class TestPageResourceHandler extends AbstractPageResourceHandler
     /**
      * @return Builder<TestPageResource>
      */
-    public function query(PageResourceRequestData $request): Builder
+    public function query(array $request): Builder
     {
         return TestPageResource::query()->where('is_public', true);
     }
 
     public function present(
         Model $resource,
-        PageResourceRequestData $request,
-    ): PageResourceData {
-        return new PageResourceData(
-            type: $this->alias(),
-            id: $resource->id,
-            payload: ['name' => $resource->name],
-        );
+        array $request,
+    ): array {
+        return ['type' => $this->alias(), 'id' => $resource->id, 'payload' => ['name' => $resource->name]];
     }
 
     /**

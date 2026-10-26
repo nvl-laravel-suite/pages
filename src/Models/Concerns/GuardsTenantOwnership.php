@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Models\Concerns;
 
-use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
-use Nvl\Support\Ownership\Compatibility\LegacyModelOwnership;
 use Nvl\Support\Ownership\Contracts\OwnershipWriter;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\Traits\HasOwnership;
 
-/** Preserves the package model hooks and delegates retained 6.x tenant behavior. */
+/** Preserves the package model hooks and delegates native inherited child assignment. */
 trait GuardsTenantOwnership
 {
     use HasOwnership { save as private saveOwned; }
@@ -35,17 +33,5 @@ trait GuardsTenantOwnership
         }
 
         return $this->saveOwned($options);
-    }
-
-    /** Register the package-owned query and mutation boundary. */
-    protected static function bootGuardsTenantOwnership(): void
-    {
-        static::creating(static function (Model $model): void {
-            Container::getInstance()->make(LegacyModelOwnership::class)->creating($model, self::TENANT_RESOURCE, 'Pages');
-        });
-
-        static::updating(static function (Model $model): void {
-            Container::getInstance()->make(LegacyModelOwnership::class)->updating($model, self::TENANT_RESOURCE, 'Pages');
-        });
     }
 }

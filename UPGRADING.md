@@ -1,5 +1,11 @@
 # Upgrading NVL Pages
 
+## NVL Light native services
+
+Target Laravel 13 and Testbench 11. Replace package Actions/workflow interfaces and Data payloads with `PageLifecycle`, `PageReader` and `PageResolver`. Consumers own their Actions, DTOs, HTTP routes, preview transport and editor/Content/SEO response assembly. Native mutations accept documented arrays and explicit actors, retain complete replacement/revision semantics, and return canonical models. Resource handler requests and projections use the retained documented array schemas.
+
+Content, SEO and Metafields are optional, explicitly checked integrations. Plain Page models load without their interfaces/traits. Register the host endpoint and verified public owner/site boundary; call `PageResolver::resolve($path, $site, $locale)` for public resolution and `preview(..., $persistedActor)` for separately authorized private preview. Retain operation source connections, native ownership declarations, IDs, hierarchy and translation history. The retired Tenancy bridge is unavailable. Earlier release notes below describe historical versions; use the current README for integration.
+
 ## 6.0.1 consolidation patch
 
 This package requires Core 6.0.1 or later and, when installed, Ownership 6.0.1 or later. Ownership remains optional. Update the installed NVL dependency closure together so Composer can select compatible patches.

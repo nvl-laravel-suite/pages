@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Factory;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\OwnershipSafePageResourceHandler;
-use Nvl\Pages\Contracts\TenantSafePageResourceHandler;
-use Nvl\Pages\Data\PageResourceRequestData;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Ownership\PagesOwnership;
@@ -19,7 +16,6 @@ use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary as TenantBoundary;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
-use Nvl\Support\Tenancy\Services\TenantResourceRegistry;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -33,21 +29,21 @@ final readonly class PageMatcher
     public function __construct(
         private PageResourceRegistry $resources,
         private Factory $validation,
-        private Repository $configuration,
         private TenantBoundary $tenancy,
-        private TenantResourceRegistry $tenantResources,
         private OwnershipResourceRegistry $ownershipResources,
     ) {}
 
     /**
      * Resolve one canonical request path to its page and optional resource.
+     *
+     * @return array{page:Page,resource:array{type:string,id:string,payload:array<string,mixed>}|null}
      */
     public function resolve(
         string $path,
         string $site,
         string $locale,
         bool $publicOnly = true,
-    ): ResolvedPageMatch {
+    ): array {
         try {
             $path = PagePath::request($path);
         } catch (InvalidArgumentException) {
@@ -66,7 +62,7 @@ final readonly class PageMatcher
         $static = $staticQuery->with('translations')->first();
 
         if ($static instanceof Page && hash_equals($static->path, $path)) {
-            return new ResolvedPageMatch($static);
+            return ['page' => $static, 'resource' => null];
         }
 
         $resourceQuery = PageModelRegistry::query()
@@ -108,12 +104,7 @@ final readonly class PageMatcher
             } catch (ValidationException) {
                 continue;
             }
-            $request = new PageResourceRequestData(
-                pageId: $page->id,
-                site: $site,
-                locale: $locale,
-                parameters: $parameters,
-            );
+            $request = ['pageId' => $page->id, 'site' => $site, 'locale' => $locale, 'parameters' => $parameters];
             $handlerQuery = $handler->query($request);
             $this->resources->assertOwner($page->resource, $handlerQuery->getModel());
             $tenantResource = null;
@@ -123,13 +114,6 @@ final readonly class PageMatcher
                     throw new InvalidArgumentException('The Page resource query differs from its declared ownership capability.');
                 }
                 $tenantResource = $this->ownershipResources->forModel($handlerQuery->getModel());
-                $this->tenancy->query($handlerQuery, $tenantResource->key);
-            } elseif ($this->configuration->get('nvl-tenancy.enabled') === true) {
-                if (! $handler instanceof TenantSafePageResourceHandler
-                    || $handlerQuery->getModel()::class !== $handler->tenantResourceModel()) {
-                    throw new InvalidArgumentException('The Page resource query differs from its tenant capability.');
-                }
-                $tenantResource = $this->tenantResources->forModel($handlerQuery->getModel());
                 $this->tenancy->query($handlerQuery, $tenantResource->key);
             }
             $resource = $handler->fetch($handlerQuery, $request);
@@ -143,10 +127,13 @@ final readonly class PageMatcher
                 $this->tenancy->assertRecord($resource, $tenantResource->key);
             }
 
-            return new ResolvedPageMatch(
-                $page,
-                $handler->present($resource, $request),
-            );
+            $presented = $handler->present($resource, $request);
+            if (! is_string($presented['type'] ?? null) || ! is_string($presented['id'] ?? null)
+                || ! is_array($presented['payload'] ?? null) || array_diff(array_keys($presented), ['type', 'id', 'payload']) !== []) {
+                throw new InvalidArgumentException('Page resource handlers must return the declared type, id and payload record.');
+            }
+
+            return ['page' => $page, 'resource' => $presented];
         }
 
         throw new NotFoundHttpException('The requested page was not found.');

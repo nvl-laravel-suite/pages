@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Nvl\Pages\Contracts\PageAuthorization;
+use Nvl\Pages\Tests\Fixtures\Consumer\PreviewActor;
 use Nvl\Pages\Tests\Fixtures\RecordingPageAuthorization;
 
 /**
@@ -54,6 +55,7 @@ it('keeps public transport endpoints disjoint from valid page paths', function (
         ->assertSuccessful()
         ->assertJsonPath('meta.per_page', 1)
         ->assertJsonCount(1, 'data');
+    $this->actingAs(PreviewActor::query()->firstOrCreate(['id' => 1]));
     $this->getJson('/nvl/api/v1/pages/_manage/preview/navigation?site=default&locale=en')
         ->assertSuccessful()
         ->assertJsonPath('data.page.path', 'navigation');

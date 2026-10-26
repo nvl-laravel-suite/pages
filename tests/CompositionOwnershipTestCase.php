@@ -10,11 +10,22 @@ use Nvl\Ownership\ValueObjects\OwnershipOperation;
 use Nvl\Pages\Tests\Fixtures\OwnershipActor;
 use Nvl\Pages\Tests\Fixtures\OwnershipCompany;
 use Nvl\Pages\Tests\Fixtures\OwnershipContentOwner;
+use Nvl\Seo\Contracts\SeoAuthorization;
 use Nvl\Seo\Providers\SeoServiceProvider;
+use Nvl\Seo\Support\SeoAuthorizationContext;
 
 /** Exercises the complete owned public discovery graph without NVL Auth or Tenancy. */
 abstract class CompositionOwnershipTestCase extends ContentOwnershipTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->app->instance(SeoAuthorization::class, new class implements SeoAuthorization
+        {
+            public function authorize(SeoAuthorizationContext $context): void {}
+        });
+    }
+
     protected function getPackageProviders($app): array
     {
         return [...parent::getPackageProviders($app), SeoServiceProvider::class];

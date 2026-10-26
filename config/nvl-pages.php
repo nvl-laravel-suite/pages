@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
-use Nvl\Pages\Services\ConfiguredPageRequestContextResolver;
 use Nvl\Pages\Services\ConfiguredPageUrlGenerator;
 use Nvl\Support\Config\PackageEnvironment;
 
@@ -45,11 +44,6 @@ return [
     */
     'resources' => [],
 
-    'public' => [
-        'default_site' => 'default',
-        'context_resolver' => ConfiguredPageRequestContextResolver::class,
-    ],
-
     'authorization' => [
         'class' => ConfiguredPageAuthorization::class,
     ],
@@ -62,33 +56,12 @@ return [
     ],
 
     'integrations' => [
+        'content' => null,
+        'seo' => null,
         'metafields' => null,
         'seo_owner_alias' => 'nvl-page',
         'metafield_owner_alias' => 'nvl-page',
         'metafield_sections' => ['general', 'navigation'],
     ],
 
-    'routes' => [
-        'public' => [
-            'enabled' => false,
-            'prefix' => 'nvl/api/v1/pages',
-            'name' => 'nvl.pages.public.',
-            'middleware' => ['api', 'throttle:120,1'],
-        ],
-        'management' => [
-            'enabled' => false,
-            'prefix' => 'nvl/api/v1/pages/_manage',
-            'name' => 'nvl.pages.management.',
-            'middleware' => ['api', 'auth', 'throttle:60,1'],
-        ],
-    ],
-
-    'limits' => [
-        'per_page' => 25,
-        'maximum_per_page' => 100,
-        'maximum_page_options' => 100,
-        'maximum_public_children' => 100,
-        'maximum_path_bytes' => 768,
-        'maximum_resource_parameters' => 8,
-    ],
 ];

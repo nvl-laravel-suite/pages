@@ -34,6 +34,13 @@ use Nvl\Support\Ownership\Contracts\Ownable;
  * @api
  *
  * @nvl-consumer-read id
+ * @nvl-consumer-read page_id
+ * @nvl-consumer-read locale
+ * @nvl-consumer-read title
+ * @nvl-consumer-read navigation_label
+ * @nvl-consumer-read summary
+ * @nvl-consumer-read created_at
+ * @nvl-consumer-read updated_at
  */
 final class PageTranslation extends Model implements Ownable
 {

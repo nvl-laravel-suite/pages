@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Nvl\Pages\Services;
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Nvl\Pages\Contracts\PageAuthorization;
-use Nvl\Pages\Data\PageActorData;
-use Nvl\Pages\Data\PageAuthorizationContextData;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
+use Nvl\Support\Enums\PublicActor;
+use Nvl\Support\Enums\SystemActor;
 use Nvl\Support\Ownership\Services\OwnerSiteContext;
 
 /**
@@ -22,15 +23,15 @@ final class ConfiguredPageAuthorization implements PageAuthorization
      */
     public function authorize(
         PageAbility $ability,
-        PageActorData $actor,
+        Authenticatable|SystemActor|PublicActor $actor,
         ?Page $page = null,
-        ?PageAuthorizationContextData $context = null,
+        array $context = [],
     ): void {
         if (OwnerSiteContext::current() !== null
             && ! in_array($ability, [PageAbility::View, PageAbility::ViewNavigation], true)) {
             throw new AuthorizationException('Public admission does not grant Page management rights.');
         }
-        if ($actor->system) {
+        if ($actor instanceof SystemActor) {
             return;
         }
 

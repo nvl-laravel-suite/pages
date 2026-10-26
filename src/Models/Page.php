@@ -14,19 +14,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use LogicException;
-use Nvl\Content\Contracts\ContentOwner;
-use Nvl\Content\Traits\HasContent;
+use Nvl\Content\Providers\ContentServiceProvider;
+use Nvl\Content\Services\ContentOwnerDeletion;
 use Nvl\Pages\Database\Factories\PageFactory;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Concerns\GuardsTenantOwnership;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Enums\SitemapChangeFrequency;
-use Nvl\Seo\Traits\HasSeo;
 use Nvl\Support\Config\PackageStorage;
+use Nvl\Support\Integrations\OptionalIntegration;
 use Nvl\Support\Ownership\Contracts\Ownable;
 use Nvl\Support\Ownership\Contracts\OwnershipModelPersistence;
 use Nvl\Translatable\Contracts\TranslatableModel;
@@ -68,16 +69,46 @@ use Nvl\Translatable\Translatable;
  * @method static Builder<static> ordered()
  *
  * @api
+ *
+ * @nvl-consumer-host-subclasses
+ *
+ * @nvl-consumer-capability-method displayTitle
+ * @nvl-consumer-capability-method translated
+ * @nvl-consumer-capability-method getTranslation
+ * @nvl-consumer-capability-method resolveTranslation
+ * @nvl-consumer-capability-method getTranslatedAttributes
+ *
+ * @nvl-consumer-relation translations
+ *
+ * @nvl-consumer-read translations
+ * @nvl-consumer-read id
+ * @nvl-consumer-read parent_id
+ * @nvl-consumer-read key
+ * @nvl-consumer-read site
+ * @nvl-consumer-read slug
+ * @nvl-consumer-read path
+ * @nvl-consumer-read kind
+ * @nvl-consumer-read resource
+ * @nvl-consumer-read status
+ * @nvl-consumer-read position
+ * @nvl-consumer-read is_navigable
+ * @nvl-consumer-read sitemap_included
+ * @nvl-consumer-read sitemap_priority
+ * @nvl-consumer-read sitemap_change_frequency
+ * @nvl-consumer-read published_at
+ * @nvl-consumer-read expires_at
+ * @nvl-consumer-read revision
+ * @nvl-consumer-read created_at
+ * @nvl-consumer-read updated_at
+ * @nvl-consumer-read deleted_at
  */
-class Page extends Model implements ContentOwner, Ownable, TranslatableModel
+class Page extends Model implements Ownable, TranslatableModel
 {
-    use GuardsTenantOwnership, HasContent { HasContent::delete insteadof GuardsTenantOwnership;
-        HasContent::delete as private deleteContent; }
+    use GuardsTenantOwnership;
 
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
-    use HasSeo;
     use HasUuids;
     use SoftDeletes;
     use Translatable;
@@ -85,7 +116,11 @@ class Page extends Model implements ContentOwner, Ownable, TranslatableModel
     /** Guard both soft deletion and Content-aware hard deletion on the actual source. */
     public function delete(): ?bool
     {
-        return app(OwnershipModelPersistence::class)->delete($this, fn (): ?bool => $this->deleteContent());
+        if ($this->exists && $this->isForceDeleting() && app(OptionalIntegration::class)->enabled('pages.integrations.content', ContentServiceProvider::class)) {
+            return app(ContentOwnerDeletion::class)->execute($this, fn (): ?bool => parent::delete());
+        }
+
+        return app(OwnershipModelPersistence::class)->delete($this, fn (): ?bool => parent::delete());
     }
 
     public const string CONTENT_OWNER_TYPE = 'nvl-page';
@@ -148,7 +183,7 @@ class Page extends Model implements ContentOwner, Ownable, TranslatableModel
             foreignKey: 'page_id',
             fields: ['title', 'navigation_label', 'summary'],
             mutationPolicy: TranslationMutationPolicy::OwningServiceOnly,
-            ownershipResource: self::TENANT_RESOURCE,
+            ownershipResource: PagesOwnership::declared() ? self::TENANT_RESOURCE : null,
         );
     }
 
@@ -164,7 +199,7 @@ class Page extends Model implements ContentOwner, Ownable, TranslatableModel
             'is_navigable' => 'boolean',
             'sitemap_included' => 'boolean',
             'sitemap_priority' => 'decimal:1',
-            'sitemap_change_frequency' => SitemapChangeFrequency::class,
+            'sitemap_change_frequency' => enum_exists(SitemapChangeFrequency::class) ? SitemapChangeFrequency::class : 'string',
             'published_at' => 'datetime',
             'expires_at' => 'datetime',
             'revision' => 'integer',

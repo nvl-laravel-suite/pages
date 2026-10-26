@@ -10,12 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Nvl\Content\Actions\SyncContentDefinitionsAction;
-use Nvl\Content\Data\ContentActorData;
 use Nvl\Content\Models\ContentBlock;
 use Nvl\Content\Providers\ContentServiceProvider;
+use Nvl\Content\Services\ContentDefinitions;
 use Nvl\Content\Services\ContentModelRegistry;
-use Nvl\Data\Providers\DataServiceProvider;
 use Nvl\Media\Providers\MediaServiceProvider;
 use Nvl\Ownership\Contracts\CentralAccess;
 use Nvl\Ownership\Contracts\OwnerAccess;
@@ -32,6 +30,7 @@ use Nvl\Pages\Tests\Fixtures\OwnershipContentBlock;
 use Nvl\Pages\Tests\Fixtures\OwnershipContentOwner;
 use Nvl\Pages\Tests\Fixtures\OwnershipContentOwnerAdapter;
 use Nvl\Pages\Tests\Fixtures\OwnershipMedia;
+use Nvl\Support\Enums\SystemActor;
 use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\Services\OwnershipStorageTables;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
@@ -39,6 +38,7 @@ use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Translatable\Providers\TranslatableServiceProvider;
 use Orchestra\Testbench\TestCase;
+use Spatie\LaravelData\LaravelDataServiceProvider;
 
 /** Exercises committed ownership and audit behavior without NVL Tenancy or Auth providers. */
 abstract class ContentOwnershipTestCase extends TestCase
@@ -54,7 +54,7 @@ abstract class ContentOwnershipTestCase extends TestCase
     /** @return list<class-string> */
     protected function getPackageProviders($app): array
     {
-        return [LocaleServiceProvider::class, SupportServiceProvider::class, TranslatableServiceProvider::class, DataServiceProvider::class, OwnershipServiceProvider::class, MediaServiceProvider::class, ContentServiceProvider::class];
+        return [LaravelDataServiceProvider::class, LocaleServiceProvider::class, SupportServiceProvider::class, TranslatableServiceProvider::class, OwnershipServiceProvider::class, MediaServiceProvider::class, ContentServiceProvider::class];
     }
 
     /** @return class-string<ContentBlock> */
@@ -190,7 +190,7 @@ abstract class ContentOwnershipTestCase extends TestCase
             }
         });
         $this->adoptOwnership();
-        $this->app->make(OwnershipRunner::class)->central('content-definitions', OwnershipActor::firstOrFail(), fn () => $this->app->make(SyncContentDefinitionsAction::class)->execute(ContentActorData::system()));
+        $this->app->make(OwnershipRunner::class)->central('content-definitions', OwnershipActor::firstOrFail(), fn () => $this->app->make(ContentDefinitions::class)->sync(SystemActor::Background));
     }
 
     /** Activate this fixture graph after its source tables and host policies exist. */

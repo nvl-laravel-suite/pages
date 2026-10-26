@@ -13,7 +13,6 @@ use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Support\Contracts\LocaleCatalog;
 use Nvl\Support\Ownership\Contracts\OwnershipBoundary;
 use Nvl\Support\Ownership\Services\OwnerSiteContext;
-use Nvl\Support\Tenancy\ValueObjects\TenantSiteContext;
 
 /**
  * Builds absolute URLs from a configured site base and optional locale prefix.
@@ -31,9 +30,7 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
         if (PagesOwnership::declared()) {
             $this->container->make(OwnershipBoundary::class)->assertRecord($page, 'pages.pages');
         }
-        $tenantSite = OwnerSiteContext::current() ?? ($this->configuration->get('nvl-tenancy.enabled') === true
-            ? $this->container->make(TenantSiteContext::class)
-            : null);
+        $tenantSite = OwnerSiteContext::current();
         if ($tenantSite !== null && $page->site !== $tenantSite->site) {
             throw PagesOwnership::violation('The Page site differs from the verified public site.');
         }

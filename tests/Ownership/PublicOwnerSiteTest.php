@@ -3,14 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Contracts\Foundation\MaintenanceMode;
-use Illuminate\Http\Request;
 use Nvl\Ownership\Contracts\OwnerSiteResolver;
 use Nvl\Ownership\Services\OwnerIdentityResolver;
 use Nvl\Ownership\Services\PublicOwnerSiteRunner;
-use Nvl\Pages\Actions\CreatePageAction;
-use Nvl\Pages\Data\Mutations\CreatePageData;
-use Nvl\Pages\Data\PageActorData;
 use Nvl\Pages\Enums\PageStatus;
+use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\OwnershipCompany;
 use Nvl\Seo\Services\SitemapGenerator;
 use Nvl\Support\Ownership\ValueObjects\VerifiedOwnerSiteContext;
@@ -18,14 +17,14 @@ use Nvl\Support\Ownership\ValueObjects\VerifiedOwnerSiteContext;
 beforeEach(function (): void {
     $this->app->bind(OwnerSiteResolver::class, static fn () => new class implements OwnerSiteResolver
     {
-        public function resolve(Request $request): ?VerifiedOwnerSiteContext
+        public function resolve(string $origin): ?VerifiedOwnerSiteContext
         {
-            if (! in_array($request->getHost(), ['a.pages.test', 'b.pages.test'], true)) {
+            if (! in_array(parse_url($origin, PHP_URL_HOST), ['a.pages.test', 'b.pages.test'], true)) {
                 return null;
             }
 
-            return new VerifiedOwnerSiteContext(app(OwnerIdentityResolver::class)->reference(OwnershipCompany::findOrFail($request->getHost() === 'a.pages.test' ? 7 : 8)),
-                'default', 'https://'.$request->getHost(), ['pages.pages', 'pages.translations', 'content.blocks', 'content.definitions', 'content.translations', 'content.placements', 'content.revisions', 'seo.profiles', 'seo.translations', 'seo.redirects']);
+            return new VerifiedOwnerSiteContext(app(OwnerIdentityResolver::class)->reference(OwnershipCompany::findOrFail(parse_url($origin, PHP_URL_HOST) === 'a.pages.test' ? 7 : 8)),
+                'default', 'https://'.parse_url($origin, PHP_URL_HOST), ['pages.pages', 'pages.translations', 'content.blocks', 'content.definitions', 'content.translations', 'content.placements', 'content.revisions', 'seo.profiles', 'seo.translations', 'seo.redirects']);
         }
     });
     foreach ([7, 8] as $id) {
@@ -63,7 +62,7 @@ it('resolves the public host before page composition and ignores caller site and
 
 it('publishes only the verified site pages into the real discovery artifact', function (): void {
     foreach (['a', 'b'] as $host) {
-        app(PublicOwnerSiteRunner::class)->run(Request::create('https://'.$host.'.pages.test'), function () use ($host): void {
+        app(PublicOwnerSiteRunner::class)->run('https://'.$host.'.pages.test', function () use ($host): void {
             expect(app(SitemapGenerator::class)->generate())->toContain('https://'.$host.'.pages.test/about')
                 ->not->toContain('https://'.($host === 'a' ? 'b' : 'a').'.pages.test');
         });

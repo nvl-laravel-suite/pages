@@ -1,11 +1,11 @@
 <?php
 
 declare(strict_types=1);
-
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
 
+/** Common published defaults; advanced defaults remain in the package configuration. */
 return [
     'models' => ['page' => Page::class],
     'connection' => null,
@@ -23,5 +23,4 @@ return [
     */
     'resources' => [],
     'authorization' => ['class' => ConfiguredPageAuthorization::class],
-    'routes' => ['public' => ['enabled' => false, 'prefix' => 'nvl/api/v1/pages', 'name' => 'nvl.pages.public.', 'middleware' => ['api', 'throttle:120,1']], 'management' => ['enabled' => false, 'prefix' => 'nvl/api/v1/pages/_manage', 'name' => 'nvl.pages.management.', 'middleware' => ['api', 'auth', 'throttle:60,1']]],
 ];

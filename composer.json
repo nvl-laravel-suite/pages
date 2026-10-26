@@ -105,8 +105,10 @@
         "nvl/seo": "Enables explicitly selected SEO profiles and sitemaps."
     },
     "conflict": {
+        "nvl/content": "<7.0 || >=8.0",
         "nvl/metafields": "<7.0 || >=8.0",
-        "nvl/ownership": "<7.0 || >=8.0"
+        "nvl/ownership": "<7.0 || >=8.0",
+        "nvl/seo": "<7.0 || >=8.0"
     },
     "homepage": "https://github.com/nvl-laravel-suite/pages",
     "authors": [

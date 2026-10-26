@@ -25,7 +25,9 @@ final readonly class PageResolver
     public function __construct(private PageMatcher $matcher, private PageAuthorization $authorization,
         private PageIdentityGuard $identities, private LocaleCatalog $locales) {}
 
-    /** Resolve a public path under explicit public authorization.
+    /**
+     * Resolve a public path under explicit public authorization.
+     *
      * @param  array<string,mixed>  $context
      * @return array{page:Page,resource:array{type:string,id:string,payload:array<string,mixed>}|null}
      */
@@ -37,13 +39,16 @@ final readonly class PageResolver
             throw PagesOwnership::violation('The Page site differs from the verified public site.');
         }
         $match = $this->matcher->resolve($path, $site, $locale);
-        $this->authorization->authorize(PageAbility::View, PublicActor::Anonymous, $match['page'],
-            [...$context, 'site' => $site, 'path' => $path, 'locale' => $locale, 'resourceId' => $match['resource']['id'] ?? null]);
+        /** @var array{site:string,parentId:?string,path:string,locale:string,resourceId:?string,...} $facts */
+        $facts = [...$context, 'parentId' => $match['page']->parent_id, 'site' => $site, 'path' => $path, 'locale' => $locale, 'resourceId' => $match['resource']['id'] ?? null];
+        $this->authorization->authorize(PageAbility::View, PublicActor::Anonymous, $match['page'], $facts);
 
         return $match;
     }
 
-    /** Resolve a private preview only for an explicitly supplied persisted actor.
+    /**
+     * Resolve a private preview only for an explicitly supplied persisted actor.
+     *
      * @param  array<string,mixed>  $context
      * @return array{page:Page,resource:array{type:string,id:string,payload:array<string,mixed>}|null}
      */
@@ -55,8 +60,9 @@ final readonly class PageResolver
         $site = $this->identities->site($site);
         $locale = $this->locales->assertSupported($locale);
         $match = $this->matcher->resolve($path, $site, $locale, publicOnly: false);
-        $this->authorization->authorize(PageAbility::Preview, $actor, $match['page'],
-            [...$context, 'site' => $site, 'path' => $path, 'locale' => $locale, 'resourceId' => $match['resource']['id'] ?? null]);
+        /** @var array{site:string,parentId:?string,path:string,locale:string,resourceId:?string,...} $facts */
+        $facts = [...$context, 'parentId' => $match['page']->parent_id, 'site' => $site, 'path' => $path, 'locale' => $locale, 'resourceId' => $match['resource']['id'] ?? null];
+        $this->authorization->authorize(PageAbility::Preview, $actor, $match['page'], $facts);
 
         return $match;
     }

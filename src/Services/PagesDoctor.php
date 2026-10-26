@@ -168,10 +168,6 @@ final class PagesDoctor
                 str_starts_with($key, 'data.') => $value === false,
                 str_ends_with($key, '.middleware') => $value === true,
                 $key === 'routes.management.authorization' => $value === true,
-                $key === 'routes.public.registered' => $value
-                    === $publicRoutesEnabled,
-                $key === 'routes.management.registered' => $value
-                    === $managementRoutesEnabled,
                 default => true,
             },
         );
@@ -185,12 +181,12 @@ final class PagesDoctor
      *
      * @param  Collection<int, Page>  $pages
      * @return array{
-     *     excessive_depth: bool,
-     *     cycle: bool,
-     *     orphaned_parent: bool,
-     *     parent_site_drift: bool,
-     *     parent_key_drift: bool,
-     *     parent_path_drift: bool
+     * excessive_depth: bool,
+     * cycle: bool,
+     * orphaned_parent: bool,
+     * parent_site_drift: bool,
+     * parent_key_drift: bool,
+     * parent_path_drift: bool
      * }
      */
     private function hierarchyIssues(Collection $pages): array

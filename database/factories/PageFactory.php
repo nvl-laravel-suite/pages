@@ -26,7 +26,9 @@ final class PageFactory extends Factory
         return PageModelRegistry::modelClass();
     }
 
-    /** Persist native factory roots under the same actual source assignment as Actions.
+    /**
+     * Persist native factory roots under the same actual source assignment as services.
+     *
      * @param  Collection<int,Page>  $results
      */
     protected function store(Collection $results): void

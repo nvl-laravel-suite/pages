@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nvl\Pages\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageAuthorization;
@@ -38,35 +38,16 @@ final readonly class PageReader
         return $page;
     }
 
-    /** Return the existing bounded management paginator using native equality filters.
+    /**
+     * Return the existing bounded management paginator using native equality filters.
+     *
      * @param  array{status?:PageStatus|string|list<string>,kind?:PageKind|string|list<string>,parent?:?string,navigable?:bool,sort?:string}  $filters
      * @return LengthAwarePaginator<int,Page>
      */
     public function paginate(string $site, Authenticatable|SystemActor $actor, array $filters = [], int $perPage = 25): LengthAwarePaginator
     {
         $site = $this->identities->site($site);
-        if (array_diff(array_keys($filters), ['status', 'kind', 'parent', 'navigable', 'sort']) !== []) {
-            throw new InvalidArgumentException('Unknown Page filters.');
-        }
-        foreach (['status' => PageStatus::class, 'kind' => PageKind::class] as $field => $enum) {
-            if (! array_key_exists($field, $filters)) {
-                continue;
-            }
-            foreach (is_array($filters[$field]) ? $filters[$field] : [$filters[$field]] as $value) {
-                if ($value instanceof \BackedEnum) {
-                    $value = $value->value;
-                }
-                if (! is_string($value) || ! in_array($value, array_column($enum::cases(), 'value'), true)) {
-                    throw new InvalidArgumentException('Invalid Page filter value.');
-                }
-            }
-        }
-        if (array_key_exists('navigable', $filters) && ! is_bool($filters['navigable'])) {
-            throw new InvalidArgumentException('The navigable Page filter must be boolean.');
-        }
-        if (array_key_exists('parent', $filters) && $filters['parent'] !== null) {
-            $filters['parent'] = $this->identities->id($filters['parent']);
-        }
+        $filters = $this->validateFilters($filters);
         $this->authorization->authorize(PageAbility::List, $actor, context: ['site' => $site]);
         $query = PageModelRegistry::query()->where('site', $site)->with('translations');
         foreach (['status', 'kind', 'parent', 'navigable'] as $name) {
@@ -74,7 +55,7 @@ final readonly class PageReader
                 continue;
             }
             $value = $filters[$name];
-            $column = ['parent' => 'parent_id', 'navigable' => 'is_navigable'][$name] ?? $name;
+            $column = ['status' => 'status', 'kind' => 'kind', 'parent' => 'parent_id', 'navigable' => 'is_navigable'][$name];
             if ($value instanceof \BackedEnum) {
                 $value = $value->value;
             }
@@ -181,5 +162,41 @@ final readonly class PageReader
         }
 
         return ['site' => $site, 'key' => $key, 'available' => $available, 'conflictingPageId' => $conflictingPageId];
+    }
+
+    /**
+     * @param  array<string,mixed>  $filters
+     * @return array{status?:PageStatus|string|list<string>,kind?:PageKind|string|list<string>,parent?:?string,navigable?:bool,sort?:string}
+     */
+    private function validateFilters(array $filters): array
+    {
+        if (array_diff(array_keys($filters), ['status', 'kind', 'parent', 'navigable', 'sort']) !== []) {
+            throw new InvalidArgumentException('Unknown Page filters.');
+        }
+        foreach (['status' => PageStatus::class, 'kind' => PageKind::class] as $field => $enum) {
+            if (! array_key_exists($field, $filters)) {
+                continue;
+            }
+            foreach (is_array($filters[$field]) ? $filters[$field] : [$filters[$field]] as $value) {
+                if ($value instanceof \BackedEnum) {
+                    $value = $value->value;
+                }
+                if (! is_string($value) || ! in_array($value, array_column($enum::cases(), 'value'), true)) {
+                    throw new InvalidArgumentException('Invalid Page filter value.');
+                }
+            }
+        }
+        if (array_key_exists('navigable', $filters) && ! is_bool($filters['navigable'])) {
+            throw new InvalidArgumentException('The navigable Page filter must be boolean.');
+        }
+        if (array_key_exists('parent', $filters) && $filters['parent'] !== null) {
+            if (! is_string($filters['parent'])) {
+                throw new InvalidArgumentException('The parent Page filter must be a canonical identifier.');
+            }
+            $filters['parent'] = $this->identities->id($filters['parent']);
+        }
+
+        /** @var array{status?:PageStatus|string|list<string>,kind?:PageKind|string|list<string>,parent?:?string,navigable?:bool,sort?:string} $filters */
+        return $filters;
     }
 }

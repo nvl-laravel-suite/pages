@@ -16,6 +16,19 @@ final readonly class UpdatePageAction
 
     public function execute(Page|string $page, UpdatePageData $data, PageActorData $actor): Page
     {
-        return $this->pages->update($page, array_diff_key(get_object_vars($data), ['expectedRevision' => true]), $data->expectedRevision, $actor->native());
+        return $this->pages->update($page, [
+            'slug' => $data->slug,
+            'kind' => $data->kind,
+            'resource' => $data->resource,
+            'status' => $data->status,
+            'position' => $data->position,
+            'isNavigable' => $data->isNavigable,
+            'sitemapIncluded' => $data->sitemapIncluded,
+            'sitemapPriority' => $data->sitemapPriority,
+            'sitemapChangeFrequency' => $data->sitemapChangeFrequency?->value,
+            'publishedAt' => $data->publishedAt,
+            'expiresAt' => $data->expiresAt,
+            'translations' => $data->translations,
+        ], $data->expectedRevision, $actor->native());
     }
 }

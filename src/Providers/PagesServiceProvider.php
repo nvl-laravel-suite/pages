@@ -111,7 +111,11 @@ final class PagesServiceProvider extends ServiceProvider implements OwnershipInt
             return new StringMorphMany($related->newQuery(), $page, $related->qualifyColumn('metafieldable_type'), $related->qualifyColumn('metafieldable_id'), $page->getKeyName());
         });
         if ($integrations->enabled('pages.integrations.metafields', MetafieldsServiceProvider::class)) {
-            $this->app->make(MetafieldOwnerRegistry::class)->register(PagesConfiguration::alias('metafield_owner_alias', 'nvl-page'), $model, 'Pages', config('nvl-pages.integrations.metafield_sections', ['general']));
+            $sections = config('nvl-pages.integrations.metafield_sections', ['general']);
+            if (! is_array($sections) || ! array_is_list($sections) || array_filter($sections, is_string(...)) !== $sections) {
+                throw new InvalidArgumentException('Page metafield sections must be a list of strings.');
+            }
+            $this->app->make(MetafieldOwnerRegistry::class)->register(PagesConfiguration::alias('metafield_owner_alias', 'nvl-page'), $model, 'Pages', $sections);
         }
         $translations->register(key: 'pages.pages', modelClass: $model, label: 'Pages',
             searchableColumns: ['key', 'site', 'slug', 'path', 'status', 'resource'],

@@ -16,6 +16,22 @@ final readonly class CreatePageAction
 
     public function execute(CreatePageData $data, PageActorData $actor): Page
     {
-        return $this->pages->create(get_object_vars($data), $actor->native());
+        return $this->pages->create([
+            'key' => $data->key,
+            'slug' => $data->slug,
+            'parentId' => $data->parentId,
+            'site' => $data->site,
+            'kind' => $data->kind,
+            'resource' => $data->resource,
+            'status' => $data->status,
+            'position' => $data->position,
+            'isNavigable' => $data->isNavigable,
+            'sitemapIncluded' => $data->sitemapIncluded,
+            'sitemapPriority' => $data->sitemapPriority,
+            'sitemapChangeFrequency' => $data->sitemapChangeFrequency?->value,
+            'publishedAt' => $data->publishedAt,
+            'expiresAt' => $data->expiresAt,
+            'translations' => $data->translations,
+        ], $actor->native());
     }
 }

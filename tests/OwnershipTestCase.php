@@ -7,8 +7,10 @@ namespace Nvl\Pages\Tests;
 use Illuminate\Database\Schema\Blueprint;
 use Nvl\Ownership\Services\OwnershipAdoptionCoordinator;
 use Nvl\Ownership\ValueObjects\OwnershipOperation;
+use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Providers\PagesServiceProvider;
 use Nvl\Pages\Tests\CompositionOwnershipTestCase as SeoOwnershipTestCase;
+use Nvl\Pages\Tests\Fixtures\Consumer\ConsumerPageAuthorization;
 use Nvl\Pages\Tests\Fixtures\Consumer\Contracts\PageRequestContextResolver;
 use Nvl\Pages\Tests\Fixtures\Consumer\Services\ConfiguredPageRequestContextResolver;
 use Nvl\Pages\Tests\Fixtures\OwnershipPage;
@@ -17,6 +19,12 @@ use Nvl\Seo\Providers\SeoServiceProvider;
 /** Exercises the real Pages/Content/Media/SEO ownership graph through verified public routes. */
 abstract class OwnershipTestCase extends SeoOwnershipTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->app->instance(PageAuthorization::class, new ConsumerPageAuthorization(allowPreview: false));
+    }
+
     protected function defineRoutes($router): void
     {
         require __DIR__.'/Fixtures/Consumer/routes.php';

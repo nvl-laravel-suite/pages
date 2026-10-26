@@ -17,7 +17,9 @@ use Spatie\LaravelData\Mappers\CamelCaseMapper;
 final class PreviewPageData extends Data
 {
     /**
-     * Create one complete authorized page preview.
+     * @param  array<string,mixed>  $content
+     * @param  array<string,mixed>  $seo
+     *                                    Create one complete authorized page preview.
      */
     public function __construct(
         public readonly PageData $page,

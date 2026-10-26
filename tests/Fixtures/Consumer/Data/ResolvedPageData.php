@@ -17,7 +17,9 @@ use Spatie\LaravelData\Mappers\CamelCaseMapper;
 final class ResolvedPageData extends Data
 {
     /**
-     * Create one complete public headless page response.
+     * @param  array<string,mixed>  $content
+     * @param  array<string,mixed>  $seo
+     *                                    Create one complete public headless page response.
      */
     public function __construct(
         public readonly PublicPageData $page,

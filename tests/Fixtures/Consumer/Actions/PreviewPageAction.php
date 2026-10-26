@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Actions;
 
 use Nvl\Content\Services\ContentRenderer;
-use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageResolver;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
@@ -17,7 +16,7 @@ use Nvl\Seo\Services\SeoReader;
 /** Application-owned composition calls the real complete package services. */
 final readonly class PreviewPageAction
 {
-    public function __construct(private PageResolver $pages, private PageUrlGenerator $urls,
+    public function __construct(private PageResolver $pages,
         private ContentRenderer $content, private SeoReader $seo) {}
 
     public function execute(string $path, string $site, string $locale, PageActorData $actor): PreviewPageData

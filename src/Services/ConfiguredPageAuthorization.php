@@ -19,7 +19,7 @@ use Nvl\Support\Ownership\Services\OwnerSiteContext;
 final class ConfiguredPageAuthorization implements PageAuthorization
 {
     /**
-     * Allow system operations and anonymous public reads while failing closed otherwise.
+     * Allow eligible public reads while requiring consumer policy for management.
      */
     public function authorize(
         PageAbility $ability,
@@ -31,10 +31,6 @@ final class ConfiguredPageAuthorization implements PageAuthorization
             && ! in_array($ability, [PageAbility::View, PageAbility::ViewNavigation], true)) {
             throw new AuthorizationException('Public admission does not grant Page management rights.');
         }
-        if ($actor instanceof SystemActor) {
-            return;
-        }
-
         if ($ability === PageAbility::View && $page instanceof Page) {
             $visible = $page->newQuery()
                 ->whereKey($page->getKey())

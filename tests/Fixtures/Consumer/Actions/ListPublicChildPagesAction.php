@@ -17,6 +17,7 @@ final readonly class ListPublicChildPagesAction
 {
     public function __construct(private PageReader $pages, private PageUrlGenerator $urls) {}
 
+    /** @return Collection<int,PublicPageData> */
     public function execute(
         string $parentId,
         PageRequestContextData $context,

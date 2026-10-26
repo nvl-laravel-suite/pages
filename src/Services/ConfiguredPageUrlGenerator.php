@@ -36,7 +36,7 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
         }
         $base = $tenantSite !== null
             ? $tenantSite->canonicalOrigin
-            : config('nvl-pages.urls.base_url', config('app.url', 'http://localhost'));
+            : $this->configuration->get('nvl-pages.urls.base_url', $this->configuration->get('app.url', 'http://localhost'));
 
         if (! is_string($base)
             || filter_var($base, FILTER_VALIDATE_URL) === false
@@ -45,9 +45,9 @@ final class ConfiguredPageUrlGenerator implements PageUrlGenerator
         }
 
         $segments = [];
-        $defaultLocale = config('nvl-pages.urls.default_locale') ?? $this->locales->default();
+        $defaultLocale = $this->configuration->get('nvl-pages.urls.default_locale') ?? $this->locales->default();
 
-        if ((bool) config('nvl-pages.urls.locale_prefix', false)
+        if ((bool) $this->configuration->get('nvl-pages.urls.locale_prefix', false)
             && $locale !== null
             && $locale !== $defaultLocale) {
             $segments[] = rawurlencode($locale);

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Nvl\Content\Data\ContentPlacementData;
-use Nvl\Seo\Data\SeoProfileData;
-use Spatie\LaravelData\Attributes\DataCollectionOf;
+use Nvl\Content\Models\ContentPlacement;
+use Nvl\Seo\Models\SeoProfile;
 use Spatie\LaravelData\Data;
 
 /**
@@ -17,13 +16,12 @@ use Spatie\LaravelData\Data;
 final class PageEditorSummaryData extends Data
 {
     /**
-     * @param  list<ContentPlacementData>  $placements
+     * @param  list<ContentPlacement>  $placements
      */
     public function __construct(
         public readonly PageData $page,
         public readonly string $label,
-        #[DataCollectionOf(ContentPlacementData::class)]
         public readonly array $placements,
-        public readonly ?SeoProfileData $seo,
+        public readonly ?SeoProfile $seo,
     ) {}
 }

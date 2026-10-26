@@ -44,7 +44,7 @@ Mutations preserve serialized site-tree locks, cycle/depth checks, descendant pa
 
 ## Authorization and public resolution
 
-Bind `Nvl\Pages\Contracts\PageAuthorization` for application policy. It receives `PageAbility`, an explicit Laravel authenticatable, `SystemActor` or `PublicActor`, the canonical Page where applicable, and documented native context facts. Background identity is supplied only by trusted application code.
+Bind `Nvl\Pages\Contracts\PageAuthorization` for application policy. It receives `PageAbility`, an explicit Laravel authenticatable, `SystemActor` or `PublicActor`, the canonical Page where applicable, and documented native context facts. Background identity is supplied only by trusted application code and requires explicit consumer authorization for management. The default adapter grants eligible public reads; it does not grant background management authority.
 
 Public resolution always authorizes `PublicActor::Anonymous`; preview requires a persisted authenticatable and separate `Preview` authorization. The default policy does not grant private previews. Public matching preserves the original not-found failures, publication/expiration windows, exact site, locale and owner isolation. Caller context cannot replace canonical site/path/resource facts.
 

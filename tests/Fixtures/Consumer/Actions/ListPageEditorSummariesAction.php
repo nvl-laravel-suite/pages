@@ -6,7 +6,7 @@ namespace Nvl\Pages\Tests\Fixtures\Consumer\Actions;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Nvl\Content\Actions\ListOwnerContentPlacementSummariesAction;
+use Nvl\Content\Services\ContentReader;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
@@ -16,13 +16,13 @@ use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageEditorSummaryData;
-use Nvl\Seo\Actions\ListOwnerSeoProfilesAction;
+use Nvl\Seo\Services\SeoReader;
 use Nvl\Support\Contracts\LocaleCatalog;
 
 /**
  * Lists bounded Page editor summaries with fixed-query Content and SEO reads.
  *
- * Delegation to Content and SEO Actions is deliberate orchestration so their
+ * Delegation to Content and SEO services is deliberate orchestration so their
  * authorization, batching, and bounded projections remain canonical.
  *
  * @api
@@ -36,8 +36,8 @@ final readonly class ListPageEditorSummariesAction
         private PageAuthorization $authorization,
         private PageIdentityGuard $identities,
         private LocaleCatalog $locales,
-        private ListOwnerContentPlacementSummariesAction $content,
-        private ListOwnerSeoProfilesAction $seo,
+        private ContentReader $content,
+        private SeoReader $seo,
     ) {}
 
     /**
@@ -103,8 +103,8 @@ final readonly class ListPageEditorSummariesAction
                 ),
             ));
         $pages = $paginator->items();
-        $seoProfiles = $this->seo['execute']($pages, $site);
-        $placements = $this->content['execute'](
+        $seoProfiles = $this->seo->forOwners($actor->native(), $pages, $site);
+        $placements = $this->content->summaries(
             $pages,
             Page::CONTENT_GROUP,
             $actor->contentActor(),

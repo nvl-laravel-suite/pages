@@ -9,7 +9,6 @@ use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Nvl\Pages\Tests\Fixtures\Consumer\PreviewActor;
-use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Enums\SystemActor;
 use Spatie\LaravelData\Data;
 
@@ -66,12 +65,12 @@ final class PageActorData extends Data
     /**
      * Adapt this identity to the Content authorization boundary.
      */
-    public function contentActor(): Authenticatable|SystemActor|PublicActor
+    public function contentActor(): Authenticatable|SystemActor
     {
         return $this->native();
     }
 
-    public function native(): Authenticatable|SystemActor|PublicActor
+    public function native(): Authenticatable|SystemActor
     {
         return $this->authenticated ?? ($this->system ? SystemActor::Background : new GenericUser(['id' => $this->id]));
     }

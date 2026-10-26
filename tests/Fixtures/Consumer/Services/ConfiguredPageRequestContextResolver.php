@@ -34,7 +34,7 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
     public function resolve(Request $request): PageRequestContextData
     {
         $ownerSite = PagesOwnership::declared() ? OwnerSiteContext::require() : null;
-        $site = $ownerSite?->site ?? config('nvl-pages.public.default_site', 'default');
+        $site = $ownerSite !== null ? $ownerSite->site : $this->configuration->get('nvl-pages.public.default_site', 'default');
 
         if (! is_string($site)
             || preg_match('/^[a-z0-9][a-z0-9._-]{0,63}$/D', $site) !== 1) {
@@ -54,6 +54,6 @@ final readonly class ConfiguredPageRequestContextResolver implements PageRequest
             ]);
         }
 
-        return new PageRequestContextData($site, $locale, null, $ownerSite);
+        return new PageRequestContextData($site, $locale, $ownerSite);
     }
 }

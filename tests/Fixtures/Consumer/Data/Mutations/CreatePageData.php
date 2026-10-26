@@ -26,7 +26,7 @@ final class CreatePageData extends Data
     /**
      * Create one validated page creation payload.
      *
-     * @param  array<string, array<string, mixed>>  $translations
+     * @param  array<string,array{title:string,navigationLabel?:?string,summary?:?string}>  $translations
      */
     public function __construct(
         public readonly string $key,

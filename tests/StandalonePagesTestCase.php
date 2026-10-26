@@ -7,7 +7,9 @@ namespace Nvl\Pages\Tests;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Providers\PagesServiceProvider;
+use Nvl\Pages\Tests\Fixtures\Consumer\ConsumerPageAuthorization;
 use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Translatable\Providers\TranslatableServiceProvider;
@@ -16,6 +18,12 @@ use Orchestra\Testbench\TestCase;
 /** Boots the actual standalone Pages dependency graph. */
 abstract class StandalonePagesTestCase extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->app->instance(PageAuthorization::class, new ConsumerPageAuthorization(allowPreview: false));
+    }
+
     use RefreshDatabase;
 
     protected function getPackageProviders($app): array

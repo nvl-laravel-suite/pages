@@ -26,6 +26,7 @@ use Nvl\Pages\Services\PageModelRegistry;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Enums\SitemapChangeFrequency;
+use Nvl\Seo\Models\SeoProfile;
 use Nvl\Support\Config\PackageStorage;
 use Nvl\Support\Integrations\OptionalIntegration;
 use Nvl\Support\Ownership\Contracts\Ownable;
@@ -64,7 +65,9 @@ use Nvl\Translatable\Translatable;
  * @property-read Page|null $parent
  * @property-read Collection<int, Page> $children
  * @property-read Collection<int, PageTranslation> $translations
+ * @property-read Collection<int, SeoProfile> $seoProfiles
  *
+ * @method \Illuminate\Database\Eloquent\Relations\MorphMany<\Nvl\Seo\Models\SeoProfile,$this> seoProfiles()
  * @method static Builder<static> publiclyVisible(?Carbon $at = null)
  * @method static Builder<static> ordered()
  *

@@ -128,10 +128,7 @@ final readonly class PageMatcher
             }
 
             $presented = $handler->present($resource, $request);
-            if (! is_string($presented['type'] ?? null) || ! is_string($presented['id'] ?? null)
-                || ! is_array($presented['payload'] ?? null) || array_diff(array_keys($presented), ['type', 'id', 'payload']) !== []) {
-                throw new InvalidArgumentException('Page resource handlers must return the declared type, id and payload record.');
-            }
+            $this->validateResourceProjection($presented);
 
             return ['page' => $page, 'resource' => $presented];
         }
@@ -209,5 +206,16 @@ final readonly class PageMatcher
         }
 
         return $parameters;
+    }
+
+    /**
+     * Validate host handler output independently of its declared PHPDoc.
+     */
+    private function validateResourceProjection(mixed $presented): void
+    {
+        if (! is_array($presented) || ! is_string($presented['type'] ?? null) || ! is_string($presented['id'] ?? null)
+            || ! is_array($presented['payload'] ?? null) || array_diff(array_keys($presented), ['type', 'id', 'payload']) !== []) {
+            throw new InvalidArgumentException('Page resource handlers must return the declared type, id and payload record.');
+        }
     }
 }

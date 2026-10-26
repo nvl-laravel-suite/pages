@@ -38,6 +38,7 @@ use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Seo\PageSitemapSource;
+use Nvl\Pages\Services\ConfiguredPageAuthorization;
 use Nvl\Pages\Services\PageReader;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CheckPageKeyAvailabilityAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
@@ -1751,3 +1752,10 @@ it('guards prefixed Pages from case-insensitive unprefixed host references in th
         }
     }
 });
+
+it('does not grant default page management authority to background identity', function (PageAbility $ability): void {
+    $authorization = new ConfiguredPageAuthorization;
+
+    expect(fn () => $authorization->authorize($ability, SystemActor::Background))
+        ->toThrow(AuthorizationException::class);
+})->with(array_filter(PageAbility::cases(), static fn (PageAbility $ability): bool => ! in_array($ability, [PageAbility::View, PageAbility::ViewNavigation], true)));

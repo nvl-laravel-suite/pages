@@ -26,7 +26,7 @@ final class UpdatePageData extends Data
     /**
      * Create one validated complete page replacement payload.
      *
-     * @param  array<string, array<string, mixed>>  $translations
+     * @param  array<string,array{title:string,navigationLabel?:?string,summary?:?string}>  $translations
      */
     public function __construct(
         public readonly string $slug,

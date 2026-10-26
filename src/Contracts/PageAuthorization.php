@@ -20,7 +20,7 @@ interface PageAuthorization
     /**
      * Authorize one page capability for an actor and optional domain context.
      *
-     * @param  array{site?:string,parentId?:?string,path?:string,locale?:string,resourceId?:?string}  $context
+     * @param  array{site?:string,parentId?:?string,path?:string,locale?:string,resourceId?:?string,...}  $context
      */
     public function authorize(
         PageAbility $ability,

@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Nvl\Content\Data\ContentEditorData;
-use Nvl\Seo\Data\SeoProfileData;
+use Nvl\Content\Models\ContentPlacement;
+use Nvl\Seo\Models\SeoProfile;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 
 /**
- * Complete package-owned bootstrap for one authorized Page editor.
+ * Complete application-owned bootstrap for one authorized Page editor.
  *
  * @api
  */
 final class PageEditorBootstrapData extends Data
 {
     /**
+     * @param  list<ContentPlacement>  $content
      * @param  list<PageMetafieldFieldData>  $metafields
      * @param  list<string>  $pageKinds
      * @param  list<string>  $pageStatuses
@@ -24,8 +25,8 @@ final class PageEditorBootstrapData extends Data
      */
     public function __construct(
         public readonly PageData $page,
-        public readonly ContentEditorData $content,
-        public readonly ?SeoProfileData $seo,
+        public readonly array $content,
+        public readonly ?SeoProfile $seo,
         #[DataCollectionOf(PageMetafieldFieldData::class)]
         public readonly array $metafields,
         public readonly array $pageKinds,

@@ -16,6 +16,8 @@ use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 
 /**
  * Deterministic allowlist of dynamic page-resource handlers.
+ *
+ * @api
  */
 final class PageResourceRegistry
 {

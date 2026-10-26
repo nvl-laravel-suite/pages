@@ -21,7 +21,7 @@ final class PageIndexQueryData extends Data
      */
     public function __construct(
         public readonly string $site,
-        public readonly int $perPage = 25,
+        #[MapInputName('per_page')] #[MapOutputName('per_page')] public readonly int $perPage = 25,
     ) {}
 
     /**
@@ -33,7 +33,7 @@ final class PageIndexQueryData extends Data
     {
         return [
             'site' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9][a-z0-9._-]*$/'],
-            'perPage' => ['sometimes', 'integer', 'between:1,100'],
+            'per_page' => ['sometimes', 'integer', 'between:1,100'],
         ];
     }
 }

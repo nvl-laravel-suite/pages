@@ -20,6 +20,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Resolves static paths first, then registered resource patterns by specificity.
+ *
+ * @internal
  */
 final readonly class PageMatcher
 {

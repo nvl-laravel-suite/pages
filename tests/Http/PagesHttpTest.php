@@ -51,7 +51,7 @@ it('keeps public transport endpoints disjoint from valid page paths', function (
     $this->getJson('/nvl/api/v1/pages/_navigation?locale=en')
         ->assertSuccessful()
         ->assertJsonCount(2, 'data.items');
-    $this->getJson('/nvl/api/v1/pages/_manage?site=default&perPage=1')
+    $this->getJson('/nvl/api/v1/pages/_manage?site=default&per_page=1')
         ->assertSuccessful()
         ->assertJsonPath('meta.per_page', 1)
         ->assertJsonCount(1, 'data');
@@ -66,9 +66,9 @@ it('validates page management query boundaries with camel-case keys', function (
         ->assertUnprocessable()
         ->assertJsonValidationErrors('site');
 
-    $this->getJson('/nvl/api/v1/pages/_manage?site=default&perPage=0')
+    $this->getJson('/nvl/api/v1/pages/_manage?site=default&per_page=0')
         ->assertUnprocessable()
-        ->assertJsonValidationErrors('perPage');
+        ->assertJsonValidationErrors('per_page');
 
     $this->getJson('/nvl/api/v1/pages/_manage/preview/navigation?site=default')
         ->assertUnprocessable()

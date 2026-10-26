@@ -49,7 +49,7 @@ final class PagesManagementController extends Controller
             }
         }
 
-        unset($query['site'], $query['perPage']);
+        unset($query['site'], $query['per_page']);
         $pages = $action->execute(
             $query,
             $data->site,

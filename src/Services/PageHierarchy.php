@@ -11,6 +11,8 @@ use Nvl\Pages\Support\PagesConfiguration;
 
 /**
  * Validates page parents, cycles, subtree height, and the family-wide four-level cap.
+ *
+ * @internal
  */
 final class PageHierarchy
 {

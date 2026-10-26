@@ -22,7 +22,7 @@ final class RestorePageData extends Data
      * Create one validated page restoration payload.
      */
     public function __construct(
-        public readonly int $expectedRevision,
+        #[MapInputName('expected_revision')] #[MapOutputName('expected_revision')] public readonly int $expectedRevision,
     ) {}
 
     /**
@@ -33,7 +33,7 @@ final class RestorePageData extends Data
     public static function rules(): array
     {
         return [
-            'expectedRevision' => ['required', 'integer', 'min:1'],
+            'expected_revision' => ['required', 'integer', 'min:1'],
         ];
     }
 }

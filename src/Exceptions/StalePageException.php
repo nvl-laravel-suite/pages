@@ -8,7 +8,7 @@ use Illuminate\Contracts\Debug\ShouldntReport;
 
 /**
  * @api
-
+ *
  * Raised when a mutation targets an obsolete page revision.
  */
 final class StalePageException extends PagesException implements ShouldntReport

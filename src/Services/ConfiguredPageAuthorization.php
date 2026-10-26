@@ -15,6 +15,8 @@ use Nvl\Support\Ownership\Services\OwnerSiteContext;
 
 /**
  * Allows public reads of eligible pages and requires an explicit policy for mutations.
+ *
+ * @internal
  */
 final class ConfiguredPageAuthorization implements PageAuthorization
 {

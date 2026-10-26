@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nvl\Pages\Console;
+namespace Nvl\Pages\Console\Commands;
 
 use Illuminate\Console\Command;
 use Nvl\Pages\Services\PagesDoctor;

@@ -6,7 +6,9 @@ namespace Nvl\Pages\Enums;
 
 use Nvl\Support\Contracts\ResponseCode;
 
-/** Stable public response discriminators for Pages.
+/**
+ * Stable public response discriminators for Pages.
+ *
  * @api
  */
 enum PagesResponseCode: string implements ResponseCode

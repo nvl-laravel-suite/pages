@@ -10,6 +10,8 @@ use Nvl\Pages\Models\Page;
 
 /**
  * Builds a localized navigation tree from ordered visible static pages.
+ *
+ * @api
  */
 final readonly class PageNavigationBuilder
 {

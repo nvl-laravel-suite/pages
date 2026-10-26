@@ -11,6 +11,8 @@ use Nvl\Pages\Exceptions\InvalidPageMutationException;
 
 /**
  * Normalizes cross-cutting lifecycle, resource, and translation mutation values.
+ *
+ * @internal
  */
 final readonly class PageMutationValues
 {

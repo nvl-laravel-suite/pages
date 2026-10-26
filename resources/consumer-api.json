@@ -304,7 +304,6 @@
             "kind": "class",
             "file": "src/Models/Page.php",
             "methods": [
-                "bootHasOwnership",
                 "children",
                 "delete",
                 "displayTitle",
@@ -390,7 +389,6 @@
             "kind": "class",
             "file": "src/Models/PageTranslation.php",
             "methods": [
-                "bootHasOwnership",
                 "delete",
                 "fresh",
                 "getConnectionName",
@@ -443,6 +441,16 @@
             "properties": [],
             "constants": []
         },
+        "Nvl\\Pages\\Services\\PageNavigationBuilder": {
+            "kind": "class",
+            "file": "src/Services/PageNavigationBuilder.php",
+            "methods": [
+                "__construct",
+                "build"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Pages\\Services\\PageReader": {
             "kind": "class",
             "file": "src/Services/PageReader.php",
@@ -464,6 +472,20 @@
                 "__construct",
                 "preview",
                 "resolve"
+            ],
+            "properties": [],
+            "constants": []
+        },
+        "Nvl\\Pages\\Services\\PageResourceRegistry": {
+            "kind": "class",
+            "file": "src/Services/PageResourceRegistry.php",
+            "methods": [
+                "__construct",
+                "aliases",
+                "assertOwner",
+                "get",
+                "has",
+                "register"
             ],
             "properties": [],
             "constants": []

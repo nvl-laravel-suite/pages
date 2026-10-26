@@ -117,7 +117,7 @@ final readonly class PageLifecycle
      */
     public function update(Page|string $page, array $attributes, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {
-        $data = $this->attributes($attributes, false) + ['expectedRevision' => $expectedRevision];
+        $data = $this->attributes($attributes, false) + ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
         $pageId = $page instanceof Page ? $page->id : $page;
         $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
@@ -133,7 +133,7 @@ final readonly class PageLifecycle
                         throw new StalePageException('The page site changed during the operation.');
                     }
 
-                    if ($page->revision !== $data['expectedRevision']) {
+                    if ($page->revision !== $data['expected_revision']) {
                         throw StalePageException::forPage($page->id);
                     }
 
@@ -203,8 +203,8 @@ final readonly class PageLifecycle
      */
     public function move(Page|string $page, ?string $parentId, int $position, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {
-        $data = ['parentId' => $parentId, 'position' => $position, 'expectedRevision' => $expectedRevision];
-        Validator::make($data, ['parentId' => ['nullable', 'uuid'], 'position' => ['required', 'integer', 'min:0', 'max:2147483647'], 'expectedRevision' => ['required', 'integer', 'min:1']])->validate();
+        $data = ['parentId' => $parentId, 'position' => $position, 'expected_revision' => $expectedRevision];
+        Validator::make($data, ['parentId' => ['nullable', 'uuid'], 'position' => ['required', 'integer', 'min:0', 'max:2147483647'], 'expected_revision' => ['required', 'integer', 'min:1']])->validate();
         $pageId = $page instanceof Page ? $page->id : $page;
         $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
         $site = $page->site;
@@ -219,7 +219,7 @@ final readonly class PageLifecycle
                         throw new StalePageException('The page site changed during the operation.');
                     }
 
-                    if ($page->revision !== $data['expectedRevision']) {
+                    if ($page->revision !== $data['expected_revision']) {
                         throw StalePageException::forPage($page->id);
                     }
 
@@ -268,7 +268,7 @@ final readonly class PageLifecycle
      */
     public function delete(Page|string $page, int $expectedRevision, Authenticatable|SystemActor $actor): bool
     {
-        $data = ['expectedRevision' => $expectedRevision];
+        $data = ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
         $pageId = $page instanceof Page ? $page->id : $page;
         $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
@@ -283,7 +283,7 @@ final readonly class PageLifecycle
                     throw new StalePageException('The page site changed during the operation.');
                 }
 
-                if ($page->revision !== $data['expectedRevision']) {
+                if ($page->revision !== $data['expected_revision']) {
                     throw StalePageException::forPage($page->id);
                 }
 
@@ -313,7 +313,7 @@ final readonly class PageLifecycle
      */
     public function restore(Page|string $page, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {
-        $data = ['expectedRevision' => $expectedRevision];
+        $data = ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
         $pageId = $page instanceof Page ? $page->id : $page;
         $resolved = $page instanceof Page
@@ -340,7 +340,7 @@ final readonly class PageLifecycle
                         );
                     }
 
-                    if ($page->revision !== $data['expectedRevision']) {
+                    if ($page->revision !== $data['expected_revision']) {
                         throw StalePageException::forPage($page->id);
                     }
 

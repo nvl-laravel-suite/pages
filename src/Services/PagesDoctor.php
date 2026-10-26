@@ -20,6 +20,8 @@ use Nvl\Support\Integrations\OptionalIntegration;
 
 /**
  * Performs non-mutating installation, registry, route, and hierarchy diagnostics.
+ *
+ * @internal
  */
 final class PagesDoctor
 {

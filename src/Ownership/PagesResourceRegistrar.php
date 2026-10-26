@@ -10,7 +10,11 @@ use Nvl\Support\Ownership\Services\OwnershipResourceRegistry;
 use Nvl\Support\Ownership\ValueObjects\OwnershipDefinition;
 use Nvl\Support\Ownership\ValueObjects\OwnershipResourceDefinition;
 
-/** Compiles the one configured page tree and its inherited localized copy. @internal */
+/**
+ * Compiles the one configured page tree and its inherited localized copy.
+ *
+ * @internal
+ */
 final readonly class PagesResourceRegistrar
 {
     public function __construct(private PageModelRegistry $models) {}

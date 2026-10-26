@@ -18,7 +18,7 @@ use Nvl\Metafields\Providers\MetafieldsServiceProvider;
 use Nvl\Metafields\Relations\StringMorphMany;
 use Nvl\Metafields\Support\MetafieldOwnerRegistry;
 use Nvl\Ownership\Services\OwnershipAdoptionRegistry;
-use Nvl\Pages\Console\PagesDoctorCommand;
+use Nvl\Pages\Console\Commands\PagesDoctorCommand;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Contracts\PageResourceHandler;
 use Nvl\Pages\Contracts\PageUrlGenerator;

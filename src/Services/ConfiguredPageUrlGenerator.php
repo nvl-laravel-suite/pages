@@ -16,6 +16,8 @@ use Nvl\Support\Ownership\Services\OwnerSiteContext;
 
 /**
  * Builds absolute URLs from a configured site base and optional locale prefix.
+ *
+ * @internal
  */
 final class ConfiguredPageUrlGenerator implements PageUrlGenerator
 {

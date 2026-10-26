@@ -13,6 +13,8 @@ use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
 /**
  * Serializes every structural mutation for one site through a stable database row.
+ *
+ * @internal
  */
 final readonly class PageTreeLock
 {

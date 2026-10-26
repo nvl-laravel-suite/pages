@@ -8,7 +8,7 @@ use Illuminate\Contracts\Debug\ShouldntReport;
 
 /**
  * @api
-
+ *
  * Raised for invalid parent, cycle, cross-site, or depth operations.
  */
 final class PageHierarchyException extends PagesException implements ShouldntReport {}

@@ -9,6 +9,8 @@ use InvalidArgumentException;
 
 /**
  * Normalizes portable Page identities and bounded selector input.
+ *
+ * @internal
  */
 final class PageIdentityGuard
 {

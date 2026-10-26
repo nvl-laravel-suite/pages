@@ -9,6 +9,8 @@ use Nvl\Pages\Exceptions\PageConflictException;
 
 /**
  * Translates portable database uniqueness failures into a page domain conflict.
+ *
+ * @internal
  */
 final class PageDatabaseConflict
 {

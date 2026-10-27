@@ -416,6 +416,15 @@
                 "TENANT_RESOURCE"
             ]
         },
+        "Nvl\\Pages\\Services\\ConfiguredPageAuthorization": {
+            "kind": "class",
+            "file": "src/Services/ConfiguredPageAuthorization.php",
+            "methods": [
+                "authorize"
+            ],
+            "properties": [],
+            "constants": []
+        },
         "Nvl\\Pages\\Services\\PageLifecycle": {
             "kind": "class",
             "file": "src/Services/PageLifecycle.php",

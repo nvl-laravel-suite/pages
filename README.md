@@ -1,6 +1,8 @@
 # NVL Pages
 
 Localized hierarchical Pages for PHP 8.4 and Laravel 13. Core and Translatable are required. Plain Pages load without Content, SEO, Filterable, Metafields or application DTO libraries.
+Eloquent actors are reloaded from their class-defined canonical storage before private preview policies inspect them. Dirty keys, altered storage, detached actors and unavailable rows reject; caller attributes and loaded relations do not carry policy privileges. These entry points retain their persisted Eloquent-actor requirement; the host policy still decides access. Explicit system actors remain subject to that policy.
+
 
 Pages owns structural identities, translations, hierarchy, publication windows and native resource resolution. The consuming application owns Actions, input/output data, editor assembly, routes, controllers and preview HTTP responses.
 
@@ -50,7 +52,9 @@ Public resolution always authorizes `PublicActor::Anonymous`; preview requires a
 
 For isolated configured Page models, enter native Ownership using a verified public owner/site mapping before resolution. `PublicOwnerSiteRunner::run($canonicalOrigin, $callback)` accepts the canonical origin string. The application owns request parsing. A supplied site must match the verified site; a public admission grants no management rights.
 
-`PageReader::children()` and `navigation()` apply public visibility. `get()` and `paginate()` authorize management reads and return canonical models with localized copy. Pagination accepts fixed native filters for status, kind, parent, navigable and sort; it does not require Filterable. Consumers select safe fields and loaded translations for their response projections.
+`PageReader::children()` and `navigation()` apply public visibility. `get()` returns a canonical model with localized copy and accepts an explicit `PublicActor::Anonymous` for public reads: publication/expiration windows and any verified public site constrain its native query before `View` authorization. Authenticated and trusted Background reads retain their explicit host policy. `paginate()` authorizes management reads. Pagination accepts fixed native filters for status, kind, parent, navigable and sort; it does not require Filterable. Consumers select safe fields and loaded translations for their response projections.
+
+`ConfiguredPageAuthorization` is a supported public policy for composition with a host's `PageAuthorization` adapter. It reads canonical Page storage for public View decisions, retains the verified site, permits navigation and denies other capabilities. Hosts can delegate these public capabilities to it and implement their own management policy without importing an internal class or copying native publication rules.
 
 ## Dynamic resources
 

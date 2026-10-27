@@ -39,6 +39,7 @@ use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Seo\PageSitemapSource;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
+use Nvl\Pages\Services\PageLifecycle;
 use Nvl\Pages\Services\PageReader;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CheckPageKeyAvailabilityAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
@@ -1759,3 +1760,49 @@ it('does not grant default page management authority to background identity', fu
     expect(fn () => $authorization->authorize($ability, SystemActor::Background))
         ->toThrow(AuthorizationException::class);
 })->with(array_filter(PageAbility::cases(), static fn (PageAbility $ability): bool => ! in_array($ability, [PageAbility::View, PageAbility::ViewNavigation], true)));
+
+it('reads canonical published pages anonymously by identity and denies drafts', function (): void {
+    $published = createTestPage('native-public-read', 'native-public-read');
+    $draft = app(PageLifecycle::class)->create(['key' => 'native-draft-read', 'slug' => 'native-draft-read', 'status' => PageStatus::Draft], SystemActor::Background);
+    $policy = new class implements PageAuthorization
+    {
+        public int $views = 0;
+
+        public function authorize(PageAbility $ability, Authenticatable|SystemActor|PublicActor $actor, ?Page $page = null, array $context = []): void
+        {
+            if ($ability === PageAbility::View) {
+                $this->views++;
+            }
+        }
+    };
+    app()->instance(PageAuthorization::class, $policy);
+    $persistedSite = $published->site;
+    $published->site = 'forged-site';
+
+    $reader = app(PageReader::class);
+    expect($reader->get($published, PublicActor::Anonymous)->site)->toBe($persistedSite)
+        ->and($policy->views)->toBe(1)
+        ->and(fn () => $reader->get($draft, PublicActor::Anonymous))->toThrow(ModelNotFoundException::class)
+        ->and($policy->views)->toBe(1)
+        ->and($reader->get($draft, SystemActor::Background)->status)->toBe(PageStatus::Draft);
+});
+
+it('offers a reusable public authorization policy over canonical page storage', function (): void {
+    $page = createTestPage('public-policy-storage', 'public-policy-storage');
+    $policy = new ConfiguredPageAuthorization;
+    $policy->authorize(PageAbility::View, PublicActor::Anonymous, $page);
+    $page->exists = false;
+    expect(fn () => $policy->authorize(PageAbility::View, PublicActor::Anonymous, $page))
+        ->toThrow(AuthorizationException::class);
+    expect(fn () => $policy->authorize(PageAbility::Update, PublicActor::Anonymous, $page))
+        ->toThrow(AuthorizationException::class);
+});
+
+it('rejects private page identities substituted with a public page key at the policy boundary', function (): void {
+    $public = createTestPage('public-policy-key', 'public-policy-key');
+    $private = app(PageLifecycle::class)->create(['key' => 'private-policy-key', 'slug' => 'private-policy-key', 'status' => PageStatus::Draft], SystemActor::Background);
+    $private->id = $public->id;
+
+    expect(fn () => (new ConfiguredPageAuthorization)->authorize(PageAbility::View, PublicActor::Anonymous, $private))
+        ->toThrow(AuthorizationException::class);
+});

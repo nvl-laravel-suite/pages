@@ -3,15 +3,20 @@
 declare(strict_types=1);
 
 use Illuminate\Contracts\Foundation\MaintenanceMode;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Nvl\Ownership\Contracts\OwnerSiteResolver;
 use Nvl\Ownership\Services\OwnerIdentityResolver;
 use Nvl\Ownership\Services\PublicOwnerSiteRunner;
+use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Enums\PageStatus;
+use Nvl\Pages\Services\PageReader;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\OwnershipCompany;
 use Nvl\Seo\Services\SitemapGenerator;
+use Nvl\Support\Enums\PublicActor;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\VerifiedOwnerSiteContext;
 
 beforeEach(function (): void {
@@ -67,4 +72,33 @@ it('publishes only the verified site pages into the real discovery artifact', fu
                 ->not->toContain('https://'.($host === 'a' ? 'b' : 'a').'.pages.test');
         });
     }
+});
+
+it('keeps anonymous identity reads within the verified site for pages of the same owner', function (): void {
+    $otherSite = $this->owned(7, fn () => app(CreatePageAction::class)->execute(new CreatePageData(
+        key: 'other-site-page', slug: 'other-site-page', site: 'other-site', status: PageStatus::Published,
+        translations: ['en' => ['title' => 'Another site']],
+    ), PageActorData::system()));
+    app(PublicOwnerSiteRunner::class)->run('https://a.pages.test', function () use ($otherSite): void {
+        expect(fn () => app(PageReader::class)->get($otherSite, PublicActor::Anonymous))
+            ->toThrow(ModelNotFoundException::class);
+    });
+});
+
+it('keeps public navigation and children inside the verified site even with permissive host policy', function (): void {
+    $foreign = $this->owned(7, fn () => app(CreatePageAction::class)->execute(new CreatePageData(
+        key: 'foreign-navigation', slug: 'foreign-navigation', site: 'other-site', status: PageStatus::Published,
+        translations: ['en' => ['title' => 'Foreign site']],
+    ), PageActorData::system()));
+    $policy = Mockery::mock(PageAuthorization::class);
+    $policy->shouldReceive('authorize')->zeroOrMoreTimes()->andReturnNull();
+    app()->instance(PageAuthorization::class, $policy);
+
+    app(PublicOwnerSiteRunner::class)->run('https://a.pages.test', function () use ($foreign): void {
+        $reader = app(PageReader::class);
+        expect(fn () => $reader->navigation('other-site', 'en'))
+            ->toThrow(OwnershipViolation::class)
+            ->and(fn () => $reader->children($foreign->id, 'other-site', 'en'))
+            ->toThrow(OwnershipViolation::class);
+    });
 });

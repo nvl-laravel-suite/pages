@@ -11,6 +11,7 @@ use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Ownership\PagesOwnership;
+use Nvl\Support\Auth\CanonicalActorResolver;
 use Nvl\Support\Contracts\LocaleCatalog;
 use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Ownership\Services\OwnerSiteContext;
@@ -23,7 +24,7 @@ use Nvl\Support\Ownership\Services\OwnerSiteContext;
 final readonly class PageResolver
 {
     public function __construct(private PageMatcher $matcher, private PageAuthorization $authorization,
-        private PageIdentityGuard $identities, private LocaleCatalog $locales) {}
+        private PageIdentityGuard $identities, private LocaleCatalog $locales, private CanonicalActorResolver $actors) {}
 
     /**
      * Resolve a public path under explicit public authorization.
@@ -54,9 +55,10 @@ final readonly class PageResolver
      */
     public function preview(string $path, string $site, string $locale, Authenticatable $actor, array $context = []): array
     {
-        if (! $actor instanceof Model || ! $actor->exists || $actor->getKey() === null) {
+        if (! $actor instanceof Model) {
             throw new AuthorizationException('Page previews require a persisted actor.');
         }
+        $actor = $this->actors->resolve($actor);
         $site = $this->identities->site($site);
         $locale = $this->locales->assertSupported($locale);
         $match = $this->matcher->resolve($path, $site, $locale, publicOnly: false);

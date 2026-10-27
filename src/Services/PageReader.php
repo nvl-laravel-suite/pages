@@ -18,6 +18,8 @@ use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Support\Contracts\LocaleCatalog;
 use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Enums\SystemActor;
+use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+use Nvl\Support\Ownership\Services\OwnerSiteContext;
 
 /**
  * Owns authorized Page model reads and public navigation.
@@ -29,10 +31,18 @@ final readonly class PageReader
     public function __construct(private PageAuthorization $authorization, private PageIdentityGuard $identities,
         private LocaleCatalog $locales, private PageNavigationBuilder $builder) {}
 
-    /** Return the canonical authorized Page with localized copy. */
-    public function get(Page|string $page, Authenticatable|SystemActor $actor): Page
+    /** Return the canonical authorized Page with localized copy, including eligible anonymous reads. */
+    public function get(Page|string $page, Authenticatable|SystemActor|PublicActor $actor): Page
     {
-        $page = PageModelRegistry::query()->with('translations')->findOrFail($page instanceof Page ? $page->id : $this->identities->id($page));
+        $query = PageModelRegistry::query()->with('translations');
+        if ($actor instanceof PublicActor) {
+            $query->publiclyVisible();
+            $site = OwnerSiteContext::current();
+            if ($site !== null) {
+                $query->where('site', $site->site);
+            }
+        }
+        $page = $query->findOrFail($page instanceof Page ? $page->id : $this->identities->id($page));
         $this->authorization->authorize(PageAbility::View, $actor, $page);
 
         return $page;
@@ -73,7 +83,7 @@ final readonly class PageReader
     public function children(string $parentId, string $site, string $locale, int $limit = 50, ?PageKind $kind = null, PublicChildPageOrder $order = PublicChildPageOrder::Sibling): Collection
     {
         $parentId = $this->identities->id($parentId);
-        $site = $this->identities->site($site);
+        $site = $this->publicSite($site);
         $locale = $this->locales->assertSupported($locale);
         $at = now();
         $parent = PageModelRegistry::query()
@@ -118,7 +128,7 @@ final readonly class PageReader
     /** @return array{site:string,locale:string,items:list<array{id:string,key:string,path:string,url:string,label:string,children:list<array<string,mixed>>}>} */
     public function navigation(string $site, string $locale): array
     {
-        $site = $this->identities->site($site);
+        $site = $this->publicSite($site);
         $locale = $this->locales->assertSupported($locale);
         $this->authorization->authorize(
             PageAbility::ViewNavigation,
@@ -162,6 +172,18 @@ final readonly class PageReader
         }
 
         return ['site' => $site, 'key' => $key, 'available' => $available, 'conflictingPageId' => $conflictingPageId];
+    }
+
+    /** Normalize a public selector without letting a host policy broaden verified site admission. */
+    private function publicSite(string $site): string
+    {
+        $site = $this->identities->site($site);
+        $verified = OwnerSiteContext::current();
+        if ($verified !== null && $verified->site !== $site) {
+            throw new OwnershipViolation('The Page site differs from the verified public site.');
+        }
+
+        return $site;
     }
 
     /**

@@ -14,9 +14,9 @@ use Nvl\Support\Enums\SystemActor;
 use Nvl\Support\Ownership\Services\OwnerSiteContext;
 
 /**
- * Allows public reads of eligible pages and requires an explicit policy for mutations.
+ * Reusable public Page policy; compose it with host policy for non-public capabilities.
  *
- * @internal
+ * @api
  */
 final class ConfiguredPageAuthorization implements PageAuthorization
 {
@@ -34,10 +34,23 @@ final class ConfiguredPageAuthorization implements PageAuthorization
             throw new AuthorizationException('Public admission does not grant Page management rights.');
         }
         if ($ability === PageAbility::View && $page instanceof Page) {
-            $visible = $page->newQuery()
+            $prototype = PageModelRegistry::newInstance();
+            $key = $prototype->getKeyName();
+            if (! $page->exists || $page::class !== $prototype::class
+                || $page->getKey() === null || $page->isDirty($key)
+                || $page->getRawOriginal($key) !== $page->getKey()
+                || $page->getKeyName() !== $key || $page->getTable() !== $prototype->getTable()
+                || $page->getConnection() !== $prototype->getConnection()) {
+                throw new AuthorizationException('Public Page policy requires an unchanged canonical persisted identity.');
+            }
+            $query = PageModelRegistry::query()
                 ->whereKey($page->getKey())
-                ->publiclyVisible()
-                ->exists();
+                ->publiclyVisible();
+            $site = OwnerSiteContext::current();
+            if ($site !== null) {
+                $query->where('site', $site->site);
+            }
+            $visible = $query->exists();
 
             if ($visible) {
                 return;
@@ -45,6 +58,11 @@ final class ConfiguredPageAuthorization implements PageAuthorization
         }
 
         if ($ability === PageAbility::ViewNavigation) {
+            $verified = OwnerSiteContext::current();
+            if ($verified !== null && ($context['site'] ?? $page?->site) !== $verified->site) {
+                throw new AuthorizationException('Page navigation requires its verified public site.');
+            }
+
             return;
         }
 

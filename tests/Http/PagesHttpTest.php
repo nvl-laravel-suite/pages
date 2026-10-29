@@ -27,6 +27,7 @@ function pageHttpPayload(string $key, string $slug, array $overrides = []): arra
 }
 
 it('keeps public transport endpoints disjoint from valid page paths', function (): void {
+    $this->actingAs(PreviewActor::query()->firstOrCreate(['id' => 1]));
     expect(app(PageAuthorization::class))->toBeInstanceOf(RecordingPageAuthorization::class)
         ->and(Route::getRoutes()->getByName('nvl.pages.public.navigation')?->uri())
         ->toBe('nvl/api/v1/pages/_navigation')

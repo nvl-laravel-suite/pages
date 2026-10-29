@@ -304,7 +304,7 @@ it('serializes tree mutations and authorizes only real lifecycle transitions', f
         PageAbility::Create,
         PageAbility::Publish,
     ])->and(
-        DB::table((string) config('nvl-pages.tables.page_tree_locks'))
+        DB::table((string) config('nvl-pages.tables.tree_locks'))
             ->where('site', 'default')
             ->count(),
     )->toBe(1);

@@ -25,6 +25,8 @@ Use the native PHP 8.4 / Laravel 13 services in `Nvl\Pages\Services`. Read the c
 
 Bind `Nvl\Pages\Contracts\PageAuthorization` for host policy. It receives `PageAbility`, an explicit authenticatable, `SystemActor` or `PublicActor`, the canonical Page when applicable and native context facts. Trusted application code supplies background actors; request input never grants authority.
 
+Lifecycle operations and authenticated reads reload Eloquent actors through Core before policy checks. External providers retain their identity/freshness contract; previews still require persisted Eloquent actors. Mutations reload the initial site from persisted Page state and use the configured model's actual connection for their tree lock and transaction.
+
 `PageResolver::resolve($path, $site, $locale, $context)` authorizes `PublicActor::Anonymous` and retains publication/expiration windows, exact site/resource identity, supported locale and the original not-found failures. Private `preview()` requires a persisted authenticatable and separate Preview authorization. The default policy does not grant private previews.
 
 For isolated configured Page models, enter native Ownership through verified public owner/site admission before public resolution. `PublicOwnerSiteRunner::run($canonicalOrigin, $callback)` takes the canonical origin string. Preserve the admitted owner, site, origin and resource capabilities; caller selectors cannot replace them. Public admission grants no management authority. Keep configured model identities, stored morph values and reviewed adoption intact.

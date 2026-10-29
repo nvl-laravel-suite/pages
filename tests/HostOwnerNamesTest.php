@@ -11,7 +11,7 @@ use Nvl\Support\Globals\GlobalNames;
 uses(HostOwnerNamesTestCase::class);
 
 it('boots default Pages without reclaiming a host generic page alias', function (): void {
-    expect(config('nvl-core.compatibility.global_aliases'))->toBe([])
+    expect(config('nvl-core.compatibility.global_aliases'))->toBeNull()
         ->and(Relation::getMorphedModel('page'))->toBe(TestPageResource::class)
         ->and(Relation::getMorphedModel('nvl-page'))->toBe(Page::class)
         ->and((new Page)->getMorphClass())->toBe('nvl-page')

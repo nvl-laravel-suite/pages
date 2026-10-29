@@ -1,7 +1,7 @@
 # NVL Pages
 
 Localized hierarchical Pages for PHP 8.4 and Laravel 13. Core and Translatable are required. Plain Pages load without Content, SEO, Filterable, Metafields or application DTO libraries.
-Eloquent actors are reloaded from their class-defined canonical storage before private preview policies inspect them. Dirty keys, altered storage, detached actors and unavailable rows reject; caller attributes and loaded relations do not carry policy privileges. These entry points retain their persisted Eloquent-actor requirement; the host policy still decides access. Explicit system actors remain subject to that policy.
+Lifecycle operations and authenticated reads reload Eloquent actors from their class-defined canonical storage before host policies inspect them. Dirty keys, altered storage, detached actors and unavailable rows reject; caller attributes and loaded relations do not carry policy privileges. External identity providers retain their own freshness contract. Private previews require a persisted Eloquent actor. Explicit system actors remain subject to host policy.
 
 
 Pages owns structural identities, translations, hierarchy, publication windows and native resource resolution. The consuming application owns Actions, input/output data, editor assembly, routes, controllers and preview HTTP responses.
@@ -43,6 +43,8 @@ $preview = $resolver->preview($path, $site, $locale, $persistedActor);
 Creation and replacement accept the documented native attribute arrays. Replacement retains the original complete-replacement semantics; omitted defaulted editorial fields reset to their defaults. Key, site, parent identity and ownership cannot be changed through replacement. Move owns parent changes. Expected revisions are separate arguments. Unknown/protected fields are rejected inside the service.
 
 Mutations preserve serialized site-tree locks, cycle/depth checks, descendant path rebuilding, unique key/slug constraints, source-connection transactions and committed events. Locale replacement uses Translatable's supported related-row store inside the Page transaction. An enclosing host transaction remains authoritative.
+
+Tree locks and lifecycle transactions use the configured Page model's actual connection. Existing Page inputs supply their identity; the persisted site determines the lock scope, even if the caller edited its in-memory attributes.
 
 ## Authorization and public resolution
 

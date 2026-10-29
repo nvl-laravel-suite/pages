@@ -7,7 +7,6 @@ namespace Nvl\Pages\Services;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
@@ -22,6 +21,7 @@ use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Auth\CanonicalActorResolver;
 use Nvl\Support\Enums\SystemActor;
 use Nvl\Support\Events\DomainEventDispatcher;
 use Nvl\Translatable\Rules\SupportedLocaleMapRule;
@@ -36,7 +36,7 @@ use Nvl\Translatable\Services\RelatedTranslationStore;
  */
 final readonly class PageLifecycle
 {
-    public function __construct(private PageAuthorization $authorization, private PageDatabaseConflict $conflicts,
+    public function __construct(private CanonicalActorResolver $actors, private PageAuthorization $authorization, private PageDatabaseConflict $conflicts,
         private PageHierarchy $hierarchy, private PageMutationValues $values, private PageTreeLock $treeLock,
         private RelatedTranslationStore $translations, private DomainEventDispatcher $domainEvents) {}
 
@@ -53,6 +53,9 @@ final readonly class PageLifecycle
      */
     public function create(array $attributes, Authenticatable|SystemActor $actor): Page
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         /** @var PageMutation&array{key:string} $data */
         $data = $this->attributes($attributes, true);
         $context = ['site' => $data['site'], 'parentId' => $data['parentId']];
@@ -75,7 +78,7 @@ final readonly class PageLifecycle
         );
 
         try {
-            return DB::connection(PagesConfiguration::connection())
+            return PageModelRegistry::newInstance()->getConnection()
                 ->transaction(function () use ($actor, $data, $dates): Page {
                     $this->treeLock->acquire($data['site']);
                     $this->hierarchy->assertValid($data['site'], $data['parentId']);
@@ -134,14 +137,17 @@ final readonly class PageLifecycle
      */
     public function update(Page|string $page, array $attributes, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $data = $this->attributes($attributes, false) + ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
         $pageId = $page instanceof Page ? $page->id : $page;
-        $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
+        $page = PageModelRegistry::query()->useWritePdo()->findOrFail($pageId);
         $site = $page->site;
 
         try {
-            return DB::connection(PagesConfiguration::connection())
+            return PageModelRegistry::newInstance()->getConnection()
                 ->transaction(function () use ($actor, $data, $pageId, $site): Page {
                     $this->treeLock->acquire($site);
                     $page = PageModelRegistry::query()->lockForUpdate()->findOrFail($pageId);
@@ -220,14 +226,17 @@ final readonly class PageLifecycle
      */
     public function move(Page|string $page, ?string $parentId, int $position, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $data = ['parentId' => $parentId, 'position' => $position, 'expected_revision' => $expectedRevision];
         Validator::make($data, ['parentId' => ['nullable', 'uuid'], 'position' => ['required', 'integer', 'min:0', 'max:2147483647'], 'expected_revision' => ['required', 'integer', 'min:1']])->validate();
         $pageId = $page instanceof Page ? $page->id : $page;
-        $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
+        $page = PageModelRegistry::query()->useWritePdo()->findOrFail($pageId);
         $site = $page->site;
 
         try {
-            return DB::connection(PagesConfiguration::connection())
+            return PageModelRegistry::newInstance()->getConnection()
                 ->transaction(function () use ($actor, $data, $pageId, $site): Page {
                     $this->treeLock->acquire($site);
                     $page = PageModelRegistry::query()->lockForUpdate()->findOrFail($pageId);
@@ -285,13 +294,16 @@ final readonly class PageLifecycle
      */
     public function delete(Page|string $page, int $expectedRevision, Authenticatable|SystemActor $actor): bool
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $data = ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
         $pageId = $page instanceof Page ? $page->id : $page;
-        $page = $page instanceof Page ? $page : PageModelRegistry::query()->findOrFail($pageId);
+        $page = PageModelRegistry::query()->useWritePdo()->findOrFail($pageId);
         $site = $page->site;
 
-        return DB::connection(PagesConfiguration::connection())
+        return PageModelRegistry::newInstance()->getConnection()
             ->transaction(function () use ($actor, $data, $pageId, $site): bool {
                 $this->treeLock->acquire($site);
                 $page = PageModelRegistry::query()->lockForUpdate()->findOrFail($pageId);
@@ -330,16 +342,17 @@ final readonly class PageLifecycle
      */
     public function restore(Page|string $page, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $data = ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
         $pageId = $page instanceof Page ? $page->id : $page;
-        $resolved = $page instanceof Page
-            ? $page
-            : PageModelRegistry::query()->withTrashed()->findOrFail($pageId);
+        $resolved = PageModelRegistry::query()->withTrashed()->useWritePdo()->findOrFail($pageId);
         $site = $resolved->site;
 
         try {
-            return DB::connection(PagesConfiguration::connection())
+            return PageModelRegistry::newInstance()->getConnection()
                 ->transaction(function () use ($actor, $data, $pageId, $site): Page {
                     $this->treeLock->acquire($site);
                     $page = PageModelRegistry::query()

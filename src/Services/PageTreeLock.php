@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
-use Illuminate\Support\Facades\DB;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -26,7 +25,7 @@ final readonly class PageTreeLock
      */
     public function acquire(string $site): void
     {
-        $connection = DB::connection(PagesConfiguration::connection());
+        $connection = PageModelRegistry::newInstance()->getConnection();
         $table = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
 
         $identity = ['site' => $site];

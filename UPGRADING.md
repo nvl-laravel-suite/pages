@@ -1,5 +1,7 @@
 # Upgrading NVL Pages
 
+Lifecycle operations and authenticated readers now refresh canonical Eloquent actors before host policy checks. External identity providers retain their own freshness contract; private previews still require persisted Eloquent actors. Update, move, delete and restore derive their initial site-tree lock from persisted Page state. Locks and lifecycle transactions use the configured model's actual connection. These changes require no schema migration.
+
 ## NVL Light native services
 
 Target Laravel 13 and Testbench 11. Replace package Actions/workflow interfaces and Data payloads with `PageLifecycle`, `PageReader` and `PageResolver`. Consumers own their Actions, DTOs, HTTP routes, preview transport and editor/Content/SEO response assembly. Native mutations accept documented arrays and explicit actors, retain complete replacement/revision semantics, and return canonical models. Resource handler requests and projections use the retained documented array schemas.

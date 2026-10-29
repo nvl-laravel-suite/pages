@@ -15,6 +15,7 @@ use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Enums\PublicChildPageOrder;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Support\PagesConfiguration;
+use Nvl\Support\Auth\CanonicalActorResolver;
 use Nvl\Support\Contracts\LocaleCatalog;
 use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Enums\SystemActor;
@@ -28,12 +29,15 @@ use Nvl\Support\Ownership\Services\OwnerSiteContext;
  */
 final readonly class PageReader
 {
-    public function __construct(private PageAuthorization $authorization, private PageIdentityGuard $identities,
+    public function __construct(private CanonicalActorResolver $actors, private PageAuthorization $authorization, private PageIdentityGuard $identities,
         private LocaleCatalog $locales, private PageNavigationBuilder $builder) {}
 
     /** Return the canonical authorized Page with localized copy, including eligible anonymous reads. */
     public function get(Page|string $page, Authenticatable|SystemActor|PublicActor $actor): Page
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $query = PageModelRegistry::query()->with('translations');
         if ($actor instanceof PublicActor) {
             $query->publiclyVisible();
@@ -56,6 +60,9 @@ final readonly class PageReader
      */
     public function paginate(string $site, Authenticatable|SystemActor $actor, array $filters = [], int $perPage = 25): LengthAwarePaginator
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $site = $this->identities->site($site);
         $filters = $this->validateFilters($filters);
         $this->authorization->authorize(PageAbility::List, $actor, context: ['site' => $site]);
@@ -149,6 +156,9 @@ final readonly class PageReader
     /** @return array{site:string,key:string,available:bool,conflictingPageId:?string} */
     public function keyAvailable(string $site, string $key, Authenticatable|SystemActor $actor, ?string $exceptId = null): array
     {
+        if ($actor instanceof Authenticatable) {
+            $actor = $this->actors->resolve($actor);
+        }
         $site = $this->identities->site($site);
         $key = $this->identities->key($key);
         $exceptId = $exceptId !== null ? $this->identities->id($exceptId) : null;

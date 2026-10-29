@@ -40,8 +40,16 @@ final readonly class PageLifecycle
         private PageHierarchy $hierarchy, private PageMutationValues $values, private PageTreeLock $treeLock,
         private RelatedTranslationStore $translations, private DomainEventDispatcher $domainEvents) {}
 
-    /** Create one Page with its original ownership, revision and transaction guarantees.
+    /** Create a draft by default and return fresh state with translations.
+     *
+     * The explicit actor must pass create and any requested publication ability.
+     * Writes use the configured Page connection; domain events follow its outer commit.
+     * Unknown keys, protected identity fields and invalid hierarchy are rejected.
+     *
      * @param  array{key:string,slug:string,parentId?:?string,site?:string,kind?:PageKind|string,resource?:?string,status?:PageStatus|string,position?:int,isNavigable?:bool,sitemapIncluded?:bool,sitemapPriority?:?string,sitemapChangeFrequency?:?string,publishedAt?:?string,expiresAt?:?string,translations?:array<string,array{title:string,navigationLabel?:?string,summary?:?string}>}  $attributes
+     *
+     * @throws InvalidPageMutationException
+     * @throws PageHierarchyException
      */
     public function create(array $attributes, Authenticatable|SystemActor $actor): Page
     {
@@ -112,8 +120,17 @@ final readonly class PageLifecycle
         }
     }
 
-    /** Update one Page with its original ownership, revision and transaction guarantees.
+    /** Replace editable page state using the exact expected revision.
+     *
+     * Slug, kind and status are required. Other fields follow the documented defaults;
+     * this operation is a complete edit, rather than a generic presence-based patch.
+     * Identity, site and parent are managed through their dedicated operations.
+     *
      * @param  array{slug:string,kind:PageKind|string,resource?:?string,status:PageStatus|string,position?:int,isNavigable?:bool,sitemapIncluded?:bool,sitemapPriority?:?string,sitemapChangeFrequency?:?string,publishedAt?:?string,expiresAt?:?string,translations?:array<string,array{title:string,navigationLabel?:?string,summary?:?string}>}  $attributes
+     *
+     * @throws StalePageException
+     * @throws InvalidPageMutationException
+     * @throws PageHierarchyException
      */
     public function update(Page|string $page, array $attributes, int $expectedRevision, Authenticatable|SystemActor $actor): Page
     {

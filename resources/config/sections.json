@@ -8,9 +8,9 @@
                 "migrations.enabled",
                 "models.page",
                 "resources",
-                "tables.page_tree_locks",
+                "tables.i18n",
                 "tables.pages",
-                "tables.pages_i18n"
+                "tables.tree_locks"
             ],
             "advanced": [
                 "hierarchy.maximum_depth",

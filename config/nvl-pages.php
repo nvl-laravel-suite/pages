@@ -6,7 +6,6 @@ use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
 use Nvl\Pages\Services\ConfiguredPageUrlGenerator;
-use Nvl\Support\Config\PackageEnvironment;
 
 /** Complete runtime defaults; publication sections are declared in ../resources/config/sections.json. */
 return [
@@ -16,8 +15,8 @@ return [
     'tables' => [
         'owner_tree_locks' => PagesTables::OwnerTreeLocks,
         'pages' => PagesTables::Pages,
-        'pages_i18n' => PagesTables::I18n,
-        'page_tree_locks' => PagesTables::TreeLocks,
+        'i18n' => PagesTables::I18n,
+        'tree_locks' => PagesTables::TreeLocks,
     ],
 
     'migrations' => [
@@ -50,7 +49,7 @@ return [
 
     'urls' => [
         'generator' => ConfiguredPageUrlGenerator::class,
-        'base_url' => PackageEnvironment::get('NVL_PAGES_BASE_URL', env('APP_URL', 'http://localhost')),
+        'base_url' => env('NVL_PAGES_BASE_URL', env('APP_URL', 'http://localhost')),
         'locale_prefix' => false,
         'default_locale' => env('APP_LOCALE', 'en'),
     ],

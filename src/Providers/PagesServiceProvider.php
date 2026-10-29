@@ -82,7 +82,7 @@ final class PagesServiceProvider extends ServiceProvider implements OwnershipInt
             $this->app->make(OwnershipAdoptionRegistry::class)->register('pages', PagesAdoptionAdapter::class);
         }
         $this->app->make(GlobalNames::class)->translations('pages', __DIR__.'/../../lang', $this->app->make('translation.loader'));
-        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, ['page'], package: 'pages');
+        $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, package: 'pages');
         $this->registerResources($resources);
         $model = PageModelRegistry::modelClass();
         $integrations = $this->app->make(OptionalIntegration::class);
@@ -126,9 +126,9 @@ final class PagesServiceProvider extends ServiceProvider implements OwnershipInt
         }
         $this->commands([PagesDoctorCommand::class]);
         $this->publishes([__DIR__.'/../../lang' => lang_path('vendor/nvl-pages')], 'nvl-pages-translations');
-        $this->publishes([__DIR__.'/../../config/nvl-pages.php' => config_path('nvl-pages.php')], 'pages-config');
-        $this->publishesMigrations([__DIR__.'/../../database/migrations' => database_path('migrations')], 'pages-migrations');
-        $this->publishes([__DIR__.'/../../resources/boost/skills' => base_path('.agents/skills')], 'pages-skills');
+        $this->publishes([__DIR__.'/../../config/nvl-pages.php' => config_path('nvl-pages.php')], 'nvl-pages-config');
+        $this->publishesMigrations([__DIR__.'/../../database/migrations' => database_path('migrations')], 'nvl-pages-migrations');
+        $this->publishes([__DIR__.'/../../resources/boost/skills' => base_path('.agents/skills')], 'nvl-pages-skills');
     }
 
     private function registerResources(PageResourceRegistry $registry): void

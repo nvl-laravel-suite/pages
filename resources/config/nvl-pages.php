@@ -9,7 +9,7 @@ use Nvl\Pages\Services\ConfiguredPageAuthorization;
 return [
     'models' => ['page' => Page::class],
     'connection' => null,
-    'tables' => ['pages' => PagesTables::Pages, 'pages_i18n' => PagesTables::I18n, 'page_tree_locks' => PagesTables::TreeLocks],
+    'tables' => ['pages' => PagesTables::Pages, 'i18n' => PagesTables::I18n, 'tree_locks' => PagesTables::TreeLocks],
     'migrations' => ['enabled' => true],
     /*
     |--------------------------------------------------------------------------

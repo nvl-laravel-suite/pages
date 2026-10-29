@@ -2,12 +2,22 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Event;
+use Nvl\Pages\Contracts\PageAuthorization;
+use Nvl\Pages\Enums\PageAbility;
+use Nvl\Pages\Events\PageChanged;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Services\PageLifecycle;
+use Nvl\Pages\Services\PageReader;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\OwnershipPage;
+use Nvl\Support\Enums\PublicActor;
+use Nvl\Support\Enums\SystemActor;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 
 it('uses the configured subclass throughout writes translations tree relations and native identity', function (): void {
@@ -27,5 +37,39 @@ it('creates the configured Page through the ordinary shipped factory', function 
     $this->owned(7, function (): void {
         $page = OwnershipPage::factory()->create();
         expect($page)->toBeInstanceOf(OwnershipPage::class)->and($page->fresh()->company_id)->toBe(7);
+    });
+});
+
+it('composes native operations with a host policy and rolls back the shared source on denial', function (): void {
+    $this->owned(7, function (): void {
+        $actor = SystemActor::Background;
+        app()->instance(PageAuthorization::class, new class implements PageAuthorization
+        {
+            public function authorize(
+                PageAbility $ability,
+                Authenticatable|SystemActor|PublicActor $actor,
+                ?Page $page = null,
+                array $context = [],
+            ): void {
+                if ($ability === PageAbility::Create && ($context['parentId'] ?? null) !== null) {
+                    throw new AuthorizationException('Child creation is denied by the host.');
+                }
+            }
+        });
+        $lifecycle = app(PageLifecycle::class);
+        $reader = app(PageReader::class);
+        $connection = (new OwnershipPage)->getConnection();
+        $events = [];
+        Event::listen(PageChanged::class, function ($event) use (&$events): void {
+            $events[] = $event;
+        });
+
+        expect(fn () => $connection->transaction(function () use ($actor, $lifecycle, $reader): void {
+            $parent = $lifecycle->create(['key' => 'composed-parent', 'slug' => 'composed-parent'], $actor);
+            expect($reader->get($parent, $actor))->toBeInstanceOf(OwnershipPage::class);
+            $lifecycle->create(['key' => 'composed-child', 'slug' => 'composed-child', 'parentId' => $parent->id], $actor);
+        }))->toThrow(AuthorizationException::class, 'Child creation is denied');
+        expect(OwnershipPage::query()->whereIn('key', ['composed-parent', 'composed-child'])->count())->toBe(0)
+            ->and($events)->toBe([]);
     });
 });

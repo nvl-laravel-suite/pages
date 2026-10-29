@@ -73,3 +73,5 @@ When selected, the existing adapters register the configured Page identity, Cont
 Configure `nvl-pages.models.page`, `connection`, table identities, authorization, URL generation and resource handlers. Select one owner for migrations: vendor loading or host-published copies. Preserve existing IDs, revision history and reviewed native Ownership adoption. The legacy Tenancy bridge and package HTTP routes are removed.
 
 Publish canonical `nvl-pages-config`, `nvl-pages-migrations` and `nvl-pages-skills` resources as needed. Run `nvl:pages:doctor --strict --format=json` for schema, resource, optional-adapter and tree diagnostics. Host configuration/cache/worker deployment steps remain application-owned.
+
+Shared [service contracts, model extensions and composition](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/consumer-api.md) apply alongside the package-specific rules above.

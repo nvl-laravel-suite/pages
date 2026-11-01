@@ -7,6 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Services\PageModelRegistry;
+use Nvl\Pages\Services\PagesDoctor;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
@@ -46,4 +47,14 @@ it('enforces owner and site on raw native tree references', function (): void {
     foreach ([$b, $otherSite] as $parent) {
         expect(fn () => $a->getConnection()->table($a->getTable())->where('id', $a->id)->update(['parent_id' => $parent->id]))->toThrow(QueryException::class);
     }
+});
+
+it('reports a missing owner tree lock table before management traffic uses it', function (): void {
+    PageModelRegistry::newInstance()->getConnection()->getSchemaBuilder()
+        ->drop(PagesTables::get(PagesTables::OwnerTreeLocks));
+    $this->owned(7, function (): void {
+        $report = app(PagesDoctor::class)->inspect();
+        expect($report['table.owner_tree_locks'])->toBeFalse()
+            ->and($report['healthy'])->toBeFalse();
+    });
 });

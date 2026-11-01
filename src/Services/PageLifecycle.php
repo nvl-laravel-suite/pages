@@ -403,7 +403,9 @@ final readonly class PageLifecycle
         return match ($target) {
             PageStatus::Published, PageStatus::Scheduled => PageAbility::Publish,
             PageStatus::Archived => PageAbility::Archive,
-            PageStatus::Draft => null,
+            PageStatus::Draft => in_array($current, [PageStatus::Published, PageStatus::Scheduled], true)
+                ? PageAbility::Publish
+                : null,
         };
     }
 

@@ -13,9 +13,11 @@ use Nvl\Pages\Tests\Fixtures\Consumer\ConsumerPageAuthorization;
 use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Translatable\Providers\TranslatableServiceProvider;
+use Orchestra\Testbench\Attributes\ResetRefreshDatabaseState;
 use Orchestra\Testbench\TestCase;
 
 /** Boots the actual standalone Pages dependency graph. */
+#[ResetRefreshDatabaseState]
 abstract class StandalonePagesTestCase extends TestCase
 {
     protected function setUp(): void

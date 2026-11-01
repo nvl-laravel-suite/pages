@@ -39,8 +39,11 @@ use Nvl\Pages\Exceptions\StalePageException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Seo\PageSitemapSource;
 use Nvl\Pages\Services\ConfiguredPageAuthorization;
+use Nvl\Pages\Services\PageHierarchy;
 use Nvl\Pages\Services\PageLifecycle;
 use Nvl\Pages\Services\PageReader;
+use Nvl\Pages\Services\PageResolver;
+use Nvl\Pages\Services\PageTreeLock;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CheckPageKeyAvailabilityAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\CreatePageAction;
 use Nvl\Pages\Tests\Fixtures\Consumer\Actions\DeletePageAction;
@@ -70,6 +73,7 @@ use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageOptionData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageRequestContextData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PublicPageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\ResolvedPageData;
+use Nvl\Pages\Tests\Fixtures\Consumer\PreviewActor;
 use Nvl\Pages\Tests\Fixtures\RecordingPageAuthorization;
 use Nvl\Pages\Tests\Fixtures\TestPageResource;
 use Nvl\Seo\Contracts\SeoAuthorization;
@@ -1805,4 +1809,93 @@ it('rejects private page identities substituted with a public page key at the po
 
     expect(fn () => (new ConfiguredPageAuthorization)->authorize(PageAbility::View, PublicActor::Anonymous, $private))
         ->toThrow(AuthorizationException::class);
+});
+
+it('validates only the prospective ancestors instead of hydrating the whole site', function (): void {
+    $parent = createTestPage('bounded-parent', 'bounded-parent');
+    $unrelated = createTestPage('bounded-unrelated', 'bounded-unrelated');
+    $seen = [];
+    Page::retrieved(function (Page $page) use (&$seen): void {
+        $seen[] = $page->id;
+    });
+    DB::transaction(function () use ($parent): void {
+        app(PageTreeLock::class)->acquire('default');
+        app(PageHierarchy::class)->assertValid('default', $parent->id);
+    });
+
+    expect($seen)->toBe([$parent->id])
+        ->and($seen)->not->toContain($unrelated->id);
+});
+
+it('reads descendant paths in batches per level while retaining each revision', function (): void {
+    $parent = createTestPage('batch-parent', 'batch-parent');
+    $descendants = [];
+    for ($index = 0; $index < 6; $index++) {
+        $child = createTestPage('batch-child-'.$index, 'child-'.$index, $parent->id);
+        $descendants[] = $child;
+        $descendants[] = createTestPage('batch-grandchild-'.$index, 'grandchild', $child->id);
+    }
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+    try {
+        DB::transaction(function () use ($parent): void {
+            app(PageTreeLock::class)->acquire('default');
+            $parent->path = 'renamed-batch-parent';
+            $parent->save();
+            expect(app(PageHierarchy::class)->rebuildDescendantPaths($parent))->toHaveCount(12);
+        });
+        $childReads = array_filter(DB::getQueryLog(), static fn (array $query): bool => str_starts_with(strtolower($query['query']), 'select')
+            && preg_match('/["`]?parent_id["`]? in /', $query['query']) === 1);
+        expect($childReads)->toHaveCount(3);
+    } finally {
+        DB::disableQueryLog();
+    }
+    foreach ($descendants as $descendant) {
+        $revision = $descendant->revision;
+        expect($descendant->refresh()->path)->toStartWith('renamed-batch-parent/')
+            ->and($descendant->revision)->toBe($revision + 1);
+    }
+});
+
+it('denies page authorization before resolving either present or missing dynamic resources', function (bool $preview, bool $exists): void {
+    createTestPage('guarded-resource', 'guarded-resource', kind: PageKind::Resource, resource: 'records.detail');
+    $resourceId = $exists ? TestPageResource::query()->create(['name' => 'Private resource'])->id : (string) Str::uuid();
+    $actor = PreviewActor::query()->create();
+    app()->instance(PageAuthorization::class, new class implements PageAuthorization
+    {
+        public function authorize(PageAbility $ability, Authenticatable|SystemActor|PublicActor $actor, ?Page $page = null, array $context = []): void
+        {
+            throw new AuthorizationException('This page is private.');
+        }
+    });
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+    try {
+        $path = 'guarded-resource/'.$resourceId;
+        expect(fn () => $preview
+            ? app(PageResolver::class)->preview($path, 'default', 'en', $actor)
+            : app(PageResolver::class)->resolve($path, 'default', 'en'))
+            ->toThrow(AuthorizationException::class);
+        expect(array_filter(DB::getQueryLog(), static fn (array $query): bool => str_contains($query['query'], 'page_test_resources')))->toBe([]);
+    } finally {
+        DB::disableQueryLog();
+    }
+})->with([[true, true], [true, false], [false, true], [false, false]]);
+
+it('requires publication authority to withdraw a published page into draft', function (): void {
+    $page = createTestPage('protected-publication', 'protected-publication');
+    app()->instance(PageAuthorization::class, new class implements PageAuthorization
+    {
+        public function authorize(PageAbility $ability, Authenticatable|SystemActor|PublicActor $actor, ?Page $page = null, array $context = []): void
+        {
+            if ($ability === PageAbility::Publish) {
+                throw new AuthorizationException('Publication is protected.');
+            }
+        }
+    });
+
+    expect(fn () => app(PageLifecycle::class)->update($page, [
+        'slug' => $page->slug, 'kind' => $page->kind, 'status' => PageStatus::Draft,
+    ], $page->revision, SystemActor::Background))->toThrow(AuthorizationException::class);
+    expect($page->refresh()->status)->toBe(PageStatus::Published);
 });

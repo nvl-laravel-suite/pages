@@ -1,53 +1,79 @@
 ---
 name: nvl-pages
-description: Use when implementing or reviewing localized hierarchical Pages, native lifecycle and reads, public resolution, private previews, dynamic resources, or optional Content and SEO composition with nvl/pages.
+description: Use when integrating nvl/pages localized hierarchical pages, publication lifecycle, public path resolution, private previews, dynamic resource pages, navigation or optional Content/SEO/Metafields composition.
 ---
 
 # NVL Pages
 
-Use the native PHP 8.4 / Laravel 13 services in `Nvl\Pages\Services`. Read the current package README and service signatures before integration. Consumers own application Actions, input/output data, editor assembly, routes, controllers and preview responses.
+Use the native PHP 8.4 / Laravel 13 services. Consumers own application Actions,
+DTOs, editor assembly, routes/controllers, preview responses and transport errors.
 
-## Complete native operations
+## Reference routing
 
-| Service | Operations | Results |
-| --- | --- | --- |
-| `PageLifecycle` | `create`, `update`, `move`, `delete`, `restore` | Refreshed `Page`; deletion returns `bool` |
-| `PageReader` | `get`, `paginate`, `children`, `navigation`, `keyAvailable` | Canonical models, Laravel collections/paginators or documented arrays |
-| `PageResolver` | `resolve`, `preview` | `array{page:Page,resource:array{type:string,id:string,payload:array<string,mixed>}|null}` |
+- [Installation](references/installation.md): runtime requirements, configuration, migrations and publication.
+- [Native API](references/api.md): full current signatures and domain values.
+- [Usage](references/usage.md): host authorization, lifecycle replacement, resources and composition.
 
-- Create with a documented attribute array and explicit authenticatable or `SystemActor`. Update takes the Page, complete replacement array, separate expected revision and actor. Omitted defaulted replacement fields reset to defaults. Move takes parent ID, position, expected revision and actor; delete/restore take the expected revision separately.
-- Keep key, site, parent and ownership identities outside editable replacement input. Use the complete lifecycle operations for writes; retain tree locks, cycle/depth checks, conflict handling, descendant path rebuilding and source-connection transactions.
-- Put localized title, navigation label and summary values in Translatable rows. Lifecycle operations own their replacement transaction. Preserve locale fallback and choose the locale explicitly for projections.
-- `get()` and `paginate()` authorize model reads. Pagination uses fixed native status, kind, parent, navigable and sort filters. Select documented safe fields and loaded translations for consumer responses.
-- `children()` returns one bounded level of visible same-site children; use `PageKind` and `PublicChildPageOrder` for supported selection/order. `navigation()` returns the localized visible tree. `keyAvailable()` checks the actual unique key without revealing a foreign site's conflicting ID.
+## Complete service choice
 
-## Authorization and resolution
+| Need | Service and result |
+| --- | --- |
+| Create/update/move/delete/restore | `PageLifecycle`; fresh `Page` or deletion `bool` |
+| Get, paginate, children, navigation, key availability | `PageReader`; models, collections or documented arrays |
+| Public path and private preview | `PageResolver`; page plus optional resource projection |
+| Resource alias integration | `PageResourceRegistry` and `PageResourceHandler` |
+| Host URL presentation | `PageUrlGenerator` |
 
-Bind `Nvl\Pages\Contracts\PageAuthorization` for host policy. It receives `PageAbility`, an explicit authenticatable, `SystemActor` or `PublicActor`, the canonical Page when applicable and native context facts. Trusted application code supplies background actors; request input never grants authority.
+## Lifecycle input semantics
 
-Lifecycle operations and authenticated reads reload Eloquent actors through Core before policy checks. External providers retain their identity/freshness contract; previews still require persisted Eloquent actors. Mutations reload the initial site from persisted Page state and use the configured model's actual connection for their tree lock and transaction.
+Create takes native attributes and an explicit actor. Update is a complete edit:
+`slug`, `kind` and `status` are required and omitted defaulted fields reset.
+It is not a presence-based patch. The expected revision is a separate argument.
+Use dedicated move for parent/position changes and its own expected revision.
+Key, site, parent and owner identity are outside editable replacement input.
 
-`PageResolver::resolve($path, $site, $locale, $context)` authorizes `PublicActor::Anonymous` and retains publication/expiration windows, exact site/resource identity, supported locale and the original not-found failures. Private `preview()` requires a persisted authenticatable and separate Preview authorization. The default policy does not grant private previews.
+Keep localized title, navigation label and summary in Translatable rows. Lifecycle
+replaces the supplied locale set transactionally. Choose locale deliberately in
+projections, preserving fallback. Publication and expiration windows remain enforced.
 
-For isolated configured Page models, enter native Ownership through verified public owner/site admission before public resolution. `PublicOwnerSiteRunner::run($canonicalOrigin, $callback)` takes the canonical origin string. Preserve the admitted owner, site, origin and resource capabilities; caller selectors cannot replace them. Public admission grants no management authority. Keep configured model identities, stored morph values and reviewed adoption intact.
+## Authority and public resolution
 
-## Dynamic resources
+Bind `PageAuthorization` for host policy. The default admits eligible public
+reads/navigation and denies management/private previews. Explicit background actors
+still need host permission. Eloquent actors and page/site facts reload canonically;
+provider-owned external principals retain their own freshness contract.
 
-Register stable aliases under `nvl-pages.resources` and implement `PageResourceHandler`. Retain exact route-parameter rules, constrained query/fetch conditions and sanitized presentation.
+`PageResolver::resolve` uses `PublicActor::Anonymous`; preview requires a persisted
+Eloquent authenticatable and separate Preview authorization. Preserve original
+not-found failures, exact site/resource identity and supported locale boundaries.
+Public admission does not grant management rights.
 
-- Request: `array{pageId:string,site:string,locale:string,parameters:array<string,string>}`.
-- Result: `array{type:string,id:string,payload:array<string,mixed>}`.
-- Owned handlers implement `OwnershipSafePageResourceHandler` and declare the exact native model. Query and fetched model identities must retain the admitted ownership capability.
-- Optional sitemap streams yield absolute `Nvl\Seo\ValueObjects\SitemapEntry` values in bounded chunks. Page visibility/site/sitemap inclusion and explicit active SEO exclusions remain authoritative.
+With owned configured Pages, verify the canonical origin through native
+`PublicOwnerSiteRunner` before public resolution. Keep admitted owner/site and
+resource capabilities; request selectors cannot replace them.
 
-## Optional composition
+## Dynamic resources and optional composition
 
-Plain localized Pages require Core and Translatable. Content, SEO, Metafields, Filterable and DTO libraries are not required runtime dependencies.
+Register stable resource aliases in `nvl-pages.resources`. Handlers supply route
+pattern/rules, a constrained query, fetch and sanitized presentation; request class
+names are never resolver registrations. Owned handlers implement
+`OwnershipSafePageResourceHandler` and retain the declared native model capability.
+Sitemap streams yield absolute `SitemapEntry` values when SEO is enabled.
 
-`nvl-pages.integrations.content`, `seo` and `metafields` accept `null` for loaded-provider detection, `false` to disable or `true` to require the provider. Explicitly enabled missing providers fail. The base Page does not require Content or SEO interfaces/traits.
+Base Pages need Core and Translatable. `nvl-pages.integrations.content`, `.seo`
+and `.metafields` accept null for loaded-provider detection, false to disable or true
+to require the provider. Explicitly enabled absence fails. The native Page requires
+no Content/SEO workflow trait. Assemble those native results in the consumer.
 
-When selected, adapters register the configured Page identity, Content group `content`, scoped SEO profiles/sitemaps and optional model relations. Content retains atomic owner cleanup on hard deletion. Assemble rendering, SEO output, custom fields and editor payloads in the consumer through those packages' native services. Do not restore package workflow interfaces, payload DTOs, HTTP routes or the retired Tenancy bridge.
+## Models, atomicity and checks
 
-## Configuration and checks
+Select `nvl-pages.models.page` before provider boot. Retain UUIDs, native casts,
+relations, tree hooks, ownership and package-configured storage; added columns need
+host migrations. The class selection is immutable and translations/locks stay fixed.
 
-Use canonical `nvl-pages` configuration and publish tags. Select one migration owner, preserve existing IDs/history and run `nvl:pages:doctor --strict --format=json` after relevant configuration/schema changes. Test lifecycle/publication/resource/ownership guarantees through the native services; keep consumer mapping and HTTP assertions in the host. Report only checks actually run.
+Lifecycle owns tree locks, cycle/depth checks, descendant path rebuilding,
+revision checks and the actual source-connection transaction. Events follow outer
+commit. Preserve atomic Content owner cleanup on hard deletion when integrated.
+Test public/private policy, replacement defaults, windows, tree conflicts, dynamic
+resources and owner isolation. Consult [usage](references/usage.md) before inventing
+transport, integration flags or a generic page mutation wrapper.

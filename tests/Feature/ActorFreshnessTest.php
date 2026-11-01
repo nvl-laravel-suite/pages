@@ -6,8 +6,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Enums\PageStatus;
@@ -21,7 +19,6 @@ use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Enums\SystemActor;
 
 it('passes canonical persisted preview privileges to the host policy instead of stale or dirty actor facts', function (): void {
-    Schema::table('page_test_actors', static fn (Blueprint $table) => $table->boolean('can_preview')->default(false));
     app()->instance(PageAuthorization::class, new RecordingPageAuthorization);
     $page = app(PageLifecycle::class)->create(['key' => 'fresh-actor', 'slug' => 'fresh-actor', 'status' => PageStatus::Draft], SystemActor::Background);
     $actor = PreviewActor::query()->create(['can_preview' => true]);
@@ -54,7 +51,6 @@ it('retains the persisted Eloquent actor requirement for private previews', func
 });
 
 it('reloads actor authority for every lifecycle operation and private read', function (string $operation): void {
-    Schema::table('page_test_actors', static fn (Blueprint $table) => $table->boolean('can_manage')->default(false));
     app()->instance(PageAuthorization::class, new RecordingPageAuthorization);
     $pages = app(PageLifecycle::class);
     $page = $pages->create(['key' => 'authority', 'slug' => 'authority'], SystemActor::Background);

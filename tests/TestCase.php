@@ -96,6 +96,8 @@ abstract class TestCase extends Orchestra
     {
         Schema::create('page_test_actors', function (Blueprint $table): void {
             $table->id();
+            $table->boolean('can_preview')->default(false);
+            $table->boolean('can_manage')->default(false);
             $table->timestamps();
         });
         Schema::create('page_test_resources', function (Blueprint $table): void {

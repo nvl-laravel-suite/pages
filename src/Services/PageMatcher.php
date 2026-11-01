@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Factory;
 use Illuminate\Validation\ValidationException;
@@ -38,6 +39,7 @@ final readonly class PageMatcher
     /**
      * Resolve one canonical request path to its page and optional resource.
      *
+     * @param  Closure(Page):void|null  $authorizePage  Runs before dynamic handler validation or data access.
      * @return array{page:Page,resource:array{type:string,id:string,payload:array<string,mixed>}|null}
      */
     public function resolve(
@@ -45,6 +47,7 @@ final readonly class PageMatcher
         string $site,
         string $locale,
         bool $publicOnly = true,
+        ?Closure $authorizePage = null,
     ): array {
         try {
             $path = PagePath::request($path);
@@ -64,6 +67,8 @@ final readonly class PageMatcher
         $static = $staticQuery->with('translations')->first();
 
         if ($static instanceof Page && hash_equals($static->path, $path)) {
+            $authorizePage?->__invoke($static);
+
             return ['page' => $static, 'resource' => null];
         }
 
@@ -96,6 +101,7 @@ final readonly class PageMatcher
                 continue;
             }
 
+            $authorizePage?->__invoke($page);
             $rules = $handler->rules($page);
             $this->assertRuleParity($handler->routePattern(), $rules, $page->resource);
 

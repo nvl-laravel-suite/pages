@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
-use Illuminate\Support\Collection;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -21,30 +20,29 @@ final class PageHierarchy
      */
     public function assertValid(string $site, ?string $parentId, ?string $pageId = null): void
     {
-        /** @var Collection<string, Page> $pages */
-        $pages = PageModelRegistry::query()->where('site', $site)->get()->keyBy('id');
         $depth = 1;
         $visited = [];
-        $cursor = $parentId !== null ? $pages->get($parentId) : null;
+        $cursorId = $parentId;
 
-        if ($parentId !== null && ! $cursor instanceof Page) {
-            throw new PageHierarchyException(
-                "Parent [{$parentId}] does not belong to site [{$site}].",
-            );
-        }
-
-        while ($cursor instanceof Page) {
-            if ($cursor->id === $pageId || isset($visited[$cursor->id])) {
+        while ($cursorId !== null) {
+            if ($cursorId === $pageId || isset($visited[$cursorId])) {
                 throw new PageHierarchyException('A page hierarchy cannot contain a cycle.');
             }
 
-            $visited[$cursor->id] = true;
+            $cursor = PageModelRegistry::query()->where('site', $site)->find($cursorId);
+            if (! $cursor instanceof Page) {
+                throw new PageHierarchyException(
+                    "Parent [{$cursorId}] does not belong to site [{$site}].",
+                );
+            }
+
+            $visited[$cursorId] = true;
             $depth++;
-            $cursor = $cursor->parent_id !== null ? $pages->get($cursor->parent_id) : null;
+            $cursorId = $cursor->parent_id;
         }
 
         $subtreeHeight = $pageId !== null
-            ? $this->subtreeHeight($pages, $pageId)
+            ? $this->subtreeHeight($site, $pageId)
             : 1;
 
         if ($depth + $subtreeHeight - 1 > PagesConfiguration::maximumDepth()) {
@@ -84,50 +82,72 @@ final class PageHierarchy
     public function rebuildDescendantPaths(Page $page): array
     {
         $changed = [];
-        $children = PageModelRegistry::query()
-            ->where('site', $page->site)
-            ->where('parent_id', $page->id)
-            ->lockForUpdate()
-            ->get();
+        $parents = [$page->id => $page->path];
+        $visited = [$page->id => true];
 
-        foreach ($children as $child) {
-            $path = $page->path.'/'.$child->slug;
+        while ($parents !== []) {
+            $next = [];
+            foreach (array_chunk(array_keys($parents), 500) as $parentIds) {
+                $children = PageModelRegistry::query()
+                    ->where('site', $page->site)
+                    ->whereIn('parent_id', $parentIds)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
 
-            if ($child->path !== $path) {
-                $child->path = $path;
-                $child->save();
-                $changed[] = $child;
+                foreach ($children as $child) {
+                    if (isset($visited[$child->id])) {
+                        throw new PageHierarchyException('A page hierarchy cannot contain a cycle.');
+                    }
+                    $visited[$child->id] = true;
+                    $path = $parents[$child->parent_id ?? throw new PageHierarchyException('A descendant must have a parent.')].'/'.$child->slug;
+                    if ($child->path !== $path) {
+                        $child->path = $path;
+                        $child->save();
+                        $changed[] = $child;
+                    }
+                    $next[$child->id] = $path;
+                }
             }
-
-            array_push($changed, ...$this->rebuildDescendantPaths($child));
+            $parents = $next;
         }
 
         return $changed;
     }
 
-    /**
-     * @param  Collection<string, Page>  $pages
-     */
-    private function subtreeHeight(Collection $pages, string $pageId): int
+    /** Measure only this subtree, with one bounded parent batch per level. */
+    private function subtreeHeight(string $site, string $pageId): int
     {
-        $children = $pages->groupBy(
-            static fn (Page $page): string => $page->parent_id ?? '__root__',
-        );
-        $height = function (string $parentId, array $visited = []) use (&$height, $children): int {
-            if (isset($visited[$parentId])) {
-                throw new PageHierarchyException('A page hierarchy cannot contain a cycle.');
+        $height = 1;
+        $parents = [$pageId];
+        $visited = [$pageId => true];
+        while ($parents !== []) {
+            $next = [];
+            foreach (array_chunk($parents, 500) as $parentIds) {
+                $children = PageModelRegistry::query()
+                    ->where('site', $site)
+                    ->whereIn('parent_id', $parentIds)
+                    ->pluck('id');
+                foreach ($children as $childId) {
+                    if (! is_string($childId)) {
+                        throw new PageHierarchyException('A descendant must have a canonical page identifier.');
+                    }
+                    if (isset($visited[$childId])) {
+                        throw new PageHierarchyException('A page hierarchy cannot contain a cycle.');
+                    }
+                    $visited[$childId] = true;
+                    $next[] = $childId;
+                }
             }
-
-            $visited[$parentId] = true;
-            $maximum = 1;
-
-            foreach ($children->get($parentId, collect()) as $child) {
-                $maximum = max($maximum, 1 + $height($child->id, $visited));
+            if ($next !== []) {
+                $height++;
+                if ($height > PagesConfiguration::maximumDepth()) {
+                    throw new PageHierarchyException('The page operation would exceed the configured hierarchy depth.');
+                }
             }
+            $parents = $next;
+        }
 
-            return $maximum;
-        };
-
-        return $height($pageId);
+        return $height;
     }
 }

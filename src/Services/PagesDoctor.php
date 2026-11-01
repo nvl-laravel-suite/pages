@@ -13,6 +13,7 @@ use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Providers\SeoServiceProvider;
@@ -56,6 +57,10 @@ final class PagesDoctor
             'hierarchy.maximum_depth' => PagesConfiguration::maximumDepth(),
             'resources' => $resources->aliases(),
         ];
+
+        if (PagesOwnership::declared()) {
+            $checks['table.owner_tree_locks'] = $schema->hasTable(PagesTables::get(PagesTables::OwnerTreeLocks));
+        }
 
         if ($schema->hasTable($pages)) {
             $required = [

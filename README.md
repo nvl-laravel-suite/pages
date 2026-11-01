@@ -42,6 +42,8 @@ $preview = $resolver->preview($path, $site, $locale, $persistedActor);
 
 Creation and replacement accept the documented native attribute arrays. Replacement retains the original complete-replacement semantics; omitted defaulted editorial fields reset to their defaults. Key, site, parent identity and ownership cannot be changed through replacement. Move owns parent changes. Expected revisions are separate arguments. Unknown/protected fields are rejected inside the service.
 
+Page keys are globally unique across sites in an unowned installation; use site-prefixed keys when sites share storage. Native Ownership adoption replaces that identity with the documented owner partition. Slugs and paths are site scoped.
+
 Mutations preserve serialized site-tree locks, cycle/depth checks, descendant path rebuilding, unique key/slug constraints, source-connection transactions and committed events. Locale replacement uses Translatable's supported related-row store inside the Page transaction. An enclosing host transaction remains authoritative.
 
 Tree locks and lifecycle transactions use the configured Page model's actual connection. Existing Page inputs supply their identity; the persisted site determines the lock scope, even if the caller edited its in-memory attributes.
@@ -50,7 +52,7 @@ Tree locks and lifecycle transactions use the configured Page model's actual con
 
 Bind `Nvl\Pages\Contracts\PageAuthorization` for application policy. It receives `PageAbility`, an explicit Laravel authenticatable, `SystemActor` or `PublicActor`, the canonical Page where applicable, and documented native context facts. Background identity is supplied only by trusted application code and requires explicit consumer authorization for management. The default adapter grants eligible public reads; it does not grant background management authority.
 
-Public resolution always authorizes `PublicActor::Anonymous`; preview requires a persisted authenticatable and separate `Preview` authorization. The default policy does not grant private previews. Public matching preserves the original not-found failures, publication/expiration windows, exact site, locale and owner isolation. Caller context cannot replace canonical site/path/resource facts.
+Public resolution always authorizes `PublicActor::Anonymous`; preview requires a persisted authenticatable and separate `Preview` authorization. The default policy does not grant private previews. Dynamic resolution first authorizes the matched Page with `resourceId => null`, before handler validation or data access, then authorizes the resolved resource identity before returning it. Policies must allow the page-level check independently of resource-level permission. Withdrawal from Published or Scheduled to Draft requires `Publish` authority. Public matching preserves the original not-found failures, publication/expiration windows, exact site, locale and owner isolation. Caller context cannot replace canonical site/path/resource facts.
 
 For isolated configured Page models, enter native Ownership using a verified public owner/site mapping before resolution. `PublicOwnerSiteRunner::run($canonicalOrigin, $callback)` accepts the canonical origin string. The application owns request parsing. A supplied site must match the verified site; a public admission grants no management rights.
 
@@ -61,6 +63,8 @@ For isolated configured Page models, enter native Ownership using a verified pub
 ## Dynamic resources
 
 Register stable aliases under `nvl-pages.resources`. `PageResourceHandler` retains route patterns, exact route-parameter rules, constrained queries/fetching, sanitized presentation and optional sitemap entries. Request records are `array{pageId:string,site:string,locale:string,parameters:array<string,string>}`. Presentation records are `array{type:string,id:string,payload:array<string,mixed>}`.
+
+After a page matches its route and rules, a missing dynamic resource raises `NotFoundHttpException`; resolution does not try lower-priority pages. Authenticated `get` resolves a canonical row before its per-page policy, so hosts choose their own public error mapping if existence must be concealed.
 
 Owned handlers implement `OwnershipSafePageResourceHandler` and declare the exact native model. Pages checks both query and returned model identity under the admitted resource. It does not infer ownership from route parameters or presentation IDs.
 
@@ -74,6 +78,6 @@ When selected, the existing adapters register the configured Page identity, Cont
 
 Configure `nvl-pages.models.page`, `connection`, table identities, authorization, URL generation and resource handlers. Select one owner for migrations: vendor loading or host-published copies. Preserve existing IDs, revision history and reviewed native Ownership adoption. The legacy Tenancy bridge and package HTTP routes are removed.
 
-Publish canonical `nvl-pages-config`, `nvl-pages-migrations` and `nvl-pages-skills` resources as needed. Run `nvl:pages:doctor --strict --format=json` for schema, resource, optional-adapter and tree diagnostics. Host configuration/cache/worker deployment steps remain application-owned.
+Publish canonical `nvl-pages-config`, `nvl-pages-migrations` and `nvl-pages-skills` resources as needed. Run `nvl:pages:doctor --strict --format=json` for schema, resource, optional-adapter and tree diagnostics. When Ownership is declared, its adoption step provisions the separate owner tree-lock table; doctor verifies that table as part of readiness. `nvl-pages.limits` exposes `maximum_path_bytes` (768), `maximum_resource_parameters` (8), `maximum_per_page` (100) and `maximum_public_children` (100). Hierarchy depth is configurable from one to four levels. Host configuration/cache/worker deployment steps remain application-owned.
 
 Shared [service contracts, model extensions and composition](https://github.com/nvl-laravel-suite/laravel-suite/blob/main/docs/consumer-api.md) apply alongside the package-specific rules above.

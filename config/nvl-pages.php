@@ -27,6 +27,13 @@ return [
         'maximum_depth' => 4,
     ],
 
+    'limits' => [
+        'maximum_path_bytes' => 768,
+        'maximum_resource_parameters' => 8,
+        'maximum_per_page' => 100,
+        'maximum_public_children' => 100,
+    ],
+
     'transactions' => [
         'attempts' => 3,
     ],

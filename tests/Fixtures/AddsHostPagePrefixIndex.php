@@ -9,7 +9,7 @@ use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Services\PageModelRegistry;
 
 /** Add a legitimate host lookup index before the real adoption coordinator runs. */
-trait AddsHostPagePrefixIndex
+trait AddsHostPagePrefixIndex // @phpstan-ignore trait.unused (Pest composes this trait with uses() in Ownership/PrefixIndexTest.php.)
 {
     protected function prepareOwnershipSchema(): void
     {

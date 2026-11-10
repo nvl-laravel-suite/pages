@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Nvl\Content\Models\ContentBlock;
 use Nvl\Content\Schema\ContentDefinitionSource;
 use Nvl\Content\Services\ContentBlocks;
@@ -71,12 +73,15 @@ use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageKeyAvailabilityData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageOptionData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageRequestContextData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageResourceData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PublicPageData;
+use Nvl\Pages\Tests\Fixtures\Consumer\Data\Queries\PageIndexQueryData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\ResolvedPageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\PreviewActor;
 use Nvl\Pages\Tests\Fixtures\RecordingPageAuthorization;
 use Nvl\Pages\Tests\Fixtures\TestPageResource;
 use Nvl\Seo\Contracts\SeoAuthorization;
+use Nvl\Seo\Enums\SitemapChangeFrequency;
 use Nvl\Seo\Services\SitemapGenerator;
 use Nvl\Seo\Support\SeoAuthorizationContext;
 use Nvl\Support\Enums\PublicActor;
@@ -1898,4 +1903,76 @@ it('requires publication authority to withdraw a published page into draft', fun
         'slug' => $page->slug, 'kind' => $page->kind, 'status' => PageStatus::Draft,
     ], $page->revision, SystemActor::Background))->toThrow(AuthorizationException::class);
     expect($page->refresh()->status)->toBe(PageStatus::Published);
+});
+
+it('validates native page inputs before explicitly mapping enums and scalar values', function (): void {
+    $create = CreatePageData::fromInput([
+        'key' => 'native-input', 'slug' => 'native-input',
+        'kind' => 'static', 'status' => 'draft', 'position' => '2',
+        'isNavigable' => '0', 'sitemapIncluded' => false,
+        'sitemapPriority' => 0.5, 'sitemapChangeFrequency' => 'weekly',
+        'translations' => ['en' => ['title' => 'Native input', 'summary' => null]],
+    ]);
+    $query = PageIndexQueryData::fromInput(['site' => 'default', 'per_page' => '2']);
+    $move = MovePageData::fromInput(['parentId' => null, 'position' => '0', 'expected_revision' => '3']);
+
+    expect($create->kind)->toBe(PageKind::Static)
+        ->and($create->status)->toBe(PageStatus::Draft)
+        ->and($create->position)->toBe(2)
+        ->and($create->isNavigable)->toBeFalse()
+        ->and($create->sitemapIncluded)->toBeFalse()
+        ->and($create->sitemapPriority)->toBe('0.5')
+        ->and($create->sitemapChangeFrequency)->toBe(SitemapChangeFrequency::Weekly)
+        ->and($create->translations)->toBe(['en' => ['title' => 'Native input', 'summary' => null]])
+        ->and($query->perPage)->toBe(2)
+        ->and($move->parentId)->toBeNull()
+        ->and($move->expectedRevision)->toBe(3)
+        ->and(fn () => CreatePageData::fromInput(['key' => 'invalid-enum', 'slug' => 'invalid-enum', 'kind' => 'unknown']))
+        ->toThrow(ValidationException::class);
+});
+
+it('serializes page actor identity without its authenticated subject', function (): void {
+    $authenticated = new GenericUser(['id' => 'operator', 'email' => 'private@example.test', 'password' => 'private-hash']);
+    $actor = PageActorData::fromAuthenticatable($authenticated);
+    $publicIdentity = ['type' => GenericUser::class, 'id' => 'operator', 'system' => false];
+
+    expect($actor->native())->toBe($authenticated)
+        ->and($actor->contentActor())->toBe($authenticated)
+        ->and($actor->toArray())->toBe($publicIdentity)
+        ->and(json_decode(json_encode($actor, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR))->toBe($publicIdentity)
+        ->and(PageActorData::system()->native())->toBe(SystemActor::Background);
+});
+
+it('preserves absent and explicitly null publication timestamps in public page JSON', function (): void {
+    $attributes = [
+        'id' => 'page-id', 'key' => 'public-page', 'slug' => 'public-page', 'path' => 'public-page',
+        'kind' => PageKind::Static, 'url' => '/public-page', 'locale' => 'en', 'title' => 'Public page',
+        'navigationLabel' => null, 'summary' => null, 'titleLocale' => 'en',
+        'navigationLabelLocale' => null, 'summaryLocale' => null,
+    ];
+    $omitted = new PublicPageData(...$attributes);
+    $cleared = new PublicPageData(...[...$attributes, 'publishedAt' => null]);
+    $published = new PublicPageData(...[...$attributes, 'publishedAt' => '2026-11-10T12:00:00+00:00']);
+
+    expect($omitted->toArray())->not->toHaveKey('publishedAt')
+        ->and($cleared->toArray())->toHaveKey('publishedAt', null)
+        ->and($published->toArray())->toHaveKey('publishedAt', '2026-11-10T12:00:00+00:00')
+        ->and(json_decode(json_encode($omitted, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR))->not->toHaveKey('publishedAt')
+        ->and(json_decode(json_encode($cleared, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR))->toHaveKey('publishedAt', null);
+});
+
+it('preserves nested maps, lists, enums and dates in native page display JSON', function (): void {
+    $resource = new PageResourceData('records.detail', 'record-id', [
+        'translations' => ['en' => ['summary' => null]],
+        'items' => [], 'emptyObject' => (object) [], 'status' => PageStatus::Draft,
+        'publishedAt' => new DateTimeImmutable('2026-11-10T12:00:00+00:00'),
+    ]);
+    $json = json_decode(json_encode($resource, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+
+    expect($json->payload->translations)->toBeInstanceOf(stdClass::class)
+        ->and($json->payload->translations->en->summary)->toBeNull()
+        ->and($json->payload->items)->toBe([])
+        ->and($json->payload->emptyObject)->toBeInstanceOf(stdClass::class)
+        ->and($json->payload->status)->toBe('draft')
+        ->and($json->payload->publishedAt)->toBe('2026-11-10T12:00:00+00:00');
 });

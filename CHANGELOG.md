@@ -5,6 +5,10 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Remove the obsolete Spatie Laravel Data development dependency. Page test adapters now use native Laravel validation and explicit projections, preserving actor privacy and omitted publication timestamps.
+
 ## [7.0.1] - 2026-11-09
 
 ### Changed

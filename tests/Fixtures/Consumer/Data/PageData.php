@@ -5,22 +5,25 @@ declare(strict_types=1);
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
 use DateTimeInterface;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 use Nvl\Seo\Enums\SitemapChangeFrequency;
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
 
 /**
  * Complete sanitized page projection for authorized management consumers.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PageData extends Data
+final class PageData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * Create one complete authorized management projection.
      *

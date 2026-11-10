@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Data;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Typed request-independent context supplied to consumer page authorization.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-final class PageAuthorizationContextData extends Data
+final class PageAuthorizationContextData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * Create typed domain context for one authorization decision.
      */

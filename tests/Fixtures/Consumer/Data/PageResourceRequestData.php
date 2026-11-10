@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Validated context supplied to a registered dynamic resource handler.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PageResourceRequestData extends Data
+final class PageResourceRequestData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * Create validated dynamic resource request context.
      *

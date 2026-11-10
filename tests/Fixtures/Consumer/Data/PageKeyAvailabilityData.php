@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Consumer-safe result for a globally unique Page key availability check.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PageKeyAvailabilityData extends Data
+final class PageKeyAvailabilityData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * Create one Page key availability result.
      */
@@ -25,4 +28,10 @@ final class PageKeyAvailabilityData extends Data
         public readonly bool $available,
         public readonly ?string $conflictingPageId,
     ) {}
+
+    /** @param array{site: string, key: string, available: bool, conflictingPageId: string|null} $row */
+    public static function fromRow(array $row): self
+    {
+        return new self($row['site'], $row['key'], $row['available'], $row['conflictingPageId']);
+    }
 }

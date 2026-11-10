@@ -40,7 +40,7 @@ final class PagesManagementController extends Controller
         PageActorFactory $actors,
         ListPagesAction $action,
     ): JsonResponse {
-        $data = PageIndexQueryData::validateAndCreate($request->query());
+        $data = PageIndexQueryData::fromInput($this->requestInput($request, queryOnly: true));
         $query = [];
 
         foreach ($request->query() as $key => $value) {
@@ -80,7 +80,7 @@ final class PagesManagementController extends Controller
         PageActorFactory $actors,
     ): JsonResponse {
         $page = $action->execute(
-            CreatePageData::validateAndCreate($request->all()),
+            CreatePageData::fromInput($this->requestInput($request)),
             $actors->fromRequest($request),
         );
 
@@ -114,7 +114,7 @@ final class PagesManagementController extends Controller
     ): JsonResponse {
         $page = $action->execute(
             $page,
-            UpdatePageData::validateAndCreate($request->all()),
+            UpdatePageData::fromInput($this->requestInput($request)),
             $actors->fromRequest($request),
         );
 
@@ -132,7 +132,7 @@ final class PagesManagementController extends Controller
     ): JsonResponse {
         $page = $action->execute(
             $page,
-            MovePageData::validateAndCreate($request->all()),
+            MovePageData::fromInput($this->requestInput($request)),
             $actors->fromRequest($request),
         );
 
@@ -152,7 +152,7 @@ final class PagesManagementController extends Controller
             'data' => [
                 'deleted' => $action->execute(
                     $page,
-                    DeletePageData::validateAndCreate($request->all()),
+                    DeletePageData::fromInput($this->requestInput($request)),
                     $actors->fromRequest($request),
                 ),
             ],
@@ -170,7 +170,7 @@ final class PagesManagementController extends Controller
     ): JsonResponse {
         $restored = $action->execute(
             $page,
-            RestorePageData::validateAndCreate($request->all()),
+            RestorePageData::fromInput($this->requestInput($request)),
             $actors->fromRequest($request),
         );
 
@@ -187,7 +187,7 @@ final class PagesManagementController extends Controller
         PageActorFactory $actors,
         LocaleCatalog $locales,
     ): JsonResponse {
-        $data = PagePreviewQueryData::validateAndCreate($request->query());
+        $data = PagePreviewQueryData::fromInput($this->requestInput($request, queryOnly: true));
         $locale = $locales->assertSupported($data->locale);
 
         return response()->json([
@@ -198,5 +198,18 @@ final class PagesManagementController extends Controller
                 $actors->fromRequest($request),
             )->toArray(),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function requestInput(Request $request, bool $queryOnly = false): array
+    {
+        $payload = [];
+        foreach ($queryOnly ? $request->query() : $request->all() as $key => $value) {
+            if (is_string($key)) {
+                $payload[$key] = $value;
+            }
+        }
+
+        return $payload;
     }
 }

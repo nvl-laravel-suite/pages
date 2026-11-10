@@ -7,18 +7,24 @@ namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
+use JsonSerializable;
 use Nvl\Pages\Tests\Fixtures\Consumer\PreviewActor;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 use Nvl\Support\Enums\SystemActor;
-use Spatie\LaravelData\Data;
 
 /**
  * Transport-neutral actor identity for authorization and event context.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-final class PageActorData extends Data
+final class PageActorData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     private ?Authenticatable $authenticated = null;
 
     /**
@@ -85,5 +91,11 @@ final class PageActorData extends Data
         }
 
         return PreviewActor::query()->firstOrCreate(['id' => 1]);
+    }
+
+    /** @return array{type: string|null, id: int|string|null, system: bool} */
+    public function toArray(): array
+    {
+        return ['type' => $this->type, 'id' => $this->id, 'system' => $this->system];
     }
 }

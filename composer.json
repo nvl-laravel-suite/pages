@@ -35,8 +35,7 @@
         "pestphp/pest-plugin-laravel": "^4.0",
         "nvl/content": "^7.0",
         "nvl/seo": "^7.0",
-        "nvl/filterable": "^7.0",
-        "spatie/laravel-data": "^4.23"
+        "nvl/filterable": "^7.0"
     },
     "autoload": {
         "psr-4": {

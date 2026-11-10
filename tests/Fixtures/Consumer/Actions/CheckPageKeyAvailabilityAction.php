@@ -18,6 +18,6 @@ final readonly class CheckPageKeyAvailabilityAction
         PageActorData $actor,
         ?string $exceptId = null,
     ): PageKeyAvailabilityData {
-        return PageKeyAvailabilityData::from($this->pages->keyAvailable($site, $key, $actor->native(), $exceptId));
+        return PageKeyAvailabilityData::fromRow($this->pages->keyAvailable($site, $key, $actor->native(), $exceptId));
     }
 }

@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations;
 
-use Spatie\LaravelData\Attributes\MapInputName;
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Reparents and reorders one page with optimistic concurrency.
  *
  * @api
  */
-#[MapInputName(CamelCaseMapper::class)]
-#[MapOutputName(CamelCaseMapper::class)]
-final class MovePageData extends Data
+final class MovePageData
 {
     /**
      * Create one validated page move payload.
@@ -24,7 +19,7 @@ final class MovePageData extends Data
     public function __construct(
         public readonly ?string $parentId,
         public readonly int $position,
-        #[MapInputName('expected_revision')] #[MapOutputName('expected_revision')] public readonly int $expectedRevision,
+        public readonly int $expectedRevision,
     ) {}
 
     /**
@@ -37,5 +32,25 @@ final class MovePageData extends Data
             'position' => ['required', 'integer', 'min:0', 'max:2147483647'],
             'expected_revision' => ['required', 'integer', 'min:1'],
         ];
+    }
+
+    /**
+     * Validate native HTTP input and map it to this consumer fixture.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    public static function fromInput(array $input): self
+    {
+        if (! array_key_exists('expected_revision', $input) && array_key_exists('expectedRevision', $input)) {
+            $input['expected_revision'] = $input['expectedRevision'];
+        }
+
+        $validated = Validator::make($input, self::rules())->safe();
+
+        return new self(
+            parentId: $validated->input('parentId') === null ? null : $validated->string('parentId')->toString(),
+            position: $validated->integer('position'),
+            expectedRevision: $validated->integer('expected_revision'),
+        );
     }
 }

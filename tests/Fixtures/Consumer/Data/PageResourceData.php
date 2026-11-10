@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Sanitized transport projection returned by a dynamic resource handler.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PageResourceData extends Data
+final class PageResourceData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * @param  array<string, mixed>  $payload
      */

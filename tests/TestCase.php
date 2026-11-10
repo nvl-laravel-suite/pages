@@ -24,7 +24,6 @@ use Nvl\Support\Providers\LocaleServiceProvider;
 use Nvl\Support\Providers\SupportServiceProvider;
 use Nvl\Translatable\Providers\TranslatableServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Spatie\LaravelData\LaravelDataServiceProvider;
 
 /**
  * Boots Pages with only its declared runtime dependency graph.
@@ -39,7 +38,7 @@ abstract class TestCase extends Orchestra
     protected function getPackageProviders($app): array
     {
         return [
-            LaravelDataServiceProvider::class,
+
             LocaleServiceProvider::class,
             SupportServiceProvider::class,
             FilterableServiceProvider::class,

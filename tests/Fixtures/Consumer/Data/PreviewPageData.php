@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Authorized management preview containing page state and rendered composition.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PreviewPageData extends Data
+final class PreviewPageData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * @param  array<string,mixed>  $content
      * @param  array<string,mixed>  $seo

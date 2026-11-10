@@ -19,6 +19,6 @@ final readonly class GetNavigationAction
     ): NavigationData {
         $result = $this->pages->navigation($site, $locale);
 
-        return NavigationData::from($result);
+        return NavigationData::fromRow($result);
     }
 }

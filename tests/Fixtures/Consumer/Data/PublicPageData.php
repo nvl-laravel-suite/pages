@@ -4,23 +4,29 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
 use Nvl\Pages\Contracts\PageUrlGenerator;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Models\Page;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 use Nvl\Translatable\TranslationResolution;
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
-use Spatie\LaravelData\Optional;
 
 /**
  * Locale-resolved and redacted page projection for public delivery.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PublicPageData extends Data
+final class PublicPageData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues {
+        toArray as private serializePublicProperties;
+    }
+
+    private readonly bool $includesPublishedAt;
+
     /**
      * Create one locale-resolved public page projection.
      */
@@ -38,8 +44,21 @@ final class PublicPageData extends Data
         public readonly ?string $titleLocale,
         public readonly ?string $navigationLabelLocale,
         public readonly ?string $summaryLocale,
-        public readonly string|Optional $publishedAt = new Optional,
-    ) {}
+        public readonly ?string $publishedAt = null,
+    ) {
+        $this->includesPublishedAt = func_num_args() >= 14;
+    }
+
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        $properties = $this->serializePublicProperties();
+        if (! $this->includesPublishedAt) {
+            unset($properties['publishedAt']);
+        }
+
+        return $properties;
+    }
 
     /**
      * Build a locale-resolved public projection from one page.

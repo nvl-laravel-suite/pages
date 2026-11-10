@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Page;
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Minimal localized Page identity for bounded management selectors.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class PageOptionData extends Data
+final class PageOptionData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * Create one localized Page option.
      */

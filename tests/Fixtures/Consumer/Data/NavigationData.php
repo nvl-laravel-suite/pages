@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Public localized navigation tree for one site.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-final class NavigationData extends Data
+final class NavigationData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * Create one localized navigation tree.
      *
@@ -26,4 +29,10 @@ final class NavigationData extends Data
         public readonly string $locale,
         public readonly array $items,
     ) {}
+
+    /** @param array{site: string, locale: string, items: list<array<string, mixed>>} $row */
+    public static function fromRow(array $row): self
+    {
+        return new self($row['site'], $row['locale'], array_map(NavigationItemData::fromRow(...), $row['items']));
+    }
 }

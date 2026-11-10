@@ -4,25 +4,20 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations;
 
-use Spatie\LaravelData\Attributes\MapInputName;
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Restore contract protected by an exact deleted-page revision.
  *
  * @api
  */
-#[MapInputName(CamelCaseMapper::class)]
-#[MapOutputName(CamelCaseMapper::class)]
-final class RestorePageData extends Data
+final class RestorePageData
 {
     /**
      * Create one validated page restoration payload.
      */
     public function __construct(
-        #[MapInputName('expected_revision')] #[MapOutputName('expected_revision')] public readonly int $expectedRevision,
+        public readonly int $expectedRevision,
     ) {}
 
     /**
@@ -35,5 +30,23 @@ final class RestorePageData extends Data
         return [
             'expected_revision' => ['required', 'integer', 'min:1'],
         ];
+    }
+
+    /**
+     * Validate native HTTP input and map it to this consumer fixture.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    public static function fromInput(array $input): self
+    {
+        if (! array_key_exists('expected_revision', $input) && array_key_exists('expectedRevision', $input)) {
+            $input['expected_revision'] = $input['expectedRevision'];
+        }
+
+        $validated = Validator::make($input, self::rules())->safe();
+
+        return new self(
+            expectedRevision: $validated->integer('expected_revision'),
+        );
     }
 }

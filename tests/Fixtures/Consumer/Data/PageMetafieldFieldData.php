@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
-use Spatie\LaravelData\Attributes\MapInputName;
-use Spatie\LaravelData\Attributes\MapOutputName;
-use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 
 /**
  * Pages-owned display projection of an optional owner metafield.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-#[MapOutputName(CamelCaseMapper::class)]
-#[MapInputName(CamelCaseMapper::class)]
-final class PageMetafieldFieldData extends Data
+final class PageMetafieldFieldData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * @param  array<string, mixed>|null  $translations
      * @param  list<array<string, mixed>>|null  $jsonPropertySchema

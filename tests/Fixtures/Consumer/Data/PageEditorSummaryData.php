@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Tests\Fixtures\Consumer\Data;
 
+use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
 use Nvl\Content\Models\ContentPlacement;
+use Nvl\Pages\Tests\Fixtures\Consumer\Support\SerializesPageValues;
 use Nvl\Seo\Models\SeoProfile;
-use Spatie\LaravelData\Data;
 
 /**
  * Bounded Page, Content, and SEO projection for management indexes.
  *
+ * @implements Arrayable<string, mixed>
+ *
  * @api
  */
-final class PageEditorSummaryData extends Data
+final class PageEditorSummaryData implements Arrayable, JsonSerializable
 {
+    use SerializesPageValues;
+
     /**
      * @param  list<ContentPlacement>  $placements
      */

@@ -5,6 +5,8 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [7.0.3] - 2026-11-11
+
 ### Fixed
 
 - Publication and expiry timestamps given with a UTC offset are stored as the same instant in the application timezone instead of their wall-clock digits.
@@ -15,6 +17,12 @@ All notable changes to `nvl/pages` are documented here.
 - A parent identifier given in another letter case is stored canonically and can no longer make a page its own parent on MySQL or PostgreSQL.
 - A malformed page identifier is treated as not found by update, move, delete and restore on every database driver.
 - The configured page model's capabilities are validated on first use of the model registry instead of on every boot.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- harden page casting, boot and publication reads
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.0.2] - 2026-11-10
 

@@ -84,7 +84,7 @@ final class PagesServiceProvider extends ServiceProvider implements OwnershipInt
         $this->app->make(GlobalNames::class)->translations('pages', __DIR__.'/../../lang', $this->app->make('translation.loader'));
         $this->app->make(OwnerRegistry::class)->registerPackage(Page::CONTENT_OWNER_TYPE, Page::class, package: 'pages');
         $this->registerResources($resources);
-        $model = PageModelRegistry::modelClass();
+        $model = $this->app->make(PageModelRegistry::class)->prepare();
         $integrations = $this->app->make(OptionalIntegration::class);
         if ($integrations->enabled('pages.integrations.content', ContentServiceProvider::class)) {
             $this->app->make(ContentOwnerRegistrar::class)->register(Page::CONTENT_OWNER_TYPE, $model, [Page::CONTENT_GROUP]);

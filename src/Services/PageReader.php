@@ -145,6 +145,7 @@ final readonly class PageReader
         $pages = PageModelRegistry::query()
             ->where('site', $site)
             ->where('kind', PageKind::Static)
+            ->where('is_navigable', true)
             ->publiclyVisible()
             ->with('translations')
             ->ordered()
@@ -217,6 +218,9 @@ final readonly class PageReader
                     throw new InvalidArgumentException('Invalid Page filter value.');
                 }
             }
+        }
+        if (isset($filters['sort']) && ! is_string($filters['sort'])) {
+            throw new InvalidArgumentException('Unsupported Page sort.');
         }
         if (array_key_exists('navigable', $filters) && ! is_bool($filters['navigable'])) {
             throw new InvalidArgumentException('The navigable Page filter must be boolean.');

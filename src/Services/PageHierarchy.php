@@ -36,7 +36,11 @@ final class PageHierarchy
                 );
             }
 
-            $visited[$cursorId] = true;
+            if ($cursor->id === $pageId || isset($visited[$cursor->id])) {
+                throw new PageHierarchyException('A page hierarchy cannot contain a cycle.');
+            }
+
+            $visited[$cursor->id] = true;
             $depth++;
             $cursorId = $cursor->parent_id;
         }
@@ -77,6 +81,8 @@ final class PageHierarchy
     /**
      * Recompute all descendant paths after a slug or parent change.
      *
+     * Deleted descendants are rewritten too, so they stop reserving the former paths; only live ones are returned.
+     *
      * @return list<Page>
      */
     public function rebuildDescendantPaths(Page $page): array
@@ -89,6 +95,7 @@ final class PageHierarchy
             $next = [];
             foreach (array_chunk(array_keys($parents), 500) as $parentIds) {
                 $children = PageModelRegistry::query()
+                    ->withTrashed()
                     ->where('site', $page->site)
                     ->whereIn('parent_id', $parentIds)
                     ->orderBy('id')
@@ -104,7 +111,9 @@ final class PageHierarchy
                     if ($child->path !== $path) {
                         $child->path = $path;
                         $child->save();
-                        $changed[] = $child;
+                        if (! $child->trashed()) {
+                            $changed[] = $child;
+                        }
                     }
                     $next[$child->id] = $path;
                 }

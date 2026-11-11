@@ -50,8 +50,8 @@ final readonly class PageMutationValues
         ?string $publishedAt,
         ?string $expiresAt,
     ): array {
-        $published = $publishedAt !== null ? CarbonImmutable::parse($publishedAt) : null;
-        $expires = $expiresAt !== null ? CarbonImmutable::parse($expiresAt) : null;
+        $published = $publishedAt !== null ? $this->instant($publishedAt) : null;
+        $expires = $expiresAt !== null ? $this->instant($expiresAt) : null;
 
         if ($status === PageStatus::Scheduled && $published === null) {
             throw new InvalidPageMutationException(
@@ -66,6 +66,14 @@ final readonly class PageMutationValues
         }
 
         return ['published_at' => $published, 'expires_at' => $expires];
+    }
+
+    /**
+     * Parse one timestamp into the application timezone, because Eloquent stores the wall clock it is given.
+     */
+    private function instant(string $timestamp): CarbonImmutable
+    {
+        return CarbonImmutable::parse($timestamp)->setTimezone(date_default_timezone_get());
     }
 
     /**

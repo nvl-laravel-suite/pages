@@ -6,8 +6,10 @@ namespace Nvl\Pages\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use Nvl\Pages\Contracts\PageAuthorization;
@@ -142,7 +144,7 @@ final readonly class PageLifecycle
         }
         $data = $this->attributes($attributes, false) + ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
-        $pageId = $page instanceof Page ? $page->id : $page;
+        $pageId = $page instanceof Page ? $page->id : $this->pageId($page);
         $page = PageModelRegistry::query()->useWritePdo()->findOrFail($pageId);
         $site = $page->site;
 
@@ -231,7 +233,8 @@ final readonly class PageLifecycle
         }
         $data = ['parentId' => $parentId, 'position' => $position, 'expected_revision' => $expectedRevision];
         Validator::make($data, ['parentId' => ['nullable', 'uuid'], 'position' => ['required', 'integer', 'min:0', 'max:2147483647'], 'expected_revision' => ['required', 'integer', 'min:1']])->validate();
-        $pageId = $page instanceof Page ? $page->id : $page;
+        $data['parentId'] = $parentId === null ? null : strtolower($parentId);
+        $pageId = $page instanceof Page ? $page->id : $this->pageId($page);
         $page = PageModelRegistry::query()->useWritePdo()->findOrFail($pageId);
         $site = $page->site;
 
@@ -299,7 +302,7 @@ final readonly class PageLifecycle
         }
         $data = ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
-        $pageId = $page instanceof Page ? $page->id : $page;
+        $pageId = $page instanceof Page ? $page->id : $this->pageId($page);
         $page = PageModelRegistry::query()->useWritePdo()->findOrFail($pageId);
         $site = $page->site;
 
@@ -347,7 +350,7 @@ final readonly class PageLifecycle
         }
         $data = ['expected_revision' => $expectedRevision];
         $this->assertRevision($expectedRevision);
-        $pageId = $page instanceof Page ? $page->id : $page;
+        $pageId = $page instanceof Page ? $page->id : $this->pageId($page);
         $resolved = PageModelRegistry::query()->withTrashed()->useWritePdo()->findOrFail($pageId);
         $site = $resolved->site;
 
@@ -415,12 +418,12 @@ final readonly class PageLifecycle
     private function attributes(array $attributes, bool $creating): array
     {
         $rules = [
-            'key' => ['required', 'string', 'max:191', 'regex:/^[a-z0-9][a-z0-9._-]*$/'],
-            'slug' => ['required', 'string', 'max:191', 'regex:/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/'],
+            'key' => ['required', 'string', 'max:191', 'regex:/^[a-z0-9][a-z0-9._-]*$/D'],
+            'slug' => ['required', 'string', 'max:191', 'regex:/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/D'],
             'parentId' => ['nullable', 'uuid'],
-            'site' => ['sometimes', 'string', 'max:64', 'regex:/^[a-z0-9][a-z0-9._-]*$/'],
+            'site' => ['sometimes', 'string', 'max:64', 'regex:/^[a-z0-9][a-z0-9._-]*$/D'],
             'kind' => ['sometimes', Rule::enum(PageKind::class)],
-            'resource' => ['nullable', 'string', 'max:100', 'regex:/^[a-z][a-z0-9_.-]*$/'],
+            'resource' => ['nullable', 'string', 'max:100', 'regex:/^[a-z][a-z0-9_.-]*$/D'],
             'status' => ['sometimes', Rule::enum(PageStatus::class)],
             'position' => ['integer', 'min:0', 'max:2147483647'],
             'isNavigable' => ['boolean'],
@@ -451,6 +454,7 @@ final readonly class PageLifecycle
             'status' => PageStatus::Draft, 'position' => 0, 'isNavigable' => true, 'sitemapIncluded' => true,
             'sitemapPriority' => null, 'sitemapChangeFrequency' => null, 'publishedAt' => null, 'expiresAt' => null, 'translations' => []];
         /** @var array{key?:string,slug:string,parentId:?string,site:string,kind:PageKind|string,resource:?string,status:PageStatus|string,position:int,isNavigable:bool,sitemapIncluded:bool,sitemapPriority:?string,sitemapChangeFrequency:?string,publishedAt:?string,expiresAt:?string,translations:array<string,array{title:string,navigationLabel?:?string,summary?:?string}>} $attributes */
+        $attributes['parentId'] = $attributes['parentId'] === null ? null : strtolower($attributes['parentId']);
         $attributes['kind'] = $attributes['kind'] instanceof PageKind ? $attributes['kind'] : PageKind::from($attributes['kind']);
         $attributes['status'] = $attributes['status'] instanceof PageStatus ? $attributes['status'] : PageStatus::from($attributes['status']);
 
@@ -466,6 +470,16 @@ final readonly class PageLifecycle
             $this->translations->upsert($page, $definition, $locale, $values);
         }
         $this->translations->deleteExcept($page, $definition, array_keys($translations));
+    }
+
+    /** Treat a malformed identifier as absent; PostgreSQL rejects a non-UUID value compared with the key. */
+    private function pageId(string $id): string
+    {
+        if (! Str::isUuid($id)) {
+            throw (new ModelNotFoundException)->setModel(Page::class, [$id]);
+        }
+
+        return strtolower($id);
     }
 
     private function assertRevision(int $revision): void

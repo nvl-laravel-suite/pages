@@ -5,6 +5,17 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Publication and expiry timestamps given with a UTC offset are stored as the same instant in the application timezone instead of their wall-clock digits.
+- Renaming or moving a page also rewrites the paths of its soft-deleted descendants, so the former paths are released and Doctor reports no path drift.
+- Page key, slug, site and resource identities ending in a line break are rejected.
+- A non-string management `sort` filter is refused as invalid input instead of raising a type error.
+- Public navigation loads only navigable pages.
+- A parent identifier given in another letter case is stored canonically and can no longer make a page its own parent on MySQL or PostgreSQL.
+- A malformed page identifier is treated as not found by update, move, delete and restore on every database driver.
+- The configured page model's capabilities are validated on first use of the model registry instead of on every boot.
+
 ## [7.0.2] - 2026-11-10
 
 ### Changed

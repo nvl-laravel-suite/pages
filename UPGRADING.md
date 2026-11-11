@@ -8,6 +8,10 @@ Target Laravel 13 and Testbench 11. Replace package Actions/workflow interfaces 
 
 Content, SEO and Metafields are optional, explicitly checked integrations. Plain Page models load without their interfaces/traits. Register the host endpoint and verified public owner/site boundary; call `PageResolver::resolve($path, $site, $locale)` for public resolution and `preview(..., $persistedActor)` for separately authorized private preview. Retain operation source connections, native ownership declarations, IDs, hierarchy and translation history. The retired Tenancy bridge is unavailable. Earlier release notes below describe historical versions; use the current README for integration.
 
+## Earlier release lines
+
+The sections below are kept for hosts still upgrading through 5.x and 6.x. The package Actions, `*Contract` workflow interfaces, `PageData`/`PublicPageData` projectors, package HTTP routes, the Tenancy bridge and the `nvl:schema:*` commands they name do not exist in family 7; apply each step on the line it describes, then follow "NVL Light native services" above.
+
 ## 6.0.1 consolidation patch
 
 This package requires Core 6.0.1 or later and, when installed, Ownership 6.0.1 or later. Ownership remains optional. Update the installed NVL dependency closure together so Composer can select compatible patches.
@@ -73,7 +77,7 @@ Legacy alias references remain read compatibility during major 5 and remain depr
 
 ## Shared Doctor integration
 
-The loaded package provider now contributes its existing inspection checks to Core's `nvl:doctor --strict --format=json`. The package command remains available. The shared gate fails errors and, in strict mode, warnings; no data upgrade is required for diagnostics.
+The loaded package provider now contributes its existing inspection checks to Core's `nvl:doctor --strict --format=json`. In family 7, register `Nvl\Support\Providers\DoctorServiceProvider` in the host first; it is not auto-discovered. The package command remains available. The shared gate fails errors and, in strict mode, warnings; no data upgrade is required for diagnostics.
 
 ## Optional Metafields dependency
 
@@ -84,6 +88,8 @@ Existing `$page->metafields()` relation calls remain supported while the integra
 ## Next major: isolated schema identities
 
 This is a breaking schema identity change. Back up storage and migration history, pause writes/workers, install this code with automatic package migrations disabled, and select one owner for migrations (vendor or published).
+
+The `nvl:schema:*` commands ship through the 6.x line only. Family 7 does not register them, so complete this step before upgrading to 7.
 
 ```sh
 php artisan nvl:doctor --strict --format=json

@@ -21,7 +21,7 @@ final readonly class PagesResourceRegistrar
 
     public function register(OwnershipResourceRegistry $resources): void
     {
-        $class = $this->models->pageClass();
+        $class = $this->models->prepare();
         $owned = $class::ownershipDefinition()->strategy !== 'unscoped';
         $resources->register(new OwnershipResourceDefinition('pages.pages', 'pages', $class, $class::ownershipDefinition(), immutableFields: $owned ? ['site'] : []));
         $resources->register(new OwnershipResourceDefinition('pages.translations', 'pages', PageTranslation::class, $owned ? OwnershipDefinition::inherited('page') : OwnershipDefinition::unscoped(), parentResource: $owned ? 'pages.pages' : null));

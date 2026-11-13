@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
+use Nvl\Pages\Enums\PageChangeOperation;
+use Nvl\Pages\Events\PageChanged;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Services\PageLifecycle;
@@ -17,6 +21,37 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 afterEach(function (): void {
     Carbon::setTestNow();
 });
+
+it('publishes a committed deletion only when the page observer permits it', function (bool $allowDeletion): void {
+    $lifecycle = app(PageLifecycle::class);
+    $page = $lifecycle->create(['key' => 'deletion-observer', 'slug' => 'deletion-observer'], SystemActor::Background);
+    $connection = $page->getConnection();
+    expect($connection->transactionLevel())->toBe(1);
+    $connection->commit();
+    app()->instance('db.transactions', $transactions = new DatabaseTransactionsManager);
+    $connection->setTransactionManager($transactions);
+    $deletions = [];
+    Event::listen(PageChanged::class, static function (PageChanged $event) use (&$deletions): void {
+        if ($event->operation === PageChangeOperation::Deleted) {
+            $deletions[] = $event->pageId;
+        }
+    });
+    Page::deleting(static fn (): bool => $allowDeletion);
+
+    $connection->beginTransaction();
+    try {
+        expect($lifecycle->delete($page, $page->revision, SystemActor::Background))->toBe($allowDeletion)
+            ->and(Page::query()->whereKey($page->id)->exists())->toBe(! $allowDeletion)
+            ->and($deletions)->toBe([]);
+        $connection->commit();
+    } finally {
+        if ($connection->transactionLevel() > 0) {
+            $connection->rollBack();
+        }
+    }
+
+    expect($deletions)->toBe($allowDeletion ? [$page->id] : []);
+})->with(['cancelled' => false, 'successful' => true]);
 
 it('stores offset publication timestamps as the same instant instead of their wall clock', function (): void {
     Carbon::setTestNow('2030-01-01 12:00:00');

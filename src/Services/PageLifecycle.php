@@ -328,14 +328,16 @@ final readonly class PageLifecycle
                 }
 
                 $deleted = $page->delete() === true;
-                $this->domainEvents->dispatch(new PageChanged(
-                    $page->id,
-                    $page->site,
-                    PageChangeOperation::Deleted,
-                    $page->revision,
-                    $this->actorFacts($actor),
-                    [$page->id],
-                ), $page->getConnection());
+                if ($deleted) {
+                    $this->domainEvents->dispatch(new PageChanged(
+                        $page->id,
+                        $page->site,
+                        PageChangeOperation::Deleted,
+                        $page->revision,
+                        $this->actorFacts($actor),
+                        [$page->id],
+                    ), $page->getConnection());
+                }
 
                 return $deleted;
             }, attempts: PagesConfiguration::transactionAttempts());

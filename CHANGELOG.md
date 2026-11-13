@@ -5,9 +5,17 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [7.0.5] - 2026-11-13
+
 ### Fixed
 
 - Publish a committed page deletion event only when deletion succeeds; host observer vetoes leave the live page and its downstream consumers unchanged.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- close package transaction, event and query parity gaps
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.0.4] - 2026-11-13
 

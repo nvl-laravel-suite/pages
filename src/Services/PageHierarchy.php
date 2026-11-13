@@ -134,6 +134,7 @@ final class PageHierarchy
             $next = [];
             foreach (array_chunk($parents, 500) as $parentIds) {
                 $children = PageModelRegistry::query()
+                    ->withTrashed()
                     ->where('site', $site)
                     ->whereIn('parent_id', $parentIds)
                     ->pluck('id');

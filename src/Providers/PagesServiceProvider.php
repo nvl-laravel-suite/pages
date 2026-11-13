@@ -35,9 +35,9 @@ use Nvl\Pages\Services\PageResourceRegistry;
 use Nvl\Pages\Services\PagesDoctor;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Pages\Support\PagesMigrationRollbackGuard;
-use Nvl\Seo\Models\SeoProfile;
 use Nvl\Seo\Providers\SeoServiceProvider;
 use Nvl\Seo\Relations\StringMorphMany as SeoMorphMany;
+use Nvl\Seo\Services\SeoModelRegistry;
 use Nvl\Seo\Services\SeoOwnerRegistry;
 use Nvl\Seo\Services\SitemapRegistry;
 use Nvl\Support\Doctor\PackageDoctorContributor;
@@ -97,7 +97,7 @@ final class PagesServiceProvider extends ServiceProvider implements OwnershipInt
         if ($integrations->enabled('pages.integrations.seo', SeoServiceProvider::class)) {
             $this->app->make(SeoOwnerRegistry::class)->register(PagesConfiguration::alias('seo_owner_alias', 'nvl-page'), $model);
             $model::resolveRelationUsing('seoProfiles', static function (Page $page): MorphMany {
-                $related = new SeoProfile;
+                $related = SeoModelRegistry::newProfile();
 
                 return new SeoMorphMany($related->newQuery(), $page, $related->qualifyColumn('seoable_type'), $related->qualifyColumn('seoable_id'), $page->getKeyName());
             });

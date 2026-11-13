@@ -65,7 +65,6 @@ final readonly class PagesAdoptionAdapter implements OwnershipAdoptionAdapter
                 'pages.pages' => [['key'], ['site', 'parent_key', 'slug'], ['site', 'path_hash']],
                 default => [['page_id', 'locale']],
             };
-            $this->preserveForeignIndexes($model, $identities);
             foreach ($schema->getIndexes($model->getTable()) as $index) {
                 $columns = $index['columns'];
                 $withoutTenant = array_values(array_diff($columns, ['tenant_id', 'ownership_key']));
@@ -78,45 +77,6 @@ final readonly class PagesAdoptionAdapter implements OwnershipAdoptionAdapter
             }
         }
         $this->restoreNativeParents([['pages.pages', 'parent_id']]);
-    }
-
-    /**
-     * Keep MySQL foreign keys supported when their former unique identity is replaced.
-     *
-     * @param  list<list<string>>  $identities
-     */
-    private function preserveForeignIndexes(Model $model, array $identities): void
-    {
-        if (! in_array($model->getConnection()->getDriverName(), ['mysql', 'mariadb'], true)) {
-            return;
-        }
-        $schema = $model->getConnection()->getSchemaBuilder();
-        $indexes = $schema->getIndexes($model->getTable());
-        foreach ($schema->getForeignKeys($model->getTable()) as $foreign) {
-            $columns = $foreign['columns'];
-            $supported = array_any($indexes, function (array $index) use ($model, $columns, $identities): bool {
-                $identity = array_values(array_diff($index['columns'], ['tenant_id', 'ownership_key']));
-                $replaced = $index['unique'] && in_array($identity, $identities, true);
-
-                return ! $replaced && array_slice($index['columns'], 0, count($columns)) === $columns
-                    && $this->completeForeignIndex($model, $index['name'], count($columns));
-            });
-            if (! $supported) {
-                $name = 'nvl_pages_fk_'.substr(hash('sha256', $model->getTable().'|'.implode(',', $columns)), 0, 24);
-                $schema->table($model->getTable(), static fn (Blueprint $table) => $table->index($columns, $name));
-                $indexes = $schema->getIndexes($model->getTable());
-            }
-        }
-    }
-
-    /** Schema index listings omit prefix lengths and cannot alone establish FK support. */
-    private function completeForeignIndex(Model $model, string $index, int $columns): bool
-    {
-        $connection = $model->getConnection();
-        [$database, $table] = $connection->getSchemaBuilder()->parseSchemaAndTable($model->getTable());
-        $complete = $connection->selectOne('SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ? AND SEQ_IN_INDEX <= ? AND INDEX_TYPE = ? GROUP BY INDEX_NAME HAVING COUNT(*) = ? AND SUM(SUB_PART IS NOT NULL) = 0 AND SUM(COLLATION = ?) = ?', [$database ?? $connection->getDatabaseName(), $connection->getTablePrefix().$table, $index, $columns, 'BTREE', $columns, 'A', $columns], false);
-
-        return $complete !== null;
     }
 
     /** Restore the concrete native FK when a legacy adapter replaced it with a tenant composite.

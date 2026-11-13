@@ -22,6 +22,7 @@ use Nvl\Ownership\Providers\OwnershipServiceProvider;
 use Nvl\Ownership\Services\OwnershipAdoptionCoordinator;
 use Nvl\Ownership\Services\OwnershipAdoptionRegistry;
 use Nvl\Ownership\Services\OwnershipRunner;
+use Nvl\Ownership\Tests\Fixtures\ReusesAdoptedSchema;
 use Nvl\Ownership\ValueObjects\OwnershipMapping;
 use Nvl\Ownership\ValueObjects\OwnershipOperation;
 use Nvl\Pages\Tests\Fixtures\OwnershipActor;
@@ -42,7 +43,14 @@ use Orchestra\Testbench\TestCase;
 /** Exercises committed ownership and audit behavior without NVL Tenancy or Auth providers. */
 abstract class ContentOwnershipTestCase extends TestCase
 {
+    use ReusesAdoptedSchema;
+
     private array $originalMorphMap = [];
+
+    protected function mayReuseAdoptedSchema(): bool
+    {
+        return false;
+    }
 
     protected function tearDown(): void
     {
@@ -65,6 +73,8 @@ abstract class ContentOwnershipTestCase extends TestCase
     /** Configure owned package roots before immutable resource registration. */
     protected function defineEnvironment($app): void
     {
+        static $allowsContent = null;
+        $allowsContent ??= static fn (): bool => true;
         $app['config']->set([
             'database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:',
             'nvl-core.owners' => [OwnershipCompany::class, OwnershipActor::class],
@@ -73,7 +83,7 @@ abstract class ContentOwnershipTestCase extends TestCase
             'nvl-tenancy.enabled' => false,
             'nvl-content.models.block' => $this->blockClass(),
             'nvl-content.ownership.owner_resources' => ['fixture.content-owners'],
-            'nvl-content.authorization.callback' => static fn (): bool => true,
+            'nvl-content.authorization.callback' => $allowsContent,
             'nvl-content.locales.available' => ['en', 'bg'],
             'nvl-content.locales.required_on_publish' => ['en'],
             'nvl-content.owners' => ['subjects' => OwnershipContentOwner::class],
@@ -88,19 +98,19 @@ abstract class ContentOwnershipTestCase extends TestCase
             'nvl-media.routes.api_enabled' => false,
             'auth.providers.users.model' => OwnershipActor::class,
         ]);
-        if (in_array(getenv('NVL_OWNERSHIP_TEST_DRIVER'), ['pgsql', 'mysql', 'mariadb'], true)) {
+        if (getenv('NVL_OWNERSHIP_TEST_DRIVER') === 'pgsql') {
             $database = getenv('NVL_OWNERSHIP_TEST_DATABASE');
             if (! is_string($database) || preg_match('/^nvl_own_test_[a-z0-9_]+$/D', $database) !== 1) {
                 throw new \RuntimeException('Native integration tests require a dedicated nvl_own_test_ database.');
             }
             $driver = (string) getenv('NVL_OWNERSHIP_TEST_DRIVER');
-            $host = getenv('NVL_OWNERSHIP_TEST_HOST') ?: ($driver === 'pgsql' ? '/tmp' : '127.0.0.1');
-            $port = getenv('NVL_OWNERSHIP_TEST_PORT') ?: ($driver === 'pgsql' ? '5432' : '3306');
-            if (! in_array($host, ['127.0.0.1', 'localhost', '::1', ...($driver === 'pgsql' ? ['/tmp'] : [])], true) || ! ctype_digit($port)) {
+            $host = getenv('NVL_OWNERSHIP_TEST_HOST') ?: '/tmp';
+            $port = getenv('NVL_OWNERSHIP_TEST_PORT') ?: '5432';
+            if (! in_array($host, ['127.0.0.1', 'localhost', '::1', '/tmp'], true) || ! ctype_digit($port)) {
                 throw new \RuntimeException('Native ownership fixtures require a loopback service and explicit numeric port.');
             }
-            $connection = ['driver' => $driver, 'url' => null, 'host' => $host, 'port' => $port, 'database' => $database, 'username' => getenv('NVL_OWNERSHIP_TEST_USERNAME') ?: ($driver === 'pgsql' ? get_current_user() : 'root'), 'password' => getenv('NVL_OWNERSHIP_TEST_PASSWORD') ?: '', 'prefix' => '', 'timezone' => $driver === 'pgsql' ? 'UTC' : '+00:00'];
-            $connection += $driver === 'pgsql' ? ['charset' => 'utf8', 'search_path' => 'public', 'sslmode' => 'prefer'] : ['charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin', 'strict' => true, 'engine' => 'InnoDB'];
+            $connection = ['driver' => $driver, 'url' => null, 'host' => $host, 'port' => $port, 'database' => $database, 'username' => getenv('NVL_OWNERSHIP_TEST_USERNAME') ?: get_current_user(), 'password' => getenv('NVL_OWNERSHIP_TEST_PASSWORD') ?: '', 'prefix' => '', 'timezone' => 'UTC'];
+            $connection += ['charset' => 'utf8', 'search_path' => 'public', 'sslmode' => 'prefer'];
             $app['config']->set('database.connections.sqlite', $connection);
         }
     }
@@ -111,64 +121,70 @@ abstract class ContentOwnershipTestCase extends TestCase
         $this->originalMorphMap = Relation::morphMap();
         parent::setUp();
         $connection = ContentModelRegistry::newInstance()->getConnection();
+        $this->startAdoptedSchema($this->mayReuseAdoptedSchema() && $connection === DB::connection());
         $schema = $connection->getSchemaBuilder();
         $actorSchema = DB::getSchemaBuilder();
-        if (in_array(getenv('NVL_OWNERSHIP_TEST_DRIVER'), ['pgsql', 'mysql', 'mariadb'], true)) {
-            $this->assertSame(getenv('NVL_OWNERSHIP_TEST_DRIVER'), DB::connection()->getDriverName());
-            if (DB::connection()->getDatabaseName() !== getenv('NVL_OWNERSHIP_TEST_DATABASE')) {
-                throw new \RuntimeException('The actual coordinator differs from the dedicated test database.');
-            }
-            $actorSchema->dropAllTables();
-            if ($connection !== DB::connection()) {
-                if ($connection->getDatabaseName() !== getenv('NVL_OWNERSHIP_TEST_REMOTE_DATABASE')) {
-                    throw new \RuntimeException('The actual source differs from the dedicated remote test database.');
+        if (! $this->hasRetainedOwnershipSchema()) {
+            if (getenv('NVL_OWNERSHIP_TEST_DRIVER') === 'pgsql') {
+                $this->assertSame(getenv('NVL_OWNERSHIP_TEST_DRIVER'), DB::connection()->getDriverName());
+                if (DB::connection()->getDatabaseName() !== getenv('NVL_OWNERSHIP_TEST_DATABASE')) {
+                    throw new \RuntimeException('The actual coordinator differs from the dedicated test database.');
                 }
-                $schema->dropAllTables();
+                $actorSchema->dropAllTables();
+                if ($connection !== DB::connection()) {
+                    if ($connection->getDatabaseName() !== getenv('NVL_OWNERSHIP_TEST_REMOTE_DATABASE')) {
+                        throw new \RuntimeException('The actual source differs from the dedicated remote test database.');
+                    }
+                    $schema->dropAllTables();
+                }
             }
+            $schema->create('content_owned_companies', static fn (Blueprint $table) => $table->unsignedBigInteger('id')->primary());
+            $actorSchema->create('content_owned_actors', static function (Blueprint $table): void {
+                $table->unsignedBigInteger('id')->primary();
+                $table->string('name')->nullable();
+                $table->string('email')->nullable();
+                $table->string('password')->nullable();
+            });
         }
-        $schema->create('content_owned_companies', static fn (Blueprint $table) => $table->unsignedBigInteger('id')->primary());
-        $actorSchema->create('content_owned_actors', static function (Blueprint $table): void {
-            $table->unsignedBigInteger('id')->primary();
-            $table->string('name')->nullable();
-            $table->string('email')->nullable();
-            $table->string('password')->nullable();
-        });
         OwnershipCompany::query()->insert([['id' => 7], ['id' => 8]]);
         OwnershipActor::query()->create(['id' => 1, 'name' => 'Operator', 'email' => 'operator@example.test', 'password' => 'private hash']);
-        $schema->create('content_owned_subjects', static function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->unsignedBigInteger('company_id');
-            $table->string('name');
-            $table->foreign('company_id')->references('id')->on('content_owned_companies');
-        });
+        if (! $this->hasRetainedOwnershipSchema()) {
+            $schema->create('content_owned_subjects', static function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->unsignedBigInteger('company_id');
+                $table->string('name');
+                $table->foreign('company_id')->references('id')->on('content_owned_companies');
+            });
+        }
         $this->app->make(OwnershipResourceRegistry::class)->register(new OwnershipResourceDefinition('fixture.content-owners', 'fixture', OwnershipContentOwner::class, OwnershipContentOwner::ownershipDefinition()));
         $this->app->make(OwnershipAdoptionRegistry::class)->register('fixture', OwnershipContentOwnerAdapter::class);
-        foreach (glob(dirname((new \ReflectionClass(MediaServiceProvider::class))->getFileName(), 3).'/database/migrations/*.php') ?: [] as $path) {
-            (require $path)->up();
-        }
-        foreach (glob(dirname((new \ReflectionClass(ContentServiceProvider::class))->getFileName(), 3).'/database/migrations/*.php') ?: [] as $path) {
-            (require $path)->up();
-        }
-        $definitionTable = (new ($this->blockClass()))->getTable();
-        $schema->table($definitionTable, static function (Blueprint $table): void {
-            $table->unsignedBigInteger('company_id')->nullable();
-            $table->foreign('company_id')->references('id')->on('content_owned_companies');
-        });
-        $schema->table((new OwnershipMedia)->getTable(), static function (Blueprint $table): void {
-            $table->unsignedBigInteger('company_id')->nullable();
-            $table->foreign('company_id')->references('id')->on('content_owned_companies');
-        });
-        (require dirname((new \ReflectionClass(OwnershipServiceProvider::class))->getFileName(), 3).'/database/migrations/ownership/2026_10_18_000001_nvl_ownership_create_adoption_tables.php')->up();
-        if ($connection !== DB::connection() && ! $schema->hasTable(OwnershipStorageTables::Stores)) {
-            $configured = config('nvl-ownership.connection');
-            try {
-                config(['nvl-ownership.connection' => $connection->getName()]);
-                (require dirname((new \ReflectionClass(OwnershipServiceProvider::class))->getFileName(), 3).'/database/migrations/ownership/2026_10_18_000001_nvl_ownership_create_adoption_tables.php')->up();
-            } finally {
-                config(['nvl-ownership.connection' => $configured]);
+        if (! $this->hasRetainedOwnershipSchema()) {
+            foreach (glob(dirname((new \ReflectionClass(MediaServiceProvider::class))->getFileName(), 3).'/database/migrations/*.php') ?: [] as $path) {
+                (require $path)->up();
+            }
+            foreach (glob(dirname((new \ReflectionClass(ContentServiceProvider::class))->getFileName(), 3).'/database/migrations/*.php') ?: [] as $path) {
+                (require $path)->up();
+            }
+            $definitionTable = (new ($this->blockClass()))->getTable();
+            $schema->table($definitionTable, static function (Blueprint $table): void {
+                $table->unsignedBigInteger('company_id')->nullable();
+                $table->foreign('company_id')->references('id')->on('content_owned_companies');
+            });
+            $schema->table((new OwnershipMedia)->getTable(), static function (Blueprint $table): void {
+                $table->unsignedBigInteger('company_id')->nullable();
+                $table->foreign('company_id')->references('id')->on('content_owned_companies');
+            });
+            (require dirname((new \ReflectionClass(OwnershipServiceProvider::class))->getFileName(), 3).'/database/migrations/ownership/2026_10_18_000001_nvl_ownership_create_adoption_tables.php')->up();
+            if ($connection !== DB::connection() && ! $schema->hasTable(OwnershipStorageTables::Stores)) {
+                $configured = config('nvl-ownership.connection');
+                try {
+                    config(['nvl-ownership.connection' => $connection->getName()]);
+                    (require dirname((new \ReflectionClass(OwnershipServiceProvider::class))->getFileName(), 3).'/database/migrations/ownership/2026_10_18_000001_nvl_ownership_create_adoption_tables.php')->up();
+                } finally {
+                    config(['nvl-ownership.connection' => $configured]);
+                }
             }
         }
-
         $this->app->bind(OwnerAccess::class, static fn () => new class implements OwnerAccess
         {
             public function assertCanEnter(Authenticatable $actor, Model $owner): void {}
@@ -197,8 +213,20 @@ abstract class ContentOwnershipTestCase extends TestCase
                 return [];
             }
         });
-        $this->adoptOwnership();
-        $this->app->make(OwnershipRunner::class)->central('content-definitions', OwnershipActor::firstOrFail(), fn () => $this->app->make(ContentDefinitions::class)->sync(SystemActor::Background));
+        $actor = OwnershipActor::firstOrFail();
+        if ($this->hasRetainedOwnershipSchema()) {
+            $operations = DB::table(OwnershipStorageTables::Operations);
+            $previousSetup = (clone $operations)
+                ->where('purpose', 'content-definitions')
+                ->where('actor_type', $actor::class)
+                ->where('actor_id', (string) $actor->getAuthIdentifier())
+                ->whereNull('owner_reference')
+                ->sole(['id']);
+            $operations->where('id', $previousSetup->id)->delete();
+        } else {
+            $this->adoptOwnership();
+        }
+        $this->app->make(OwnershipRunner::class)->central('content-definitions', $actor, fn () => $this->app->make(ContentDefinitions::class)->sync(SystemActor::Background));
     }
 
     /** Activate this fixture graph after its source tables and host policies exist. */

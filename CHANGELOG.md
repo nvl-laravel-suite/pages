@@ -5,6 +5,10 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Harden page hierarchy cycle and prefix handling, mutation value normalization, and `PagesDoctor` diagnostics.
+
 ## [7.0.3] - 2026-11-11
 
 ### Fixed
@@ -14,7 +18,7 @@ All notable changes to `nvl/pages` are documented here.
 - Page key, slug, site and resource identities ending in a line break are rejected.
 - A non-string management `sort` filter is refused as invalid input instead of raising a type error.
 - Public navigation loads only navigable pages.
-- A parent identifier given in another letter case is stored canonically and can no longer make a page its own parent on MySQL or PostgreSQL.
+- A parent identifier given in another letter case is stored canonically and can no longer make a page its own parent.
 - A malformed page identifier is treated as not found by update, move, delete and restore on every database driver.
 - The configured page model's capabilities are validated on first use of the model registry instead of on every boot.
 

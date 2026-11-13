@@ -6,6 +6,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
+use Nvl\Ownership\Tests\Fixtures\OptsIntoAdoptedSchemaReuse;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Enums\PageAbility;
 use Nvl\Pages\Events\PageChanged;
@@ -19,6 +20,8 @@ use Nvl\Pages\Tests\Fixtures\OwnershipPage;
 use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Enums\SystemActor;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+
+uses(OptsIntoAdoptedSchemaReuse::class);
 
 it('uses the configured subclass throughout writes translations tree relations and native identity', function (): void {
     $this->owned(7, function (): void {

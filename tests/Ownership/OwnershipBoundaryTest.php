@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
+use Nvl\Ownership\Tests\Fixtures\OptsIntoAdoptedSchemaReuse;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Services\PageModelRegistry;
@@ -13,6 +14,8 @@ use Nvl\Pages\Tests\Fixtures\Consumer\Data\Mutations\CreatePageData;
 use Nvl\Pages\Tests\Fixtures\Consumer\Data\PageActorData;
 use Nvl\Pages\Tests\Fixtures\OwnershipPage;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
+
+uses(OptsIntoAdoptedSchemaReuse::class);
 
 it('partitions equal page keys slugs paths and inherited copy while rejecting foreign parents', function (): void {
     $pages = [];
@@ -38,7 +41,7 @@ it('keeps ownership tree locks independent from released tenant lock rows', func
     $this->owned(7, function (): void {
         expect(app(CreatePageAction::class)->execute(new CreatePageData(key: 'legacy-lock', slug: 'legacy-lock'), PageActorData::system())->key)->toBe('legacy-lock');
     });
-});
+})->group('fresh-adoption');
 
 it('enforces owner and site on raw native tree references', function (): void {
     $a = $this->owned(7, fn () => app(CreatePageAction::class)->execute(new CreatePageData(key: 'raw-a', slug: 'a'), PageActorData::system()));
@@ -57,4 +60,4 @@ it('reports a missing owner tree lock table before management traffic uses it', 
         expect($report['table.owner_tree_locks'])->toBeFalse()
             ->and($report['healthy'])->toBeFalse();
     });
-});
+})->group('fresh-adoption');

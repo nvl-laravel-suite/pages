@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Nvl\Content\Providers\ContentServiceProvider;
 use Nvl\Metafields\Providers\MetafieldsServiceProvider;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Definitions\Tables\PagesTables;
 use Nvl\Pages\Enums\PageKind;
 use Nvl\Pages\Enums\PageStatus;
-use Nvl\Pages\Models\Page;
 use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Providers\SeoServiceProvider;
 use Nvl\Support\Integrations\OptionalIntegration;
+use stdClass;
 
 /**
  * Performs non-mutating installation, registry, route, and hierarchy diagnostics.
@@ -43,26 +44,32 @@ final class PagesDoctor
         $resources = $this->resources;
         $authorization = $this->authorization;
 
-        $schema = Schema::connection(PagesConfiguration::connection());
+        $connection = PageModelRegistry::newInstance()->getConnection();
+        $schema = $connection->getSchemaBuilder();
         $pages = PagesConfiguration::table(PagesTables::get(PagesTables::Pages), PagesTables::get(PagesTables::Pages));
         $i18n = PagesConfiguration::table(PagesTables::get(PagesTables::I18n), PagesTables::get(PagesTables::I18n));
         $treeLocks = PagesConfiguration::table(PagesTables::get(PagesTables::TreeLocks), PagesTables::get(PagesTables::TreeLocks));
+        $pagesTableExists = $this->probe($connection, static fn (): bool => $schema->hasTable($pages));
+        $i18nTableExists = $this->probe($connection, static fn (): bool => $schema->hasTable($i18n));
+        $treeLocksTableExists = $this->probe($connection, static fn (): bool => $schema->hasTable($treeLocks));
         $checks = [
             'integrations.content' => $this->integrations->check('pages.integrations.content', ContentServiceProvider::class),
             'integrations.seo' => $this->integrations->check('pages.integrations.seo', SeoServiceProvider::class),
             'integrations.metafields' => $this->integrations->check('pages.integrations.metafields', MetafieldsServiceProvider::class),
-            'table.pages' => $schema->hasTable($pages),
-            'table.pages_i18n' => $schema->hasTable($i18n),
-            'table.page_tree_locks' => $schema->hasTable($treeLocks),
+            'table.pages' => $pagesTableExists,
+            'table.pages_i18n' => $i18nTableExists,
+            'table.page_tree_locks' => $treeLocksTableExists,
             'hierarchy.maximum_depth' => PagesConfiguration::maximumDepth(),
             'resources' => $resources->aliases(),
         ];
 
         if (PagesOwnership::declared()) {
-            $checks['table.owner_tree_locks'] = $schema->hasTable(PagesTables::get(PagesTables::OwnerTreeLocks));
+            $ownerTreeLocks = PagesTables::get(PagesTables::OwnerTreeLocks);
+            $checks['table.owner_tree_locks'] = $this->probe($connection, static fn (): bool => $schema->hasTable($ownerTreeLocks));
         }
 
-        if ($schema->hasTable($pages)) {
+        if ($pagesTableExists) {
+            $existingPageColumns = $this->probe($connection, static fn (): array => $schema->getColumnListing($pages));
             $required = [
                 'id',
                 'parent_id',
@@ -78,92 +85,120 @@ final class PagesDoctor
             ];
 
             foreach ($required as $column) {
-                $checks["column.pages.{$column}"] = $schema->hasColumn($pages, $column);
+                $checks["column.pages.{$column}"] = in_array($column, $existingPageColumns, true);
             }
 
-            $pageRows = PageModelRegistry::query()
-                ->withTrashed()
-                ->get([
-                    'id',
-                    'parent_id',
-                    'parent_key',
-                    'site',
-                    'slug',
-                    'path',
-                    'path_hash',
-                ]);
-            $checks['data.path_hash_drift'] = $pageRows->contains(
-                static fn (Page $page): bool => ! hash_equals(
-                    $page->path_hash,
-                    PagePath::hash($page->site, $page->path),
-                ),
-            );
-            $hierarchy = $this->hierarchyIssues($pageRows);
-            $checks['data.excessive_depth'] = $hierarchy['excessive_depth'];
-            $checks['data.cycle'] = $hierarchy['cycle'];
-            $checks['data.orphaned_parent'] = $hierarchy['orphaned_parent'];
-            $checks['data.parent_site_drift'] = $hierarchy['parent_site_drift'];
-            $checks['data.parent_key_drift'] = $hierarchy['parent_key_drift'];
-            $checks['data.parent_path_drift'] = $hierarchy['parent_path_drift'];
-            $checks['data.unknown_resource'] = PageModelRegistry::query()
-                ->withTrashed()
-                ->where('kind', PageKind::Resource)
-                ->whereNotNull('resource')
-                ->pluck('resource')
-                ->filter(
-                    static fn (mixed $alias): bool => is_string($alias)
-                        && ! $resources->has($alias),
+            $hierarchyColumns = ['id', 'parent_id', 'parent_key', 'site', 'slug', 'path', 'path_hash'];
+            if (array_diff($hierarchyColumns, $existingPageColumns) === []) {
+                $pageRows = $this->probe(
+                    $connection,
+                    static fn (): Collection => $connection->table($pages)->get($hierarchyColumns),
+                );
+                $checks['data.path_hash_drift'] = $pageRows->contains(
+                    static fn (stdClass $page): bool => ! is_string($page->path_hash ?? null)
+                        || ! is_string($page->site ?? null)
+                        || ! is_string($page->path ?? null)
+                        || ! hash_equals(
+                            $page->path_hash,
+                            PagePath::hash($page->site, $page->path),
+                        ),
+                );
+                $hierarchy = $this->hierarchyIssues($pageRows);
+                $checks['data.excessive_depth'] = $hierarchy['excessive_depth'];
+                $checks['data.cycle'] = $hierarchy['cycle'];
+                $checks['data.orphaned_parent'] = $hierarchy['orphaned_parent'];
+                $checks['data.parent_site_drift'] = $hierarchy['parent_site_drift'];
+                $checks['data.parent_key_drift'] = $hierarchy['parent_key_drift'];
+                $checks['data.parent_path_drift'] = $hierarchy['parent_path_drift'];
+            } else {
+                $checks['data.path_hash_drift'] = true;
+                $checks['data.excessive_depth'] = false;
+                $checks['data.cycle'] = false;
+                $checks['data.orphaned_parent'] = false;
+                $checks['data.parent_site_drift'] = false;
+                $checks['data.parent_key_drift'] = true;
+                $checks['data.parent_path_drift'] = false;
+            }
+
+            if (in_array('kind', $existingPageColumns, true) && in_array('resource', $existingPageColumns, true)) {
+                $checks['data.unknown_resource'] = $this->probe(
+                    $connection,
+                    static fn (): bool => $connection->table($pages)
+                        ->where('kind', PageKind::Resource->value)
+                        ->whereNotNull('resource')
+                        ->pluck('resource')
+                        ->filter(
+                            static fn (mixed $alias): bool => is_string($alias)
+                                && ! $resources->has($alias),
+                        )
+                        ->isNotEmpty(),
+                );
+                $checks['data.invalid_kind_resource'] = $this->probe(
+                    $connection,
+                    static fn (): bool => $connection->table($pages)
+                        ->where(static function (Builder $query): void {
+                            $query
+                                ->where(static function (Builder $query): void {
+                                    $query
+                                        ->where('kind', PageKind::Static->value)
+                                        ->whereNotNull('resource');
+                                })
+                                ->orWhere(static function (Builder $query): void {
+                                    $query
+                                        ->where('kind', PageKind::Resource->value)
+                                        ->whereNull('resource');
+                                });
+                        })
+                        ->exists(),
+                );
+            } else {
+                $checks['data.unknown_resource'] = true;
+                $checks['data.invalid_kind_resource'] = true;
+            }
+
+            $checks['data.invalid_status'] = in_array('status', $existingPageColumns, true)
+                ? $this->probe(
+                    $connection,
+                    static fn (): bool => $connection->table($pages)
+                        ->whereNotIn('status', array_column(PageStatus::cases(), 'value'))
+                        ->exists(),
                 )
-                ->isNotEmpty();
-            $checks['data.invalid_kind_resource'] = PageModelRegistry::query()
-                ->withTrashed()
-                ->where(static function ($query): void {
-                    $query
-                        ->where(static function ($query): void {
+                : true;
+
+            $checks['data.invalid_lifecycle_dates'] = array_diff(['status', 'published_at', 'expires_at'], $existingPageColumns) === []
+                ? $this->probe(
+                    $connection,
+                    static fn (): bool => $connection->table($pages)
+                        ->where(static function (Builder $query): void {
                             $query
-                                ->where('kind', PageKind::Static)
-                                ->whereNotNull('resource');
+                                ->where(static function (Builder $query): void {
+                                    $query
+                                        ->where('status', PageStatus::Scheduled->value)
+                                        ->whereNull('published_at');
+                                })
+                                ->orWhere(static function (Builder $query): void {
+                                    $query
+                                        ->whereNotNull('published_at')
+                                        ->whereNotNull('expires_at')
+                                        ->whereColumn('expires_at', '<=', 'published_at');
+                                });
                         })
-                        ->orWhere(static function ($query): void {
-                            $query
-                                ->where('kind', PageKind::Resource)
-                                ->whereNull('resource');
-                        });
-                })
-                ->exists();
-            $checks['data.invalid_status'] = PageModelRegistry::query()
-                ->withTrashed()
-                ->whereNotIn('status', array_column(PageStatus::cases(), 'value'))
-                ->exists();
-            $checks['data.invalid_lifecycle_dates'] = PageModelRegistry::query()
-                ->withTrashed()
-                ->where(static function ($query): void {
-                    $query
-                        ->where(static function ($query): void {
-                            $query
-                                ->where('status', PageStatus::Scheduled)
-                                ->whereNull('published_at');
-                        })
-                        ->orWhere(static function ($query): void {
-                            $query
-                                ->whereNotNull('published_at')
-                                ->whereNotNull('expires_at')
-                                ->whereColumn('expires_at', '<=', 'published_at');
-                        });
-                })
-                ->exists();
+                        ->exists(),
+                )
+                : true;
         }
 
-        if ($schema->hasTable($i18n)) {
+        if ($i18nTableExists) {
+            $existingI18nColumns = $this->probe($connection, static fn (): array => $schema->getColumnListing($i18n));
             foreach (['id', 'page_id', 'locale', 'title'] as $column) {
-                $checks["column.pages_i18n.{$column}"] = $schema->hasColumn($i18n, $column);
+                $checks["column.pages_i18n.{$column}"] = in_array($column, $existingI18nColumns, true);
             }
         }
 
-        if ($schema->hasTable($treeLocks)) {
-            $checks['column.page_tree_locks.site'] = $schema->hasColumn(
-                $treeLocks,
-                'site',
+        if ($treeLocksTableExists) {
+            $checks['column.page_tree_locks.site'] = $this->probe(
+                $connection,
+                static fn (): bool => $schema->hasColumn($treeLocks, 'site'),
             );
         }
 
@@ -186,7 +221,7 @@ final class PagesDoctor
     /**
      * Return all hierarchy integrity flags in one bounded in-memory tree pass.
      *
-     * @param  Collection<int, Page>  $pages
+     * @param  Collection<int, stdClass>  $pages
      * @return array{
      * excessive_depth: bool,
      * cycle: bool,
@@ -224,16 +259,18 @@ final class PagesDoctor
             $cursor = $page;
 
             while ($cursor->parent_id !== null) {
-                if (isset($visited[$cursor->id])) {
+                $cursorId = is_string($cursor->id) || is_int($cursor->id) ? (string) $cursor->id : '';
+                if (isset($visited[$cursorId])) {
                     $issues['cycle'] = true;
 
                     break;
                 }
 
-                $visited[$cursor->id] = true;
-                $parent = $byId->get($cursor->parent_id);
+                $visited[$cursorId] = true;
+                $parentId = is_string($cursor->parent_id) || is_int($cursor->parent_id) ? $cursor->parent_id : null;
+                $parent = $parentId !== null ? $byId->get($parentId) : null;
 
-                if (! $parent instanceof Page) {
+                if (! $parent instanceof stdClass) {
                     $issues['orphaned_parent'] = true;
 
                     break;
@@ -243,7 +280,9 @@ final class PagesDoctor
                     $issues['parent_site_drift'] = true;
                 }
 
-                if ($cursor->path !== $parent->path.'/'.$cursor->slug) {
+                $parentPath = is_string($parent->path) ? $parent->path : '';
+                $cursorSlug = is_string($cursor->slug) ? $cursor->slug : '';
+                if ($cursor->path !== $parentPath.'/'.$cursorSlug) {
                     $issues['parent_path_drift'] = true;
                 }
 
@@ -257,5 +296,20 @@ final class PagesDoctor
         }
 
         return $issues;
+    }
+
+    /**
+     * Execute a read-only database probe inside a savepoint when an outer transaction is active.
+     *
+     * @template TResult
+     *
+     * @param  callable(): TResult  $operation
+     * @return TResult
+     */
+    private function probe(ConnectionInterface $connection, callable $operation): mixed
+    {
+        return $connection->transactionLevel() > 0
+            ? $connection->transaction(static fn () => $operation())
+            : $operation();
     }
 }

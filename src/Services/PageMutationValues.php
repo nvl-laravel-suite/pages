@@ -87,8 +87,8 @@ final readonly class PageMutationValues
         $normalized = [];
 
         foreach ($translations as $locale => $values) {
-            if (isset($values['navigationLabel'])
-                && ! isset($values['navigation_label'])) {
+            if (array_key_exists('navigationLabel', $values)
+                && ! array_key_exists('navigation_label', $values)) {
                 $values['navigation_label'] = $values['navigationLabel'];
                 unset($values['navigationLabel']);
             }

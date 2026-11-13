@@ -116,3 +116,24 @@ it('treats a malformed page identifier as not found in every lifecycle operation
         ->and(fn () => $lifecycle->delete('not-a-uuid', 1, $actor))->toThrow(ModelNotFoundException::class)
         ->and(fn () => $lifecycle->restore('not-a-uuid', 1, $actor))->toThrow(ModelNotFoundException::class);
 });
+
+it('clears a localized navigation label when camelCase navigationLabel is explicitly null', function (): void {
+    $lifecycle = app(PageLifecycle::class);
+    $actor = SystemActor::Background;
+    $page = $lifecycle->create([
+        'key' => 'nav-clear',
+        'slug' => 'nav-clear',
+        'translations' => ['en' => ['title' => 'About Us', 'navigationLabel' => 'About']],
+    ], $actor);
+
+    expect($page->translated('navigation_label', 'en'))->toBe('About');
+
+    $updated = $lifecycle->update($page, [
+        'slug' => 'nav-clear',
+        'kind' => 'static',
+        'status' => 'draft',
+        'translations' => ['en' => ['title' => 'About Us', 'navigationLabel' => null]],
+    ], $page->revision, $actor);
+
+    expect($updated->translated('navigation_label', 'en'))->toBeNull();
+});

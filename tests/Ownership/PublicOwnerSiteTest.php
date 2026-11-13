@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Nvl\Ownership\Contracts\OwnerSiteResolver;
 use Nvl\Ownership\Services\OwnerIdentityResolver;
 use Nvl\Ownership\Services\PublicOwnerSiteRunner;
+use Nvl\Ownership\Tests\Fixtures\OptsIntoAdoptedSchemaReuse;
 use Nvl\Pages\Contracts\PageAuthorization;
 use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Services\PageReader;
@@ -18,6 +19,8 @@ use Nvl\Seo\Services\SitemapGenerator;
 use Nvl\Support\Enums\PublicActor;
 use Nvl\Support\Ownership\Exceptions\OwnershipViolation;
 use Nvl\Support\Ownership\ValueObjects\VerifiedOwnerSiteContext;
+
+uses(OptsIntoAdoptedSchemaReuse::class);
 
 beforeEach(function (): void {
     $this->app->bind(OwnerSiteResolver::class, static fn () => new class implements OwnerSiteResolver

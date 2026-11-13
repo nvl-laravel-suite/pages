@@ -5,9 +5,17 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [7.0.4] - 2026-11-13
+
 ### Fixed
 
 - Harden page hierarchy cycle and prefix handling, mutation value normalization, and `PagesDoctor` diagnostics.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- harden package runtime safety, PostgreSQL portability and test performance
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.0.3] - 2026-11-11
 

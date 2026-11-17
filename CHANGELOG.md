@@ -5,6 +5,8 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+## [7.3.0] - 2026-11-17
+
 ### Fixed
 
 - Changing the publication or expiration timestamp of a Published or Scheduled page now requires `Publish` authority even when the status is unchanged; an `Update`-only actor can no longer bring a scheduled page live early or extend a live window.
@@ -17,6 +19,12 @@ All notable changes to `nvl/pages` are documented here.
 
 - `published_at` and `expires_at` are stored and read as UTC. Hosts with a non-UTC `app.timezone` must convert existing rows; see UPGRADING.
 - `PublicChildPageOrder::Newest` orders dated pages by publication timestamp first, then undated pages by creation time, so it never compares a UTC publication instant with an application-timezone creation wall clock.
+
+<!-- NVL GENERATED CHANGES START -->
+### Changed
+
+- consumer-audit fixes across the suite, UTC timestamps, core/forms release ordering
+<!-- NVL GENERATED CHANGES END -->
 
 ## [7.2.0] - 2026-11-17
 

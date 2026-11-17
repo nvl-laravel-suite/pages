@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -163,7 +164,13 @@ final readonly class PageLifecycle
                     }
 
                     $this->authorization->authorize(PageAbility::Update, $actor, $page);
-                    $lifecycleAbility = $this->ability($page->status, $data['status']);
+                    $dates = $this->values->dates(
+                        $data['status'],
+                        $data['publishedAt'],
+                        $data['expiresAt'],
+                    );
+                    $lifecycleAbility = $this->ability($page->status, $data['status'])
+                        ?? ($this->publicationWindowChanged($page, $dates) ? PageAbility::Publish : null);
 
                     if ($lifecycleAbility instanceof PageAbility) {
                         $this->authorization->authorize($lifecycleAbility, $actor, $page);
@@ -171,11 +178,6 @@ final readonly class PageLifecycle
 
                     $this->values->assertKind($data['kind'], $data['resource']);
                     $this->hierarchy->assertValid($page->site, $page->parent_id, $pageId);
-                    $dates = $this->values->dates(
-                        $data['status'],
-                        $data['publishedAt'],
-                        $data['expiresAt'],
-                    );
                     $originalPath = $page->path;
                     $page->fill([
                         'slug' => $data['slug'],
@@ -194,7 +196,10 @@ final readonly class PageLifecycle
                         'sitemap_change_frequency' => $data['sitemapChangeFrequency'],
                         'published_at' => $dates['published_at'],
                         'expires_at' => $dates['expires_at'],
-                    ])->save();
+                    ]);
+                    if ($page->save() !== true) {
+                        throw new InvalidPageMutationException('A model observer cancelled the page write.');
+                    }
                     $descendants = $page->path !== $originalPath
                         ? $this->hierarchy->rebuildDescendantPaths($page)
                         : [];
@@ -267,7 +272,9 @@ final readonly class PageLifecycle
                         $data['parentId'],
                         $page->slug,
                     );
-                    $page->save();
+                    if ($page->save() !== true) {
+                        throw new InvalidPageMutationException('A model observer cancelled the page write.');
+                    }
                     $descendants = $page->path !== $originalPath
                         ? $this->hierarchy->rebuildDescendantPaths($page)
                         : [];
@@ -382,7 +389,9 @@ final readonly class PageLifecycle
                     $this->authorization->authorize(PageAbility::Restore, $actor, $page);
                     $this->hierarchy->assertValid($page->site, $page->parent_id, $page->id);
                     $page->path = $this->hierarchy->path($page->site, $page->parent_id, $page->slug);
-                    $page->restore();
+                    if ($page->restore() !== true) {
+                        throw new InvalidPageMutationException('A model observer cancelled the page write.');
+                    }
                     $this->domainEvents->dispatch(new PageChanged(
                         $page->id,
                         $page->site,
@@ -412,6 +421,19 @@ final readonly class PageLifecycle
                 ? PageAbility::Publish
                 : null,
         };
+    }
+
+    /** A live or scheduled page changes its public exposure when either window edge moves.
+     * @param  array{published_at: ?CarbonImmutable, expires_at: ?CarbonImmutable}  $dates
+     */
+    private function publicationWindowChanged(Page $page, array $dates): bool
+    {
+        if (! in_array($page->status, [PageStatus::Published, PageStatus::Scheduled], true)) {
+            return false;
+        }
+
+        return $page->published_at?->getTimestamp() !== $dates['published_at']?->getTimestamp()
+            || $page->expires_at?->getTimestamp() !== $dates['expires_at']?->getTimestamp();
     }
 
     /** @param array<string,mixed> $attributes

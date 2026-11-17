@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nvl\Pages\Services;
 
+use Nvl\Pages\Exceptions\InvalidPageMutationException;
 use Nvl\Pages\Exceptions\PageHierarchyException;
 use Nvl\Pages\Models\Page;
 use Nvl\Pages\Support\PagesConfiguration;
@@ -110,7 +111,9 @@ final class PageHierarchy
                     $path = $parents[$child->parent_id ?? throw new PageHierarchyException('A descendant must have a parent.')].'/'.$child->slug;
                     if ($child->path !== $path) {
                         $child->path = $path;
-                        $child->save();
+                        if ($child->save() !== true) {
+                            throw new InvalidPageMutationException('A model observer cancelled the page write.');
+                        }
                         if (! $child->trashed()) {
                             $changed[] = $child;
                         }

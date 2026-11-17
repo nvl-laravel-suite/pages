@@ -23,6 +23,7 @@ use Nvl\Pages\Enums\PageStatus;
 use Nvl\Pages\Models\Concerns\GuardsTenantOwnership;
 use Nvl\Pages\Ownership\PagesOwnership;
 use Nvl\Pages\Services\PageModelRegistry;
+use Nvl\Pages\Support\PageInstantCast;
 use Nvl\Pages\Support\PagePath;
 use Nvl\Pages\Support\PagesConfiguration;
 use Nvl\Seo\Enums\SitemapChangeFrequency;
@@ -203,8 +204,8 @@ class Page extends Model implements Ownable, TranslatableModel
             'sitemap_included' => 'boolean',
             'sitemap_priority' => 'decimal:1',
             'sitemap_change_frequency' => enum_exists(SitemapChangeFrequency::class) ? SitemapChangeFrequency::class : 'string',
-            'published_at' => 'datetime',
-            'expires_at' => 'datetime',
+            'published_at' => PageInstantCast::class,
+            'expires_at' => PageInstantCast::class,
             'revision' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
@@ -234,11 +235,13 @@ class Page extends Model implements Ownable, TranslatableModel
     /**
      * Restrict queries to pages that may resolve publicly at the supplied instant.
      *
+     * Lifecycle timestamps are stored in UTC, so the instant is compared in UTC.
+     *
      * @param  Builder<static>  $query
      */
     public function scopePubliclyVisible(Builder $query, ?Carbon $at = null): void
     {
-        $at ??= now();
+        $at = ($at ?? now())->toImmutable()->utc();
         $query
             ->where(static function (Builder $query) use ($at): void {
                 $query

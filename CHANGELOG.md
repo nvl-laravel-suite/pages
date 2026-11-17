@@ -5,6 +5,19 @@ All notable changes to `nvl/pages` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Changing the publication or expiration timestamp of a Published or Scheduled page now requires `Publish` authority even when the status is unchanged; an `Update`-only actor can no longer bring a scheduled page live early or extend a live window.
+- A model observer that cancels a page save or restore, including a descendant path rebuild or a creation, now rolls back the whole operation with `InvalidPageMutationException`; previously dependent paths and translations were still written and restore reported success.
+- Publication and expiration timestamps keep the supplied instant inside a daylight-saving overlap: they are stored and compared in UTC instead of as an ambiguous application-timezone wall clock.
+- Lifecycle windows are validated at the stored second precision, so sub-second windows are rejected instead of persisting equal timestamps that Doctor reports as invalid.
+- `nvl:pages:doctor --strict` now fails when a required unique constraint (key, sibling slug, path hash, translation locale, or its owner-scoped adoption replacement) is missing.
+
+### Changed
+
+- `published_at` and `expires_at` are stored and read as UTC. Hosts with a non-UTC `app.timezone` must convert existing rows; see UPGRADING.
+- `PublicChildPageOrder::Newest` orders dated pages by publication timestamp first, then undated pages by creation time, so it never compares a UTC publication instant with an application-timezone creation wall clock.
+
 ## [7.2.0] - 2026-11-17
 
 ### Changed

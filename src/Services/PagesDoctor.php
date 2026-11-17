@@ -6,6 +6,7 @@ namespace Nvl\Pages\Services;
 
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Schema\Builder as SchemaBuilder;
 use Illuminate\Support\Collection;
 use Nvl\Content\Providers\ContentServiceProvider;
 use Nvl\Metafields\Providers\MetafieldsServiceProvider;
@@ -87,6 +88,8 @@ final class PagesDoctor
             foreach ($required as $column) {
                 $checks["column.pages.{$column}"] = in_array($column, $existingPageColumns, true);
             }
+
+            $checks += $this->uniqueIdentities($connection, $schema, $pages, 'pages', [['key'], ['site', 'parent_key', 'slug'], ['site', 'path_hash']]);
 
             $hierarchyColumns = ['id', 'parent_id', 'parent_key', 'site', 'slug', 'path', 'path_hash'];
             if (array_diff($hierarchyColumns, $existingPageColumns) === []) {
@@ -193,6 +196,8 @@ final class PagesDoctor
             foreach (['id', 'page_id', 'locale', 'title'] as $column) {
                 $checks["column.pages_i18n.{$column}"] = in_array($column, $existingI18nColumns, true);
             }
+
+            $checks += $this->uniqueIdentities($connection, $schema, $i18n, 'pages_i18n', [['page_id', 'locale']]);
         }
 
         if ($treeLocksTableExists) {
@@ -207,6 +212,7 @@ final class PagesDoctor
                 $key === 'integrations.metafields' => is_array($value) && ($value['passed'] ?? false) === true,
                 str_starts_with($key, 'table.') => $value === true,
                 str_starts_with($key, 'column.') => $value === true,
+                str_starts_with($key, 'index.') => $value === true,
                 str_starts_with($key, 'data.') => $value === false,
                 str_ends_with($key, '.middleware') => $value === true,
                 $key === 'routes.management.authorization' => $value === true,
@@ -214,6 +220,29 @@ final class PagesDoctor
             },
         );
         $checks['healthy'] = $healthy;
+
+        return $checks;
+    }
+
+    /**
+     * Report whether each identity is enforced by a unique index, owner-scoped once ownership is declared.
+     *
+     * @param  list<list<string>>  $identities
+     * @return array<string, bool>
+     */
+    private function uniqueIdentities(ConnectionInterface $connection, SchemaBuilder $schema, string $table, string $label, array $identities): array
+    {
+        $unique = [];
+        foreach ($this->probe($connection, static fn (): array => $schema->getIndexes($table)) as $index) {
+            if ($index['unique']) {
+                $unique[] = $index['columns'];
+            }
+        }
+        $checks = [];
+        foreach ($identities as $identity) {
+            $checks["index.{$label}.".implode('_', $identity)] = in_array($identity, $unique, true)
+                || (PagesOwnership::declared() && in_array(['owner_scope_key', ...$identity], $unique, true));
+        }
 
         return $checks;
     }

@@ -122,7 +122,8 @@ final readonly class PageReader
         match ($order) {
             PublicChildPageOrder::Sibling => $query->ordered(),
             PublicChildPageOrder::Newest => $query
-                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->orderByRaw('published_at DESC NULLS LAST')
+                ->orderByDesc('created_at')
                 ->orderBy('position')
                 ->orderBy('id'),
         };

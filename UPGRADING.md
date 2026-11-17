@@ -2,6 +2,20 @@
 
 Lifecycle operations and authenticated readers now refresh canonical Eloquent actors before host policy checks. External identity providers retain their own freshness contract; private previews still require persisted Eloquent actors. Update, move, delete and restore derive their initial site-tree lock from persisted Page state. Locks and lifecycle transactions use the configured model's actual connection. These changes require no schema migration.
 
+## Unreleased: UTC lifecycle timestamps and stricter readiness
+
+`published_at` and `expires_at` are now stored as UTC instants at second precision and read back as UTC `Carbon` instances. Earlier releases stored the application-timezone wall clock. Hosts whose `app.timezone` has always been `UTC` need no data change. Any other host must convert existing rows once, during a write freeze and before serving the new release, using the timezone the rows were written under. On PostgreSQL:
+
+```sql
+UPDATE nvl_pages_pages
+SET published_at = (published_at AT TIME ZONE 'Europe/Sofia') AT TIME ZONE 'UTC',
+    expires_at = (expires_at AT TIME ZONE 'Europe/Sofia') AT TIME ZONE 'UTC';
+```
+
+On SQLite, read each raw value, parse it with `Carbon::parse($raw, $timezone)` and write `->utc()->format('Y-m-d H:i:s')`. Substitute your configured table name and timezone. A wall clock written inside a daylight-saving overlap was already ambiguous; the conversion picks one offset, so review scheduled pages in that hour. Code that formats these attributes without `->setTimezone(...)` now sees UTC values; the instants are unchanged. `PublicChildPageOrder::Newest` now orders pages with a publication timestamp first, newest first, followed by undated pages, newest created first; it no longer interleaves the two, because `created_at` keeps the application-timezone wall clock.
+
+`publishedAt`/`expiresAt` fractions of a second are truncated before validation, so a window shorter than one whole second is rejected instead of stored as an invalid equal pair. Changing either timestamp of a Published or Scheduled page now requires `Publish` authority in addition to `Update`; grant it to editors who reschedule live pages. A model observer that cancels a page save or restore now aborts the operation with `InvalidPageMutationException` instead of committing partial tree or translation changes. `nvl:pages:doctor --strict` now fails when the unique key, sibling-slug, path-hash or translation-locale constraint is missing; restore any constraint dropped by a host migration.
+
 ## NVL Light native services
 
 Target Laravel 13 and Testbench 11. Replace package Actions/workflow interfaces and Data payloads with `PageLifecycle`, `PageReader` and `PageResolver`. Consumers own their Actions, DTOs, HTTP routes, preview transport and editor/Content/SEO response assembly. Native mutations accept documented arrays and explicit actors, retain complete replacement/revision semantics, and return canonical models. Resource handler requests and projections use the retained documented array schemas.

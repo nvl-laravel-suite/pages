@@ -7,6 +7,7 @@ namespace Nvl\Pages\Services;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
+use Nvl\Pages\Exceptions\InvalidPageMutationException;
 use Nvl\Pages\Models\Page;
 use Nvl\Support\Models\ConfiguredModelRegistration;
 use Nvl\Support\OwnerRegistry;
@@ -99,7 +100,9 @@ final class PageModelRegistry
     {
         return app(OwnershipWriter::class)->create(self::modelClass(), static function (array $ownership) use ($attributes): Page {
             $model = self::newInstance();
-            $model->forceFill([...$attributes, ...$ownership])->save();
+            if ($model->forceFill([...$attributes, ...$ownership])->save() !== true) {
+                throw new InvalidPageMutationException('A model observer cancelled the page write.');
+            }
 
             return $model;
         });

@@ -12,5 +12,6 @@ namespace Nvl\Pages\Enums;
 enum PublicChildPageOrder: string
 {
     case Sibling = 'sibling';
+    /** Publication timestamp first, newest first; undated pages follow, newest created first. */
     case Newest = 'newest';
 }

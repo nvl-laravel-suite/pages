@@ -48,7 +48,13 @@ Create requires `key` and `slug`; it accepts `parentId`, `site`, `kind`, `resour
 `status`, `position`, `isNavigable`, `sitemapIncluded`, `sitemapPriority`,
 `sitemapChangeFrequency`, `publishedAt`, `expiresAt`, `translations`.
 Draft is the initial default. Kind values are `static` and `resource`; status
-values are `draft`, `scheduled`, `published`, `archived`.
+values are `draft`, `scheduled`, `published`, `archived`. `publishedAt` and
+`expiresAt` are stored as UTC instants at second precision; a string without an
+offset is read in the application timezone, and expiration must follow publication
+by at least one whole second. Changing either timestamp of a Published or Scheduled
+page requires `Publish` authority, even without a status change.
+`PublicChildPageOrder::Newest` lists dated pages by publication timestamp, newest
+first, followed by undated pages, newest created first.
 
 Update requires `slug`, `kind`, `status`. It replaces editable state with defaults
 for omitted fields; it does not preserve omitted navigation, sitemap, dates or

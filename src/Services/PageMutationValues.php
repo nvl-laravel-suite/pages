@@ -69,11 +69,11 @@ final readonly class PageMutationValues
     }
 
     /**
-     * Parse one timestamp into the application timezone, because Eloquent stores the wall clock it is given.
+     * Parse one timestamp as a UTC instant at the stored second precision, so validation sees the persisted window.
      */
     private function instant(string $timestamp): CarbonImmutable
     {
-        return CarbonImmutable::parse($timestamp)->setTimezone(date_default_timezone_get());
+        return CarbonImmutable::parse($timestamp)->utc()->startOfSecond();
     }
 
     /**
